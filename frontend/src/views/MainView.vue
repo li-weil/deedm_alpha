@@ -1,21 +1,23 @@
 <template>
+  <!-- 相当于HTML的div容器，包含整个页面内容 -->
   <div class="main-view">
-    <!-- 顶部导航栏 -->
+    <!-- 顶部导航栏 - 类似HTML的header，使用Element Plus组件库 -->
     <el-header class="header">
+      <!-- 水平菜单，类似HTML的nav -->
       <el-menu
-        mode="horizontal"
-        :default-active="activeMenu"
+        mode="horizontal"  
+        :default-active="activeMenu" 
         class="main-menu"
-        @select="handleMenuSelect"
+        @select="handleMenuSelect" 
       >
-        <!-- 命题逻辑菜单 -->
+        <!-- 命题逻辑菜单 - 可展开的子菜单，类似HTML的dropdown -->
         <el-sub-menu index="propositional-logic">
-          <template #title>命题逻辑</template>
-          <el-menu-item index="truth-table">构造公式真值表</el-menu-item>
+          <template #title>命题逻辑</template>  <!-- 子菜单标题 -->
+          <el-menu-item index="truth-table">构造公式真值表</el-menu-item>  <!-- 菜单项，点击触发index="truth-table" -->
           <el-menu-item index="normal-form">扩展范式为主范式</el-menu-item>
         </el-sub-menu>
 
-        <!-- 集合关系函数菜单 -->
+        <!-- 集合关系函数菜单 - 另一个可展开的子菜单 -->
         <el-sub-menu index="set-relation-function">
           <template #title>集合关系函数</template>
           <el-menu-item index="set-operations">集合运算</el-menu-item>
@@ -29,71 +31,101 @@
       </el-menu>
     </el-header>
 
-    <!-- 主要内容区域 - 左右分屏 -->
+    <!-- 主要内容区域 - 左右分屏布局，类似HTML的main -->
     <el-container class="main-container">
-      <!-- 左侧面板 - 公式内容 -->
-      <el-aside class="left-panel" @wheel="handleLeftWheel">
+      <!-- 左侧面板 - 显示公式内容，类似HTML的aside侧边栏 -->
+      <el-aside class="left-panel" @wheel="handleLeftWheel">  <!-- 监听鼠标滚轮事件 -->
         <div class="panel-header">
           <h3>公式内容</h3>
+          <!-- 按钮，点击时调用clearFormulaContent函数 -->
           <el-button size="small" type="warning" @click="clearFormulaContent">
-            <el-icon><Delete /></el-icon>
+            <el-icon><Delete /></el-icon>  <!-- 删除图标 -->
             清空
           </el-button>
         </div>
-        <div class="panel-content" ref="leftContent">
+        <div class="panel-content" ref="leftContent">  <!-- DOM元素引用，用于JavaScript操作 -->
           <!-- 公式内容将在这里显示 -->
           <div class="formula-display">
+            <!-- 数学公式渲染组件 -->
             <math-renderer
-              :formula="currentFormula"
-              :type="formulaType"
+              :formula="cleanFormulaForDisplay(currentFormula)"
+              :type="'katex'"
               :display-mode="true"
               @rendered="onFormulaRendered"
               @error="onFormulaError"
             />
           </div>
 
-          <!-- 显示所有公式和真值表 -->
+          <!-- 显示所有公式和真值表 - 条件渲染：只有当formulaResults数组有内容时才显示 -->
           <div v-if="formulaResults.length > 0" class="formula-results">
+            <!-- 循环遍历formulaResults数组，v-for类似for循环，:key用于Vue性能优化 -->
             <div v-for="(result, index) in formulaResults" :key="index" class="result-item">
               <div class="result-formula">
                 <strong>公式 {{ index + 1 }}: </strong>
+                <!-- 数学公式渲染组件 -->
                 <math-renderer
-                  :formula="result.formula"
-                  :type="'latex'"
+                  :formula="cleanFormulaForDisplay(result.formula)"
+                  :type="'katex'"
                   :display-mode="false"
                 />
               </div>
 
-              <!-- 显示真值表 -->
+              <!-- 显示真值表 - 优先使用新的LaTeX表格格式 -->
               <div class="truth-table">
-                <table class="truth-table-html">
-                  <thead>
-                    <tr>
-                      <th v-for="(header, headerIndex) in result.tableData.headers" :key="headerIndex" class="header-cell">
-                        <math-renderer
-                          :formula="header"
-                          :type="'latex'"
-                          :display-mode="false"
-                        />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(row, rowIndex) in result.tableData.rows" :key="rowIndex">
-                      <td v-for="(cell, cellIndex) in [...row.variableValues, row.resultValue]" :key="cellIndex" class="data-cell">
-                        <math-renderer
-                          :formula="cell"
-                          :type="'latex'"
-                          :display-mode="false"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <!-- 如果有latexTable，使用MathRenderer渲染 -->
+                <div v-if="result.tableData && result.tableData.latexTable" class="truth-table-container">
+                  <math-renderer
+                    :key="'main-table-' + index + '-' + Date.now()"
+                    :formula="result.tableData.latexTable"
+                    :type="'katex'"
+                    :display-mode="true"
+                    class="truth-table-content"
+                  />
+                </div>
+                <!-- 保持原有的HTML表格作为后备 -->
+                <div v-else-if="result.tableData && result.tableData.headers" class="truth-table-legacy">
+                  <table class="truth-table-html">
+                    <thead>  <!-- 表头 -->
+                      <tr>
+                        <!-- 循环生成表头单元格 -->
+                        <th v-for="(header, headerIndex) in result.tableData.headers" :key="headerIndex" class="header-cell">
+                          <math-renderer
+                            :formula="cleanFormulaForDisplay(header)"
+                            :type="'katex'"
+                            :display-mode="false"
+                          />
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>  <!-- 表格内容 -->
+                      <!-- 循环生成表格行 -->
+                      <tr v-for="(row, rowIndex) in result.tableData.rows" :key="rowIndex">
+                        <!-- 循环生成表格单元格：合并变量值和结果值 -->
+                        <td v-for="(cell, cellIndex) in [...row.variableValues, row.resultValue]" :key="cellIndex" class="data-cell">
+                          <math-renderer
+                            :formula="cleanFormulaForDisplay(cell)"
+                            :type="'katex'"
+                            :display-mode="false"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- 最终后备：显示原始truthTable字符串 -->
+                <div v-else-if="result.truthTable" class="truth-table-fallback">
+                  <math-renderer
+                    :formula="result.truthTable"
+                    :type="'katex'"
+                    :display-mode="true"
+                    class="truth-table-content"
+                  />
+                </div>
               </div>
 
-              <!-- 显示公式类型 -->
+              <!-- 显示公式类型 - 条件渲染：只有当result.formulaType存在时才显示 -->
               <div v-if="result.formulaType" class="formula-type">
+                <!-- 标签组件，显示公式类型（重言式、矛盾式等） -->
                 <el-tag :type="getFormulaTypeTag(result.formulaType)" class="type-tag">
                   {{ result.formulaType }}
                 </el-tag>
@@ -104,37 +136,43 @@
       </el-aside>
 
       <!-- 右侧面板 - LaTeX代码 -->
-      <el-aside class="right-panel" @wheel="handleRightWheel">
+      <el-aside class="right-panel" @wheel="handleRightWheel">  <!-- 监听鼠标滚轮事件 -->
         <div class="panel-header">
           <h3>LaTeX 代码</h3>
+          <!-- 清空按钮 -->
           <el-button size="small" type="warning" @click="clearLatexCode">
             <el-icon><Delete /></el-icon>
             清空
           </el-button>
         </div>
-        <div class="panel-content" ref="rightContent">
+        <div class="panel-content" ref="rightContent">  <!-- DOM元素引用 -->
+          <!-- 文本输入框组件，只读显示LaTeX代码 -->
           <el-input
-            v-model="latexCode"
-            type="textarea"
+            v-model="latexCode"  
+            type="textarea"      
             :rows="1"
             placeholder="LaTeX代码将在这里显示..."
-            readonly
+            readonly             
             class="latex-textarea"
-            :autosize="{ minRows: 10, maxRows: 50 }"
+            :autosize="{ minRows: 10, maxRows: 50 }"  
           />
         </div>
       </el-aside>
     </el-container>
 
-    <!-- 真值表界面模态框 -->
+    <!-- 真值表界面模态框 - 弹出对话框 -->
     <el-dialog
-      v-model="showTruthTable"
+      v-model="showTruthTable" 
       title="构造公式真值表"
       width="90%"
-      :before-close="handleTruthTableClose"
+      :before-close="handleTruthTableClose" 
       class="truth-table-dialog"
     >
-      <truth-table-interface @close="showTruthTable = false" @formula-calculated="onFormulaCalculated" />
+      <!-- 引入真值表界面组件 -->
+      <truth-table-interface
+        @close="showTruthTable = false"  
+        @formula-calculated="onFormulaCalculated" 
+      />
     </el-dialog>
   </div>
 </template>
@@ -278,6 +316,16 @@ const clearLatexCode = () => {
   ElMessage.success('LaTeX代码已清空')
 }
 
+// 统一处理公式格式，将双反斜杠转换为单反斜杠
+const normalizeFormulaFormat = (formula) => {
+  return formula.replace(/\\\\([a-zA-Z]+)/g, '\\$1')  // 将双反斜杠转换为单反斜杠
+}
+
+// 清理公式中的反斜杠，用于显示
+const cleanFormulaForDisplay = (formula) => {
+  return normalizeFormulaFormat(formula)
+}
+
 // 生成LaTeX代码（公式和真值表）
 const generateLaTeXCode = (result) => {
   let latexCode = `\\begin{array}{c}\n\\text{公式: } ${result.formula}\n\\end{array}\n\n`
@@ -286,8 +334,13 @@ const generateLaTeXCode = (result) => {
     latexCode += `\\begin{array}{c}\n\n\\text{公式类型: } ${result.formulaType}\n\n\\end{array}\n\n`
   }
 
-  // 生成真值表LaTeX代码
-  if (result.tableData && result.tableData.headers && result.tableData.rows) {
+  // 生成真值表LaTeX代码 - 优先使用新的latexTable格式
+  if (result.tableData && result.tableData.latexTable) {
+    // 直接使用后端返回的LaTeX表格
+    latexCode += result.tableData.latexTable
+  }
+  // 保持原有的表格格式作为后备
+  else if (result.tableData && result.tableData.headers && result.tableData.rows) {
     const headers = result.tableData.headers
     const rows = result.tableData.rows
 
@@ -494,6 +547,26 @@ onMounted(() => {
   padding: 1rem;
   border-radius: 4px;
   border: 1px solid #dee2e6;
+}
+
+/* 新的LaTeX表格容器样式 */
+.truth-table-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.truth-table-container .truth-table-content {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* 后备样式 */
+.truth-table-legacy,
+.truth-table-fallback {
+  width: 100%;
 }
 
 /* HTML表格样式 */

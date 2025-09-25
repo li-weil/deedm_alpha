@@ -1,4 +1,5 @@
 server:
+  address: 0.0.0.0
   port: 8080
   servlet:
     context-path: /api
@@ -42,7 +43,7 @@ logging:
 deedm:
   # CORS configuration
   cors:
-    allowed-origins: http://localhost:3000,http://localhost:5173
+    allowed-origins: "*"
     allowed-methods: GET,POST,PUT,DELETE,OPTIONS
     allowed-headers: "*"
 

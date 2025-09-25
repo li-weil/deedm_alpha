@@ -5,14 +5,14 @@ package com.deedm.legacy.proplogic;
 
 import java.util.ArrayList;
 
-import proplogic.formula.AndFormula;
-import proplogic.formula.BiImpFormula;
-import proplogic.formula.Formula;
-import proplogic.formula.ImpFormula;
-import proplogic.formula.NegFormula;
-import proplogic.formula.OrFormula;
-import proplogic.formula.Symbol;
-import proplogic.formula.AtomicFormula;
+import com.deedm.legacy.proplogic.formula.AndFormula;
+import com.deedm.legacy.proplogic.formula.BiImpFormula;
+import com.deedm.legacy.proplogic.formula.Formula;
+import com.deedm.legacy.proplogic.formula.ImpFormula;
+import com.deedm.legacy.proplogic.formula.NegFormula;
+import com.deedm.legacy.proplogic.formula.OrFormula;
+import com.deedm.legacy.proplogic.formula.Symbol;
+import com.deedm.legacy.proplogic.formula.AtomicFormula;
 
 /**
  * @author zxc

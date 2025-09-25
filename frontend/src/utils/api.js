@@ -3,8 +3,10 @@ import { ElMessage } from 'element-plus'
 import { useLoadingStore } from '@/store/common/loadingStore'
 
 // Create axios instance
+// ==================================== BACKEND API CLIENT ====================================
 const api = axios.create({
-  baseURL: '/api',
+  // 使用绝对路径确保移动端也能正确访问
+  baseURL: `${window.location.origin}/api`,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
@@ -145,6 +147,7 @@ export const apiClient = {
 }
 
 // Specific API modules
+// ==================================== BACKEND API ENDPOINTS ====================================
 export const logicApi = {
   // Formula operations
   parseFormula: (formula, format = 'text') =>
@@ -171,6 +174,7 @@ export const logicApi = {
     apiClient.post('/logic/normal-form/dnf', { formula })
 }
 
+// ==================================== COUNTING API ENDPOINTS ====================================
 export const countingApi = {
   // String counting
   countStrings: (baseChars, length, filterType) =>
@@ -191,6 +195,7 @@ export const countingApi = {
     apiClient.post('/counting/recurrence', { recurrence, initialConditions })
 }
 
+// ==================================== GRAPH API ENDPOINTS ====================================
 export const graphApi = {
   // Graph operations
   createGraph: (type, nodes, edges) =>

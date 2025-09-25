@@ -1,22 +1,30 @@
 <template>
+  <!-- Main container with conditional inline styling -->
   <div class="math-renderer" :class="{ 'inline': inline }">
+    <!-- Loading state: Shows spinner and loading message -->
     <div v-if="loading" class="loading">
       <el-icon class="loading-icon"><Loading /></el-icon>
       <span>公式加载中...</span>
     </div>
+    <!-- Error state: Shows warning icon and error message -->
     <div v-else-if="error" class="error">
       <el-icon><WarningFilled /></el-icon>
       <span>公式渲染失败: {{ error }}</span>
     </div>
-    <div v-else class="math-content" ref="mathContainer"></div>
+    <!-- Main content container: Always exists for rendering math content -->
+    <div class="math-content" ref="mathContainer" :data-formula="formula" :style="{ display: loading || error ? 'none' : 'block' }">
+      <!-- Math content will be rendered here by JavaScript -->
+    </div>
   </div>
 </template>
 
 <script setup>
+// Vue 3 Composition API imports for reactivity and lifecycle management
 import { ref, onMounted, watch, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
+// Element Plus icon imports for loading and error states
 import { Loading, WarningFilled } from '@element-plus/icons-vue'
 
+// Component props configuration
 const props = defineProps({
   formula: {
     type: String,
@@ -24,7 +32,7 @@ const props = defineProps({
   },
   type: {
     type: String,
-    default: 'latex', // 'latex', 'mathjax', 'katex'
+    default: 'katex',
     validator: (value) => ['latex', 'mathjax', 'katex'].includes(value)
   },
   inline: {
@@ -37,225 +45,499 @@ const props = defineProps({
   }
 })
 
+// Event emissions for parent component communication
 const emit = defineEmits(['rendered', 'error'])
 
-const mathContainer = ref(null)
-const loading = ref(false)
-const error = ref(null)
+// Reactive state references
+const mathContainer = ref(null)      // DOM container reference for math rendering
+const loading = ref(false)            // Loading state flag
+const error = ref(null)              // Error state storage
+const katexLoaded = ref(false)        // KaTeX library loaded status
 
-// Load required libraries
-const loadMathLibrary = async () => {
-  try {
-    if (props.type === 'mathjax') {
-      await loadMathJax()
-    } else if (props.type === 'katex') {
-      await loadKaTeX()
-    }
-  } catch (err) {
-    console.error('Failed to load math library:', err)
-    error.value = '数学库加载失败'
-    emit('error', err)
-  }
-}
-
-const loadMathJax = async () => {
-  if (window.MathJax) return
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
-    script.async = true
-    script.onload = resolve
-    script.onerror = reject
-    document.head.appendChild(script)
-  })
-}
-
+// Load KaTeX library dynamically from CDN
 const loadKaTeX = async () => {
-  if (window.katex) return
-
-  // Load KaTeX CSS
-  const cssLink = document.createElement('link')
-  cssLink.rel = 'stylesheet'
-  cssLink.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css'
-  document.head.appendChild(cssLink)
-
-  // Load KaTeX JS
-  return new Promise((resolve, reject) => {
-    // Check if already loaded
-    if (window.katex) {
-      resolve()
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js'
-    script.async = true
-    script.onload = () => {
-      console.log('KaTeX loaded successfully')
-      resolve()
-    }
-    script.onerror = (err) => {
-      console.error('Failed to load KaTeX:', err)
-      reject(err)
-    }
-    document.head.appendChild(script)
-  })
-}
-
-const renderFormula = async () => {
-  if (!props.formula || !mathContainer.value) return
-
-  loading.value = true
-  error.value = null
-
-  try {
-    // Try to load KaTeX first, but fallback to simple rendering if it fails
-    if (props.type === 'katex') {
-      try {
-        await loadKaTeX()
-        await nextTick()
-        renderKaTeX()
-      } catch (katexError) {
-        console.warn('KaTeX failed, falling back to simple rendering:', katexError)
-        renderLaTeX()
-      }
-    } else if (props.type === 'mathjax') {
-      try {
-        await loadMathJax()
-        await nextTick()
-        renderMathJax()
-      } catch (mathjaxError) {
-        console.warn('MathJax failed, falling back to simple rendering:', mathjaxError)
-        renderLaTeX()
-      }
-    } else {
-      renderLaTeX()
-    }
-
-    emit('rendered')
-  } catch (err) {
-    console.error('Formula rendering failed:', err)
-    error.value = '公式渲染失败'
-    emit('error', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-const renderKaTeX = () => {
-  if (!window.katex) {
-    console.warn('KaTeX not available, using simple rendering')
-    renderLaTeX()
+  // Check if KaTeX is already loaded globally
+  if (window.katex) {
+    katexLoaded.value = true
     return
   }
 
   try {
-    const displayMode = props.displayMode || !props.inline
+    // Load KaTeX CSS styles for mathematical formatting
+    const cssLink = document.createElement('link')
+    cssLink.rel = 'stylesheet'
+    cssLink.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css'
+    document.head.appendChild(cssLink)
 
-    // Clean the formula for KaTeX
-    let cleanFormula = props.formula
-
-    // Handle LaTeX math mode delimiters first
-    if (cleanFormula.startsWith('$') && cleanFormula.endsWith('$')) {
-      cleanFormula = cleanFormula.slice(1, -1) // Remove $ delimiters
-    }
-
-    // Handle double backslashes for KaTeX
-    cleanFormula = cleanFormula.replace(/\\\\([a-zA-Z]+)/g, '\\$1')
-
-    console.log('Attempting KaTeX rendering:', cleanFormula)
-
-    window.katex.render(cleanFormula, mathContainer.value, {
-      displayMode,
-      throwOnError: false,
-      trust: true,
-      strict: false,
-      output: 'html'
+    // Load main KaTeX JavaScript library
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js'
+      script.async = true
+      script.onload = resolve
+      script.onerror = reject
+      document.head.appendChild(script)
     })
 
-    console.log('KaTeX rendering successful')
+    // Load KaTeX auto-render extension for enhanced LaTeX support
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js'
+      script.async = true
+      script.onload = resolve
+      script.onerror = reject
+      document.head.appendChild(script)
+    })
+
+    katexLoaded.value = true
+    console.log('KaTeX loaded successfully')
   } catch (err) {
-    console.warn('KaTeX rendering failed, falling back to simple rendering:', err)
-    renderLaTeX()
+    console.error('Failed to load KaTeX:', err)
+    throw err
   }
 }
 
-const renderMathJax = () => {
-  if (!window.MathJax) {
-    throw new Error('MathJax not loaded')
+// Clean and prepare formula for rendering by normalizing LaTeX format
+const cleanFormula = (formula) => {
+  if (!formula) return ''
+
+  let cleaned = formula
+
+  // Convert all double backslashes to single backslashes for standard LaTeX format
+  // This handles backend output that uses double backslashes for LaTeX commands
+  cleaned = cleaned.replace(/\\\\([a-zA-Z]+)/g, '\\$1')
+
+  // Special handling for LaTeX array/table environment
+  if (cleaned.includes('\\begin{array}') || cleaned.includes('\\begin{tabular}')) {
+    // Remove the \[ and \] delimiters if present (display math mode delimiters)
+    if (cleaned.startsWith('\\[') && cleaned.endsWith('\\]')) {
+      cleaned = cleaned.slice(2, -2)
+    }
+    return cleaned.trim()
   }
 
-  let formula = props.formula
-
-  // Handle LaTeX math mode delimiters first
-  if (formula.startsWith('$') && formula.endsWith('$')) {
-    formula = formula.slice(1, -1) // Remove $ delimiters
+  // Remove LaTeX math mode delimiters for regular formulas ($formula$)
+  if (cleaned.startsWith('$') && cleaned.endsWith('$')) {
+    cleaned = cleaned.slice(1, -1)
   }
 
-  const mathText = props.displayMode || !props.inline
-    ? `\\[${formula}\\]`
-    : `\\(${formula}\\)`
+  // Remove extra whitespace for cleaner rendering
+  cleaned = cleaned.trim()
 
-  mathContainer.value.innerHTML = mathText
+  return cleaned
+}
 
-  if (window.MathJax.typeset) {
-    window.MathJax.typeset([mathContainer.value])
+// Render formula using KaTeX with special handling for array/table structures
+const renderKaTeX = () => {
+  console.log('renderKaTeX called, mathContainer:', mathContainer.value)
+  console.log('katexLoaded:', katexLoaded.value, 'window.katex:', !!window.katex)
+
+  // Validate KaTeX library is loaded
+  if (!katexLoaded.value || !window.katex) {
+    throw new Error('KaTeX not loaded')
+  }
+
+  // Validate DOM container is available
+  if (!mathContainer.value) {
+    console.error('Math container not available, current state:', {
+      loading: loading.value,
+      error: error.value,
+      formula: props.formula
+    })
+    throw new Error('Math container not available')
+  }
+
+  // Clean and validate formula input
+  const cleanedFormula = cleanFormula(props.formula)
+  if (!cleanedFormula) {
+    throw new Error('Formula is empty after cleaning')
+  }
+
+  // Determine display mode based on props
+  const displayMode = props.displayMode || !props.inline
+
+  try {
+    // Check if formula contains LaTeX array/table environment (both array and tabular)
+    if (cleanedFormula.includes('\\begin{array}') || cleanedFormula.includes('\\begin{tabular}')) {
+      console.log("Rendering as HTML table:", cleanedFormula)
+
+      // Remove display math delimiters if present
+      let tableFormula = cleanedFormula
+      if (tableFormula.startsWith('\\[') && tableFormula.endsWith('\\]')) {
+        tableFormula = tableFormula.slice(2, -2)
+      }
+
+      // Clear container and create beautiful HTML table
+      mathContainer.value.innerHTML = ''
+      const table = createBeautifulHTMLTable(tableFormula)
+      if (table) {
+        mathContainer.value.appendChild(table)
+        console.log('Beautiful HTML table created successfully')
+      } else {
+        // Fallback: try KaTeX render if HTML table creation fails
+        window.katex.render(cleanedFormula, mathContainer.value, {
+          displayMode: displayMode,
+          throwOnError: false,
+          trust: true,
+          strict: false,
+          output: 'html',
+          macros: {
+            "\\mathbf": "\\textbf"
+          }
+        })
+        console.log('KaTeX fallback rendering for table')
+      }
+    } else {
+      // For regular formulas, use standard KaTeX rendering
+      window.katex.render(cleanedFormula, mathContainer.value, {
+        displayMode: displayMode,
+        throwOnError: false,
+        trust: true,
+        strict: false,
+        output: 'html',
+        macros: {
+          "\\mathbf": "\\textbf"
+        }
+      })
+      console.log('KaTeX rendering successful:', cleanedFormula)
+    }
+  } catch (err) {
+    console.warn('Rendering failed:', err)
+    throw err
   }
 }
 
-const renderLaTeX = () => {
-  // Enhanced LaTeX rendering for basic formulas
-  // This is a fallback for when external libraries fail
-  let renderedFormula = props.formula
+// Create beautiful HTML table from LaTeX array format with modern styling
+const createBeautifulHTMLTable = (latexTable) => {
+  try {
+    // Debug logging for troubleshooting LaTeX parsing
+    console.log('createBeautifulHTMLTable input:', JSON.stringify(latexTable))
+    console.log('Input length:', latexTable.length)
+    console.log('Contains \\begin{array}:', latexTable.includes('\\begin{array}'))
+    console.log('Contains \\end{array}:', latexTable.includes('\\end{array}'))
 
-  // Direct replacement approach - handle common LaTeX patterns directly
-  console.log('Original formula:', renderedFormula)
+    // Parse the LaTeX array/tabular structure using regex to extract column spec and content
+    let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
+    console.log('Array regex match result:', arrayMatch)
 
-  // Handle LaTeX math mode delimiters first
-  if (renderedFormula.startsWith('$') && renderedFormula.endsWith('$')) {
-    renderedFormula = renderedFormula.slice(1, -1) // Remove $ delimiters
+    // If not array, try tabular format
+    if (!arrayMatch) {
+      arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
+      console.log('Tabular regex match result:', arrayMatch)
+    }
+
+    // Fallback pattern matching if primary pattern fails
+    if (!arrayMatch) {
+      console.log('Trying alternative regex patterns...')
+      const pattern1 = latexTable.match(/\\begin\{(?:array|tabular)\}\{([^}]*)\}([\\s\\S]*?)\\end\{(?:array|tabular)\}/)
+      console.log('Alternative pattern result:', pattern1)
+      return pattern1 || null
+    }
+    if (!arrayMatch) return null
+
+    const columnSpec = arrayMatch[1] // column specification like {ccccc}
+    const content = arrayMatch[2]
+
+    // Parse table structure: split content by \\ (rows) and then by & (cells)
+    const rows = content.split('\\\\').map(row => row.trim()).filter(row => row.length > 0)
+
+    // Create main table element with modern styling
+    const table = document.createElement('table')
+    table.className = 'truth-table-html'
+    table.style.cssText = `
+      border-collapse: collapse;
+      margin: 0 auto;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 14px;
+      border: 2px solid #4a5568;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background: white;
+    `
+
+    // Process each row from LaTeX content
+    let actualRowIndex = 0
+    rows.forEach((rowContent) => {
+      // Skip rows that only contain \hline
+      if (rowContent.trim() === '\\hline') return
+
+      const row = document.createElement('tr')
+      // Apply different styling for header row vs data rows with enhanced contrast
+      row.style.cssText = actualRowIndex === 0 ?
+        `background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%); color: white;` :
+        actualRowIndex % 2 === 0 ?
+        `background-color: #edf2f7;` :
+        `background-color: #f8fafc;`
+
+      // Split row content by & to get individual cells
+      const cells = rowContent.split('&').map(cell => cell.trim())
+
+      // Process each cell in the row
+      cells.forEach((cellContent, cellIndex) => {
+        // Remove \hline from cell content if present
+        let cleanCellContent = cellContent.replace(/\\hline/g, '').trim()
+
+        // Skip empty cells
+        if (cleanCellContent === '') return
+
+        // Create header cell for first row, data cell for others
+        const cell = actualRowIndex === 0 ? document.createElement('th') : document.createElement('td')
+
+        // Process cell content: Convert LaTeX commands to HTML and logic symbols
+        let processedContent = cleanCellContent
+          .replace(/\$([^\$]+)\$/g, '$1') // Remove $ delimiters
+          .replace(/\\mathbf\{([^}]+)\}/g, '<strong style="color: #2d3748;">$1</strong>')
+          .replace(/\\leftrightarrow/g, '↔')
+          .replace(/\\rightarrow/g, '→')
+          .replace(/\\wedge/g, '∧')
+          .replace(/\\vee/g, '∨')
+          .replace(/\\neg/g, '¬')
+          // Remove curly braces around formulas that don't contain LaTeX commands
+          .replace(/\{([^{}\\]+)\}/g, (match, content) => {
+            // Only remove braces if content doesn't contain LaTeX commands
+            return content.includes('\\') ? match : content;
+          })
+
+        // Convert header formulas to italic for mathematical conventions
+        if (actualRowIndex === 0) {
+          processedContent = `<em style="font-style: italic; font-family: 'Times New Roman', serif;">${processedContent}</em>`
+        }
+
+        // Apply different styling for header cells vs data cells
+        cell.style.cssText = actualRowIndex === 0 ?
+          `border: 1px solid #4a5568;
+           padding: 12px 16px;
+           text-align: center;
+           font-weight: 600;
+           font-size: 13px;
+           letter-spacing: 0.5px;` :
+          `border: 1px solid #e2e8f0;
+           padding: 10px 14px;
+           text-align: center;
+           color: #2d3748;
+           font-weight: 500;
+           transition: all 0.2s ease;`
+
+        // Add interactive hover effect for data cells (not header)
+        if (actualRowIndex > 0) {
+          cell.addEventListener('mouseenter', () => {
+            cell.style.backgroundColor = '#e2e8f0'
+            cell.style.transform = 'scale(1.02)'
+          })
+          cell.addEventListener('mouseleave', () => {
+            cell.style.backgroundColor = actualRowIndex % 2 === 0 ? '#edf2f7' : '#f8fafc'
+            cell.style.transform = 'scale(1)'
+          })
+        }
+
+        // Set the processed content and add cell to row
+        cell.innerHTML = processedContent
+        row.appendChild(cell)
+      })
+
+      // Add completed row to table
+      table.appendChild(row)
+      actualRowIndex++
+    })
+
+    return table
+  } catch (err) {
+    console.error('Failed to create beautiful HTML table:', err)
+    return null
   }
-
-  // Handle specific LaTeX commands that return from backend
-  renderedFormula = renderedFormula.replace(/\\mathbf\{([01])\}/g, '$1') // Convert \mathbf{0} to 0, \mathbf{1} to 1
-  renderedFormula = renderedFormula.replace(/\\texttt\{([a-z])\}/g, '$1') // Convert \texttt{p} to p, etc.
-
-  // First, handle double backslashes
-  renderedFormula = renderedFormula.replace(/\\\\wedge/g, '∧')
-  renderedFormula = renderedFormula.replace(/\\\\vee/g, '∨')
-  renderedFormula = renderedFormula.replace(/\\\\neg/g, '¬')
-  renderedFormula = renderedFormula.replace(/\\\\rightarrow/g, '→')
-  renderedFormula = renderedFormula.replace(/\\\\leftrightarrow/g, '↔')
-
-  // Then handle single backslashes (fallback)
-  renderedFormula = renderedFormula.replace(/\\wedge/g, '∧')
-  renderedFormula = renderedFormula.replace(/\\vee/g, '∨')
-  renderedFormula = renderedFormula.replace(/\\neg/g, '¬')
-  renderedFormula = renderedFormula.replace(/\\rightarrow/g, '→')
-  renderedFormula = renderedFormula.replace(/\\leftrightarrow/g, '↔')
-
-  console.log('After direct replacements:', renderedFormula)
-
-  // Handle additional symbols if needed
-  renderedFormula = renderedFormula.replace(/\\forall/g, '∀')
-  renderedFormula = renderedFormula.replace(/\\exists/g, '∃')
-  renderedFormula = renderedFormula.replace(/\\in/g, '∈')
-  renderedFormula = renderedFormula.replace(/\\subset/g, '⊂')
-  renderedFormula = renderedFormula.replace(/\\cup/g, '∪')
-  renderedFormula = renderedFormula.replace(/\\cap/g, '∩')
-  renderedFormula = renderedFormula.replace(/\\emptyset/g, '∅')
-
-  mathContainer.value.innerHTML = renderedFormula
-  mathContainer.value.className += ' simple-latex'
-  console.log('Simple LaTeX rendering completed:', renderedFormula)
 }
 
-// Watch for formula changes
-watch(() => props.formula, renderFormula, { immediate: true })
+// Fallback HTML table creation function (simpler version)
+const createHTMLTable = (latexTable) => {
+  try {
+    // Parse the LaTeX array/tabular structure using corrected regex pattern
+    let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
 
+    // If not array, try tabular format
+    if (!arrayMatch) {
+      arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
+    }
+
+    if (!arrayMatch) return null
+
+    const columns = arrayMatch[1].length // number of columns from {ccccc}
+    const content = arrayMatch[2]
+
+    // Split content by \\ (rows) and then by & (cells)
+    const rows = content.split('\\\\').map(row => row.trim()).filter(row => row)
+
+    // Create basic table element with simple styling
+    const table = document.createElement('table')
+    table.style.borderCollapse = 'collapse'
+    table.style.margin = '0 auto'
+    table.style.fontFamily = 'Times New Roman, serif'
+
+    // Process each row
+    let actualRowIndex = 0
+    rows.forEach((rowContent) => {
+      // Skip rows that only contain \hline
+      if (rowContent.trim() === '\\hline') return
+
+      const row = document.createElement('tr')
+      const cells = rowContent.split('&').map(cell => cell.trim())
+
+      // Process each cell in the row
+      cells.forEach(cellContent => {
+        // Remove \hline from cell content if present
+        let cleanCellContent = cellContent.replace(/\\hline/g, '').trim()
+
+        // Skip empty cells
+        if (cleanCellContent === '') return
+
+        const cell = actualRowIndex === 0 ? document.createElement('th') : document.createElement('td')
+        cell.style.border = '1px solid #ddd'
+        cell.style.padding = '8px'
+        cell.style.textAlign = 'center'
+
+        // Process cell content: Convert LaTeX commands to HTML and logic symbols
+        let processedContent = cleanCellContent
+          .replace(/\$([^\$]+)\$/g, '$1') // Remove $ delimiters
+          .replace(/\\mathbf\{([^}]+)\}/g, '<strong>$1</strong>')
+          .replace(/\\leftrightarrow/g, '↔')
+          .replace(/\\rightarrow/g, '→')
+          .replace(/\\wedge/g, '∧')
+          .replace(/\\vee/g, '∨')
+          .replace(/\\neg/g, '¬')
+          // Remove curly braces around formulas that don't contain LaTeX commands
+          .replace(/\{([^{}\\]+)\}/g, (match, content) => {
+            // Only remove braces if content doesn't contain LaTeX commands
+            return content.includes('\\') ? match : content;
+          })
+
+        // Convert header formulas to italic for mathematical conventions
+        if (actualRowIndex === 0) {
+          processedContent = `<em style="font-style: italic; font-family: 'Times New Roman', serif;">${processedContent}</em>`
+        }
+
+        cell.innerHTML = processedContent
+        row.appendChild(cell)
+      })
+
+      table.appendChild(row)
+      actualRowIndex++
+    })
+
+    return table
+  } catch (err) {
+    console.error('Failed to create HTML table:', err)
+    return null
+  }
+}
+
+// Fallback rendering for simple formulas using Unicode symbol replacement
+const renderSimpleLaTeX = () => {
+  const cleanedFormula = cleanFormula(props.formula)
+  if (!cleanedFormula) {
+    throw new Error('Formula is empty after cleaning')
+  }
+
+  // Map LaTeX commands to Unicode symbols for basic mathematical rendering
+  const symbolMap = {
+    '\\wedge': '∧',        // Logical AND
+    '\\vee': '∨',         // Logical OR
+    '\\neg': '¬',         // Logical NOT
+    '\\rightarrow': '→',  // Implication
+    '\\leftrightarrow': '↔', // Biconditional
+    '\\forall': '∀',      // Universal quantifier
+    '\\exists': '∃',      // Existential quantifier
+    '\\in': '∈',          // Element of
+    '\\subset': '⊂',      // Subset
+    '\\cup': '∪',         // Union
+    '\\cap': '∩',         // Intersection
+    '\\emptyset': '∅',    // Empty set
+    '\\land': '∧',        // Alternative AND
+    '\\lor': '∨',         // Alternative OR
+    '\\lnot': '¬',        // Alternative NOT
+    '\\to': '→',          // Alternative implication
+    '\\iff': '↔'          // Alternative biconditional
+  }
+
+  // Replace all LaTeX commands with Unicode symbols
+  let rendered = cleanedFormula
+  for (const [latex, symbol] of Object.entries(symbolMap)) {
+    rendered = rendered.replace(new RegExp(latex, 'g'), symbol)
+  }
+
+  // Remove formatting commands that don't have direct Unicode equivalents
+  rendered = rendered.replace(/\\mathbf\{([^}]+)\}/g, '$1')
+  rendered = rendered.replace(/\\texttt\{([^}]+)\}/g, '$1')
+
+  // Render the processed content to DOM
+  if (mathContainer.value) {
+    mathContainer.value.innerHTML = rendered
+    mathContainer.value.className += ' simple-latex'
+    console.log('Simple LaTeX rendering completed:', rendered)
+  } else {
+    throw new Error('Math container not available for simple rendering')
+  }
+}
+
+// Main rendering function that orchestrates the entire rendering process
+const renderFormula = async () => {
+  console.log('renderFormula called with formula:', props.formula)
+  if (!props.formula) return
+
+  // Set loading state and clear any previous errors
+  loading.value = true
+  error.value = null
+
+  try {
+    // Wait for Vue to update DOM and ensure container is available
+    await nextTick()
+    console.log('After nextTick, mathContainer:', mathContainer.value)
+
+    // Choose rendering method based on prop configuration
+    if (props.type === 'katex') {
+      try {
+        // Load KaTeX library if not already loaded
+        if (!katexLoaded.value) {
+          console.log('Loading KaTeX...')
+          await loadKaTeX()
+        }
+        await nextTick()
+        console.log('Before renderKaTeX, mathContainer:', mathContainer.value)
+        renderKaTeX()
+      } catch (katexError) {
+        // Fallback to simple LaTeX rendering if KaTeX fails
+        console.warn('KaTeX failed, using fallback:', katexError)
+        renderSimpleLaTeX()
+      }
+    } else {
+      // Use simple LaTeX rendering for other types
+      renderSimpleLaTeX()
+    }
+
+    // Emit success event to parent component
+    emit('rendered')
+  } catch (err) {
+    // Handle rendering errors and emit error event
+    console.error('Formula rendering failed:', err)
+    error.value = `公式渲染失败: ${err.message}`
+    emit('error', err)
+  } finally {
+    // Always reset loading state when done
+    loading.value = false
+  }
+}
+
+// Watch for formula changes and trigger re-rendering when formula is updated
+watch(() => props.formula, (newFormula) => {
+  if (newFormula) {
+    renderFormula()
+  }
+})
+
+// Component lifecycle hook: Render formula when component is mounted
 onMounted(() => {
-  renderFormula()
+  if (props.formula) {
+    renderFormula()
+  }
 })
 </script>
 
@@ -297,35 +579,126 @@ onMounted(() => {
   line-height: 1.6;
 }
 
-.math-content:deep(.formula-error) {
-  color: #f56c6c;
-  font-style: italic;
+.math-content :deep(.katex) {
+  font-size: 1em;
 }
 
-.math-content:deep(.simple-latex) {
+.math-content :deep(.katex-display) {
+  margin: 0.5em 0;
+}
+
+.math-content :deep(.katex-error) {
+  color: #f56c6c;
+}
+
+.math-content :deep(.simple-latex) {
   font-family: 'Times New Roman', serif;
   font-style: italic;
 }
 
-/* KaTeX specific styles */
-:deep(.katex) {
-  font-size: 1em;
+/* KaTeX display styling for non-table content */
+.math-content :deep(.katex-display > .katex) {
+  display: inline-block;
+  text-align: initial;
+  max-width: 100%;
 }
 
-:deep(.katex-display) {
-  margin: 1em 0;
+/* Beautiful HTML table styling */
+.math-content .truth-table-html {
+  border-collapse: collapse;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  border: 2px solid #4a5568;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: white;
+  max-width: 100%;
 }
 
-:deep(.katex-error) {
-  color: #f56c6c;
+.math-content .truth-table-html th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 1px solid #4a5568;
+  padding: 12px 16px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.5px;
 }
 
-/* MathJax specific styles */
-:deep(.MathJax) {
-  font-size: 1em !important;
+.math-content .truth-table-html td {
+  border: 1px solid #e2e8f0;
+  padding: 10px 14px;
+  text-align: center;
+  color: #2d3748;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-:deep(.MathJax_CHTML) {
-  font-size: 1em !important;
+.math-content .truth-table-html tbody tr:nth-child(even) {
+  background-color: #edf2f7;
+}
+
+.math-content .truth-table-html tbody tr:nth-child(odd) {
+  background-color: #f8fafc;
+}
+
+.math-content .truth-table-html tr:hover td {
+  background-color: #e2e8f0 !important;
+  transform: scale(1.02);
+}
+
+/* Ensure mathbf is properly styled */
+.math-content :deep(.katex-mathbf) {
+  font-weight: bold;
+  font-family: KaTeX_Main, Times New Roman, serif;
+}
+
+/* Fallback: Try to target any table-like structure */
+.math-content :deep(table) {
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  border: 2px solid #666 !important;
+  margin: 0 auto !important;
+}
+
+.math-content :deep(table td) {
+  border: 1px solid #999 !important;
+  padding: 10px 15px !important;
+  text-align: center !important;
+  min-width: 45px;
+  box-shadow: inset 0 0 0 1px #999 !important;
+}
+
+.math-content :deep(table tr:first-child td) {
+  font-weight: bold !important;
+  background-color: #f8f9fa !important;
+  border-top: 2px solid #666 !important;
+  border-bottom: 2px solid #666 !important;
+}
+
+.math-content :deep(table td:not(:last-child)) {
+  border-right: 2px solid #666 !important;
+}
+
+/* Math content container - no extra borders, let the parent wrapper handle styling */
+.math-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+/* Try to target array columns with CSS selectors for vertical lines */
+.math-content :deep(.arraycolsep) {
+  border-right: 2px solid #666 !important;
+}
+
+.math-content :deep(.vlist) {
+  border-right: 1px solid #999 !important;
 }
 </style>

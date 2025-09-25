@@ -2,7 +2,7 @@ package com.deedm.controller;
 
 import com.deedm.model.TruthTableRequest;
 import com.deedm.model.TruthTableResponse;
-import com.deedm.service.LegacyFormulaService;
+import com.deedm.service.TruthTableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +16,13 @@ import java.util.Map;
 public class TruthTableController {
 
     @Autowired
-    private LegacyFormulaService legacyFormulaService;
+    private TruthTableService truthTableService;
 
     @PostMapping("/generate")
     public ResponseEntity<TruthTableResponse> generateTruthTable(@RequestBody TruthTableRequest request) {
         try {
-            TruthTableResponse response = legacyFormulaService.generateTruthTable(request);
-
+            TruthTableResponse response = truthTableService.generateTruthTable(request);
+            console.log("hello world" );
             if (response.getErrorMessage() != null) {
                 return ResponseEntity.badRequest().body(response);
             }
@@ -38,7 +38,7 @@ public class TruthTableController {
     @PostMapping("/validate")
     public ResponseEntity<Map<String, Object>> validateFormulas(@RequestBody List<String> formulas) {
         try {
-            List<String> errors = legacyFormulaService.validateFormulas(formulas);
+            List<String> errors = truthTableService.validateFormulas(formulas);
             Map<String, Object> response = Map.of(
                 "valid", errors.isEmpty(),
                 "errors", errors

@@ -6,10 +6,10 @@ package com.deedm.legacy.proplogic;
 import java.util.ArrayList;
 import java.util.List;
 
-import dataTable.DataTableManager;
-import dataTable.DataTableUtil;
-import proplogic.formula.Formula;
-import proplogic.formula.AtomicFormula;
+import com.deedm.legacy.dataTable.DataTableManager;
+import com.deedm.legacy.dataTable.DataTableUtil;
+import com.deedm.legacy.proplogic.formula.Formula;
+import com.deedm.legacy.proplogic.formula.AtomicFormula;
 
 /**
  * @author zxc
@@ -113,23 +113,16 @@ public class FormulaTruthTable {
 
 	public DataTableManager getDetailedTruthTableManager() {
 		DataTableManager resultTable = new DataTableManager("truthtable");
-		
-		List<Formula> subFormulaList = formula.getAllSyntaxDifferentSubFormulas();
-		List<Formula> tableColumnFormulas = new ArrayList<Formula>();
-		
-		for (int i = 0; i < variables.length; i++) {
-			Formula subformula = new AtomicFormula(variables[i]);
-			tableColumnFormulas.add(subformula);
-		}
-		for (Formula subformula : subFormulaList) {
-			if (!subformula.isAtomicFormula()) tableColumnFormulas.add(subformula);
-		}
+
+		// getAllSyntaxDifferentSubFormulas() already includes all subformulas including atomic ones
+		List<Formula> tableColumnFormulas = formula.getAllSyntaxDifferentSubFormulas();
+
 		String[] columnNames = new String[tableColumnFormulas.size()];
 		for (int i = 0; i < tableColumnFormulas.size(); i++) {
 			Formula subformula = tableColumnFormulas.get(i);
 			columnNames[i] = "$" + subformula.toSimpleLaTeXString() + "$";
 		}
-		
+
 		resultTable.setColumnNames(columnNames);
 		for (TruthAssignmentFunction function : functionList) {
 			String[] tableLine = new String[tableColumnFormulas.size()];

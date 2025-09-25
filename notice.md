@@ -4,6 +4,10 @@
 
 注意，里面列出的路径，比如src/guiManager/MainSwingFrame.java，实际对应的是/Deedm/legacy/src/guiManager/MainSwingFrame.java，legacy目录下是源代码。
 
+注意，每次后端运用到legacy代码，都要把/home/admin-unix/D
+eedm/legacy源代码迁移到迁移到/home/admin-unix/Deedm/backen
+d/src/main/java/com/deedm/legacy
+
 先不要考虑太多ui优化，完
   成完整的构建，减少bug，注意各个文件之间的适配性
   ，严丝合缝，用到了新配置需要在配置文件里修改，
@@ -11,6 +15,5 @@
   经在wsl中配置好了niginx代理，会把/api代理到loca
   lhost:8080,数学公式渲染采用Katex方式。
 
-不要开过多的端口，前端只开3000，后端只开8080，如果有测试需要可额外开端口
-最重要的是，不能修改源代码。需要通过调用源代码中的逻辑来实现正确逻辑，而不是重
-  新实现。
+
+最重要的是，不能修改源代码。需要通过调用源代码中的逻辑来实现正确逻辑，而不是重新实现。

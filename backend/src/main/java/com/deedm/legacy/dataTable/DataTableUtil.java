@@ -7,14 +7,14 @@ import java.io.PrintWriter;
  * A class to provide some static methods to utilize data table to generate some useful data or table
  * 
  * @author Zhou Xiaocong
- * @since 2020Äê09ÔÂ25ÈÕ
+ * @since 2020ï¿½ï¿½09ï¿½ï¿½25ï¿½ï¿½
  * @version 1.0
  */
 public class DataTableUtil {
 
 	/**
-	 * ½«Êý¾Ý±í table µÄÄÚÈÝÐ´³É¿ÉÒÔÔÚ LaTex ×÷Îª±í¸ñÏÔÊ¾µÄÑùÊ½£¬ÆäÖÐ columnNames ÓÃÀ´Ñ¡Ôñ table ÖÐµÄÁÐ¡£mergeLine ±íÊ¾ table ÖÐµÄ¼¸ÐÐÊý¾ÝºÏ²¢Îª LaTex ÖÐ±í¸ñµÄÒ»ÐÐ½øÐÐ´òÓ¡£¬µ±
-	 * Ñ¡ÔñµÄ table µÄÁÐ±È½ÏÉÙµÄÊ±ºò¿ÉÒÔ¼¸ÐÐÊý¾Ý´òÓ¡ÔÚ LaTex±í¸ñÖÐµÄÒ»ÐÐ¡£ 
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ table ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½É¿ï¿½ï¿½ï¿½ï¿½ï¿½ LaTex ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ columnNames ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ table ï¿½Ðµï¿½ï¿½Ð¡ï¿½mergeLine ï¿½ï¿½Ê¾ table ï¿½ÐµÄ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÝºÏ²ï¿½Îª LaTex ï¿½Ð±ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ð½ï¿½ï¿½Ð´ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½
+	 * Ñ¡ï¿½ï¿½ï¿½ table ï¿½ï¿½ï¿½Ð±È½ï¿½ï¿½Ùµï¿½Ê±ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½Ó¡ï¿½ï¿½ LaTexï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ò»ï¿½Ð¡ï¿½ 
 	 */
 	public static void writeDataLinesAsLatexTableLines(PrintWriter writer, DataTableManager table, String[] columnNames, int mergeLine) throws IOException {
 		if (columnNames == null) columnNames = table.getColumnNameArray();
@@ -73,8 +73,8 @@ public class DataTableUtil {
 	}
 
 	/**
-	 * ½«Êý¾Ý±í table µÄÄÚÈÝÐ´³É¿ÉÒÔÔÚ LaTex ×÷Îª±í¸ñÏÔÊ¾µÄÑùÊ½£¬ÆäÖÐ columnNames ÓÃÀ´Ñ¡Ôñ table ÖÐµÄÁÐ¡£mergeLine ±íÊ¾ table ÖÐµÄ¼¸ÐÐÊý¾ÝºÏ²¢Îª LaTex ÖÐ±í¸ñµÄÒ»ÐÐ½øÐÐ´òÓ¡£¬µ±
-	 * Ñ¡ÔñµÄ table µÄÁÐ±È½ÏÉÙµÄÊ±ºò¿ÉÒÔ¼¸ÐÐÊý¾Ý´òÓ¡ÔÚ LaTex±í¸ñÖÐµÄÒ»ÐÐ¡£ 
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ table ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½É¿ï¿½ï¿½ï¿½ï¿½ï¿½ LaTex ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ columnNames ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ table ï¿½Ðµï¿½ï¿½Ð¡ï¿½mergeLine ï¿½ï¿½Ê¾ table ï¿½ÐµÄ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÝºÏ²ï¿½Îª LaTex ï¿½Ð±ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ð½ï¿½ï¿½Ð´ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½
+	 * Ñ¡ï¿½ï¿½ï¿½ table ï¿½ï¿½ï¿½Ð±È½ï¿½ï¿½Ùµï¿½Ê±ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½Ó¡ï¿½ï¿½ LaTexï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ò»ï¿½Ð¡ï¿½ 
 	 */
 	public static String getJMathLaTexString(DataTableManager table, String[] columnNames, int mergeLine) {
 		if (columnNames == null) columnNames = table.getColumnNameArray();

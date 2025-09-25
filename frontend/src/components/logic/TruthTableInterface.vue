@@ -7,7 +7,7 @@
         <el-col :span="4">
           <el-button type="primary" @click="startCalculation">
             <el-icon><Check /></el-icon>
-            开始计算(Y)
+            开始生成(Y)
           </el-button>
         </el-col>
         <el-col :span="4">
@@ -105,7 +105,7 @@
         <div v-for="(item, index) in feedback" :key="index" class="feedback-item">
           <math-renderer
             :formula="item.formula"
-            :type="'latex'"
+            :type="'katex'"
             :display-mode="false"
             class="feedback-formula"
           />
@@ -125,21 +125,31 @@
             <strong>{{ result.index }}: </strong>
             <math-renderer
               :formula="result.formula"
-              :type="'latex'"
+              :type="'katex'"
               :display-mode="false"
             />
           </div>
 
           <div class="truth-table">
-            <!-- 渲染真值表数据为Vue组件 -->
-            <div v-if="result.tableData" class="truth-table-vue">
+            <!-- 直接显示来自legacy的LaTeX表格 -->
+            <div v-if="result.tableData && result.tableData.latexTable" class="truth-table-wrapper">
+              <math-renderer
+                :key="'table-' + result.index + '-' + Date.now()"
+                :formula="result.tableData.latexTable"
+                :type="'katex'"
+                :display-mode="true"
+                class="truth-table-content"
+              />
+            </div>
+            <!-- 保持原有的HTML表格作为后备 -->
+            <div v-else-if="result.tableData && result.tableData.headers" class="truth-table-vue">
               <table class="truth-table-html">
                 <thead>
                   <tr>
                     <th v-for="(header, index) in result.tableData.headers" :key="index" class="header-cell">
                       <math-renderer
                         :formula="header"
-                        :type="'latex'"
+                        :type="'katex'"
                         :display-mode="false"
                       />
                     </th>
@@ -150,7 +160,7 @@
                     <td v-for="(cell, cellIndex) in [...row.variableValues, row.resultValue]" :key="cellIndex" class="data-cell">
                       <math-renderer
                         :formula="cell"
-                        :type="'latex'"
+                        :type="'katex'"
                         :display-mode="false"
                       />
                     </td>
@@ -158,25 +168,25 @@
                 </tbody>
               </table>
             </div>
-            <!-- 保留原有的LaTeX渲染器作为后备 -->
+            <!-- 最终后备：原有LaTeX字符串 -->
             <math-renderer
               v-else
               :formula="result.truthTable"
-              :type="'latex'"
+              :type="'katex'"
               :display-mode="true"
               class="truth-table-content"
             />
           </div>
 
-          <div v-if="checkFormulaType && result.formulaType" class="formula-type">
+          <div v-if="checkFormulaType && result.tableData && result.tableData.formulaType" class="formula-type">
             <math-renderer
               :formula="result.formula"
-              :type="'latex'"
+              :type="'katex'"
               :display-mode="false"
               class="type-formula"
             />
-            <el-tag :type="getFormulaTypeTag(result.formulaType)" class="type-tag">
-              {{ result.formulaType }}
+            <el-tag :type="getFormulaTypeTag(result.tableData.formulaType)" class="type-tag">
+              {{ translateFormulaType(result.tableData.formulaType) }}
             </el-tag>
           </div>
         </div>
@@ -186,7 +196,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Check,
@@ -236,8 +246,10 @@ const startCalculation = async () => {
     .map(f => normalizeFormulaFormat(f))  // 统一转换为单反斜杠格式
 
   try {
+    console.log('TruthTableInterface: 开始计算真值表，公式:', formulas)
     // 调用后端API生成真值表
     const tableData = await generateTruthTable(formulas, showDetailedTable.value, checkFormulaType.value)
+    console.log('TruthTableInterface: 收到API响应:', tableData)
 
     // 添加到结果，直接存储表格数据
     const result = {
@@ -252,7 +264,12 @@ const startCalculation = async () => {
       result.formulaType = translateFormulaType(tableData.formulaType)
     }
 
+    // 添加一个延迟，确保DOM准备就绪和MathRenderer初始化完成
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    console.log('TruthTableInterface: 准备添加结果到数组，当前results长度:', results.value.length)
     results.value.push(result)
+    console.log('TruthTableInterface: 结果已添加，新results长度:', results.value.length)
 
     // 添加成功反馈
     feedback.value.push({
@@ -270,6 +287,7 @@ const startCalculation = async () => {
 
     ElMessage.success(`已完成 ${formulas.length} 个公式的真值表计算`)
   } catch (error) {
+    console.error('TruthTableInterface: 计算真值表时发生错误:', error)
     feedback.value.push({
       formula: cleanFormulaForDisplay(formulas[0]),
       type: 'error',
@@ -350,9 +368,12 @@ const loadExample = (exampleKey) => {
 }
 
 // Real backend API call
+// ==================================== BACKEND API CALL ====================================
 const generateTruthTable = async (formulas, detailed = false, checkType = true) => {
   try {
-    const response = await fetch('/api/truth-table/generate', {
+    // 使用绝对路径，确保移动端也能正确访问
+    const baseUrl = window.location.origin
+    const response = await fetch(`${baseUrl}/api/truth-table/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -375,15 +396,17 @@ const generateTruthTable = async (formulas, detailed = false, checkType = true) 
     }
 
     return {
-      headers: data.columnHeaders || [],
-      rows: data.rows || [],
-      formulaType: data.formulaType
+      latexTable: data.latexTable,
+      formulaType: data.formulaType,
+      headers: [], // 保持兼容性，但不再使用
+      rows: [] // 保持兼容性，但不再使用
     }
   } catch (error) {
     console.error('Error generating truth table:', error)
     throw error
   }
 }
+// =========================================================================================
 
 
 // 翻译公式类型
@@ -536,16 +559,24 @@ const getFormulaTypeTag = (type) => {
 /* HTML表格样式 */
 .truth-table-vue {
   margin: 1rem 0;
+  overflow: auto; /* 添加滚动支持 */
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .truth-table-html {
-  width: 100%;
+  width: auto; /* 改为auto以支持滚动 */
+  min-width: 100%; /* 确保最小宽度为容器宽度 */
   border-collapse: collapse;
   border: 2px solid #dee2e6;
   border-radius: 8px;
   overflow: hidden;
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  white-space: nowrap; /* 防止内容换行 */
 }
 
 .truth-table-html th {
@@ -593,5 +624,92 @@ const getFormulaTypeTag = (type) => {
 
 .truth-table-interface::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
+}
+
+/* MathRenderer 容器样式 */
+.truth-table-wrapper {
+  margin: 1rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  min-height: 60px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: auto; /* 改为auto，支持滚动 */
+  position: relative;
+}
+
+.truth-table-wrapper .math-renderer {
+  width: 100%;
+  min-width: fit-content; /* 确保内容不会被压缩 */
+  display: flex;
+  justify-content: flex-start; /* 改为左对齐，保持表格完整显示 */
+  align-items: center;
+}
+
+/* 表格响应式样式 */
+.truth-table-wrapper .math-content {
+  font-size: 0.9em;
+  line-height: 1.3;
+  min-width: fit-content; /* 确保内容最小宽度 */
+  display: block;
+  width: auto;
+}
+
+/* 让表格自适应容器大小 */
+.truth-table-wrapper :deep(.mtable) {
+  width: auto;
+  min-width: fit-content;
+  height: auto;
+}
+
+.truth-table-wrapper :deep(.katex-display) {
+  margin: 0 !important;
+  white-space: nowrap; /* 防止表格换行 */
+}
+
+/* 移动端响应式调整 */
+@media (max-width: 768px) {
+  .truth-table-wrapper {
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .truth-table-wrapper .math-content {
+    font-size: 0.8em; /* 移动端减小字体 */
+  }
+
+  /* 确保滚动条在移动端可见 */
+  .truth-table-wrapper::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .truth-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .truth-table-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  .truth-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+}
+
+/* 小屏幕设备进一步优化 */
+@media (max-width: 480px) {
+  .truth-table-wrapper {
+    padding: 0.25rem;
+  }
+
+  .truth-table-wrapper .math-content {
+    font-size: 0.7em;
+  }
 }
 </style>

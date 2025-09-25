@@ -7,6 +7,7 @@ public class TruthTableResponse {
     private List<TruthTableRow> rows;
     private String formulaType; // "tautology", "contradiction", "contingency"
     private String errorMessage;
+    private String latexTable; // Legacy LaTeX table output
 
     public TruthTableResponse() {}
 
@@ -46,5 +47,13 @@ public class TruthTableResponse {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public String getLatexTable() {
+        return latexTable;
+    }
+
+    public void setLatexTable(String latexTable) {
+        this.latexTable = latexTable;
     }
 }

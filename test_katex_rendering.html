@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaTeX 渲染测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .formula-display {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .katex-display {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .katex-inline {
+            display: inline-block;
+            margin: 0 5px;
+        }
+        .test-formula {
+            font-family: monospace;
+            background: #e8e8e8;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .success {
+            color: #388e3c;
+            font-weight: bold;
+        }
+    </style>
+    <!-- Load KaTeX CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+</head>
+<body>
+    <h1>KaTeX 渲染测试</h1>
+
+    <div class="test-container">
+        <div class="test-title">1. 基本逻辑符号测试</div>
+        <div class="test-formula">公式: p \wedge q \rightarrow r</div>
+        <div class="formula-display" id="test1">
+            <span class="loading">正在渲染...</span>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">2. 复杂公式测试</div>
+        <div class="test-formula">公式: (\neg(p \vee q)) \leftrightarrow (r \wedge s)</div>
+        <div class="formula-display" id="test2">
+            <span class="loading">正在渲染...</span>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">3. 双反斜杠处理测试</div>
+        <div class="test-formula">公式: p \\wedge q \\rightarrow r</div>
+        <div class="formula-display" id="test3">
+            <span class="loading">正在渲染...</span>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">4. 表格环境测试</div>
+        <div class="test-formula">公式: \begin{array}{c|c|c} p & q & p \wedge q \\ \hline 0 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 0 & 0 \\ 1 & 1 & 1 \end{array}</div>
+        <div class="formula-display" id="test4">
+            <span class="loading">正在渲染...</span>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-title">5. 内联公式测试</div>
+        <div class="test-formula">公式: 这是内联公式 $p \rightarrow q$ 在文本中的显示</div>
+        <div class="formula-display" id="test5">
+            <span class="loading">正在渲染...</span>
+        </div>
+    </div>
+
+    <script>
+        // 清理公式函数
+        function cleanFormula(formula) {
+            if (!formula) return '';
+
+            let cleaned = formula;
+
+            // 移除 LaTeX 数学模式定界符
+            if (cleaned.startsWith('$') && cleaned.endsWith('$')) {
+                cleaned = cleaned.slice(1, -1);
+            }
+
+            // 处理双反斜杠（来自后端的常见问题）
+            cleaned = cleaned.replace(/\\\\([a-zA-Z]+)/g, '\\$1');
+
+            // 移除多余空格
+            cleaned = cleaned.trim();
+
+            return cleaned;
+        }
+
+        // 渲染公式函数
+        function renderFormula(formula, elementId, displayMode = true) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            try {
+                const cleanedFormula = cleanFormula(formula);
+
+                // 使用 KaTeX 渲染
+                katex.render(cleanedFormula, element, {
+                    displayMode: displayMode,
+                    throwOnError: false,
+                    trust: true,
+                    strict: false,
+                    output: 'html'
+                });
+
+                console.log(`渲染成功 (${elementId}):`, cleanedFormula);
+
+            } catch (error) {
+                console.error(`渲染失败 (${elementId}):`, error);
+                element.innerHTML = `<span class="error">渲染失败: ${error.message}</span>`;
+            }
+        }
+
+        // 页面加载完成后执行测试
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('开始 KaTeX 渲染测试...');
+
+            // 延迟执行确保 KaTeX 已加载
+            setTimeout(() => {
+                // 测试用例
+                renderFormula('p \\wedge q \\rightarrow r', 'test1', true);
+                renderFormula('(\\neg(p \\vee q)) \\leftrightarrow (r \\wedge s)', 'test2', true);
+                renderFormula('p \\\\wedge q \\\\rightarrow r', 'test3', true);
+                renderFormula('\\begin{array}{c|c|c} p & q & p \\wedge q \\\\ \\hline 0 & 0 & 0 \\\\ 0 & 1 & 0 \\\\ 1 & 0 & 0 \\\\ 1 & 1 & 1 \\end{array}', 'test4', true);
+                renderFormula('这是内联公式 $p \\rightarrow q$ 在文本中的显示', 'test5', false);
+
+                console.log('所有测试用例已执行');
+            }, 100);
+        });
+    </script>
+</body>
+</html>

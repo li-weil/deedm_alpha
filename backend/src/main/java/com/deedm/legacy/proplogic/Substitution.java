@@ -3,7 +3,7 @@
  */
 package com.deedm.legacy.proplogic;
 
-import proplogic.formula.Formula;
+import com.deedm.legacy.proplogic.formula.Formula;
 
 /**
  * @author zxc

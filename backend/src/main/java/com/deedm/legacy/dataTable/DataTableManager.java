@@ -14,7 +14,7 @@ import java.util.Scanner;
  * creating the data table, but the line of the table can be changed after creating the data table.
  * 
  * @author Zhou Xiaocong
- * @since 2015Äê10ÔÂ7ÈÕ
+ * @since 2015ï¿½ï¿½10ï¿½ï¿½7ï¿½ï¿½
  * @version 1.0
  */
 public class DataTableManager {

@@ -1,0 +1,2 @@
+- 注意，每次后端运用到legacy代码，都要把/home/admin-unix/Deedm/legacy源代码迁移到迁移到/home/admin-unix/Deedm/backend/src/main/java/com/deedm/legacy
+- 注意，每次后端运用到legacy代码，都要把/home/admin-unix/Deedm/legacy源代码迁移到迁移到/home/admin-unix/Deedm/backend/src/main/java/com/deedm/legacy
