@@ -80,6 +80,6 @@ public class Symbol {
 		else if (operator == OPERATOR_NOT) fileName = "neg.png";
 		else if (operator == OPERATOR_IMP) fileName = "rightarrow.png";
 		else fileName = "leftrightarrow.png";
-		return "/images/" + fileName; // Simplified path instead of Configuration
+		return "./img/" + fileName;
 	}
 }

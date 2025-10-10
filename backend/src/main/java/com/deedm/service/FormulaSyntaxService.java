@@ -3,12 +3,17 @@ package com.deedm.service;
 import com.deedm.legacy.proplogic.FormulaBuilder;
 import com.deedm.legacy.proplogic.formula.Formula;
 import com.deedm.legacy.proplogic.formula.ASTGraph.FormulaASTGraph;
+import com.deedm.legacy.util.GraphvizUtil;
 import org.springframework.stereotype.Service;
 
+import java.io.PrintWriter;
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class FormulaSyntaxService {
@@ -134,13 +139,56 @@ public class FormulaSyntaxService {
                 return result;
             }
 
-            result.put("success", true);
-            result.put("astInfo", "AST graph generated successfully");
-            result.put("formula", latexFormula);
+            // 检查Graphviz是否可用
+            if (!GraphvizUtil.isGraphvizAvailable()) {
+                result.put("success", false);
+                result.put("error", "Graphviz is not available on this system");
+                return result;
+            }
+
+            // 生成唯一的文件名
+            String uniqueId = UUID.randomUUID().toString();
+            String dotFileName = "./data/AST_" + uniqueId + ".dot";
+            String pngFileName = "./data/AST_" + uniqueId + ".png";
+
+            // 确保data目录存在
+            File dataDir = new File("./data");
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+            }
+
+            // 创建AST图
+            FormulaASTGraph ast = FormulaASTGraph.createASTGraph(formula, "AST_" + uniqueId);
+
+            // 写入DOT文件
+            try (PrintWriter writer = new PrintWriter(dotFileName)) {
+                ast.simplyWriteToDotFile(writer);
+            }
+
+            // 生成PNG图片
+            boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, true);
+
+            if (success) {
+                result.put("success", true);
+                result.put("astInfo", "AST graph generated successfully");
+                result.put("formula", latexFormula);
+                result.put("dotFile", dotFileName);
+                result.put("pngFile", pngFileName);
+                result.put("webPath", "/api/ast-image/" + uniqueId + ".png");
+
+                System.out.println("FormulaSyntaxService: AST图片生成成功: " + pngFileName);
+            } else {
+                result.put("success", false);
+                result.put("error", "Failed to generate AST image: " + GraphvizUtil.errorMessage);
+
+                // 清理失败的文件
+                new File(dotFileName).delete();
+            }
 
         } catch (Exception e) {
             result.put("success", false);
-            result.put("error", e.getMessage());
+            result.put("error", "Error generating AST: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return result;
