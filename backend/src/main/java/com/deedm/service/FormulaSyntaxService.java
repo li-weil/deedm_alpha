@@ -176,7 +176,7 @@ public class FormulaSyntaxService {
                 result.put("formula", latexFormula);
                 result.put("dotFile", dotFileName);
                 result.put("pngFile", pngFileName);
-                result.put("webPath", "/api/ast-image/" + uniqueId + ".png");
+                result.put("webPath", "/api/formula-syntax/ast-image/AST_" + uniqueId + ".png");
 
                 System.out.println("FormulaSyntaxService: AST图片生成成功: " + pngFileName);
             } else {

@@ -68,19 +68,24 @@
       <!-- 选项设置 -->
       <el-divider content-position="left">选择显示内容</el-divider>
       <el-row :gutter="20">
-        <el-col :span="8">
+        <el-col :span="6">
           <el-checkbox v-model="showDetailedTable" size="large">
             显示详细公式真值表
           </el-checkbox>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="6">
           <el-checkbox v-model="checkFormulaType" size="large">
             判断公式是否为重言式、可满足式或矛盾式
           </el-checkbox>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="6">
           <el-checkbox v-model="showStrictForm" size="large">
             给出符合公式归纳定义的严格形式公式
+          </el-checkbox>
+        </el-col>
+        <el-col :span="6">
+          <el-checkbox v-model="showAST" size="large">
+            给出公式的抽象语法树
           </el-checkbox>
         </el-col>
       </el-row>
@@ -246,6 +251,48 @@
         </div>
       </div>
     </div>
+
+    <!-- 抽象语法树显示区域 -->
+    <div v-if="astResults.length > 0" class="results-section">
+      <el-divider content-position="left">抽象语法树</el-divider>
+      <div class="results-content">
+        <div v-for="(result, index) in astResults" :key="'ast-' + index" class="result-item">
+          <div class="result-formula">
+            <strong>公式 {{ result.index }}: </strong>
+            <math-renderer
+              :formula="result.formula"
+              :type="'katex'"
+              :display-mode="false"
+            />
+          </div>
+
+          <div class="ast-content">
+            <div class="ast-image-container" v-if="result.astData.imageUrl">
+              <img
+                :src="result.astData.imageUrl"
+                :alt="'公式' + result.index + '的抽象语法树'"
+                class="ast-image"
+                @error="handleImageError"
+                @load="handleImageLoad"
+              />
+            </div>
+            <div v-else-if="result.astData.error" class="ast-error">
+              <el-alert
+                title="生成抽象语法树失败"
+                :description="result.astData.error"
+                type="error"
+                show-icon
+                :closable="false"
+              />
+            </div>
+            <div v-else class="ast-loading">
+              <el-icon class="is-loading"><Loading /></el-icon>
+              <span>正在生成抽象语法树...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -258,7 +305,8 @@ import {
   Delete,
   WarningFilled,
   RefreshRight,
-  Close
+  Close,
+  Loading
 } from '@element-plus/icons-vue'
 import MathRenderer from '@/components/common/MathRenderer.vue'
 
@@ -267,10 +315,13 @@ const formulaInput = ref('')
 const showDetailedTable = ref(true)
 const checkFormulaType = ref(true)
 const showStrictForm = ref(false)
+const showAST = ref(false)
 const feedback = ref([])
 const results = ref([])
 const syntaxResults = ref([])
+const astResults = ref([])
 const counter = ref(0)
+const astGenerating = ref(false)
 
 // 示例公式映射
 const exampleFormulas = {
@@ -294,6 +345,8 @@ const startCalculation = async () => {
   // 清空之前的反馈和结果
   feedback.value = []
   results.value = []  // 清除原来的真值表结果
+  syntaxResults.value = [] // 清除之前的严格形式公式结果
+  astResults.value = [] // 清除之前的AST结果
 
   // 分割多个公式并统一格式
   const formulas = formulaInput.value.split(';')
@@ -324,8 +377,12 @@ const startCalculation = async () => {
     if (showStrictForm.value) {
       try {
         console.log('TruthTableInterface: 开始获取严格形式公式，公式:', formulas[0])
+        console.log('TruthTableInterface: showStrictForm:', showStrictForm.value)
+        console.log('TruthTableInterface: counter.value:', counter.value)
+
         const syntaxData = await getFormulaSyntaxData(formulas[0])
         console.log('TruthTableInterface: 获取到语法数据:', syntaxData)
+
         if (syntaxData.success) {
           // 创建独立的严格形式公式结果
           const syntaxResult = {
@@ -335,12 +392,11 @@ const startCalculation = async () => {
           }
           syntaxResults.value.push(syntaxResult)
 
-          // 发送语法结果到主界面
-          emit('syntax-calculated', syntaxResult)
-
-          console.log('TruthTableInterface: 严格形式公式数据已添加到syntaxResults')
+          console.log('TruthTableInterface: 严格形式公式数据已添加到syntaxResults，将在主界面统一显示')
+          console.log('TruthTableInterface: syntaxResults.value.length:', syntaxResults.value.length)
         } else {
           console.warn('TruthTableInterface: 语法分析失败:', syntaxData.error)
+          ElMessage.error('语法分析失败: ' + (syntaxData.error || '未知错误'))
         }
       } catch (error) {
         console.error('获取严格形式公式失败:', error)
@@ -348,6 +404,33 @@ const startCalculation = async () => {
       }
     } else {
       console.log('TruthTableInterface: 未勾选严格形式公式选项，跳过语法分析')
+    }
+
+    // 如果需要生成AST图片
+    if (showAST.value) {
+      try {
+        console.log('TruthTableInterface: 开始生成AST图片，公式:', formulas[0])
+        const astData = await generateASTImageForStartCalculation(formulas[0])
+        console.log('TruthTableInterface: 获取到AST数据:', astData)
+
+        if (astData.success) {
+          // 创建AST结果
+          const astResult = {
+            index: counter.value + 1,
+            formula: cleanFormulaForDisplay(formulas[0]),
+            astData: astData
+          }
+          astResults.value.push(astResult)
+          console.log('TruthTableInterface: AST数据已添加到astResults')
+        } else {
+          console.warn('TruthTableInterface: AST生成失败:', astData.error)
+        }
+      } catch (error) {
+        console.error('生成AST图片失败:', error)
+        ElMessage.error(`生成抽象语法树失败: ${error.message}`)
+      }
+    } else {
+      console.log('TruthTableInterface: 未勾选AST选项，跳过AST生成')
     }
 
     // 添加一个延迟，确保DOM准备就绪和MathRenderer初始化完成
@@ -364,12 +447,22 @@ const startCalculation = async () => {
       message: '公式解析成功'
     })
 
-    // 发送公式计算结果到主界面
-    emit('formula-calculated', {
+    // 收集所有数据，一次性发送到主界面
+    const completeResult = {
       formula: cleanFormulaForDisplay(formulas[0]),
       tableData: tableData,
-      formulaType: checkFormulaType.value && tableData.formulaType ? translateFormulaType(tableData.formulaType) : null
-    })
+      formulaType: checkFormulaType.value && tableData.formulaType ? translateFormulaType(tableData.formulaType) : null,
+      index: counter.value,
+      syntaxData: null  // 默认为空
+    }
+
+    // 如果生成了严格形式公式，添加到结果中
+    if (showStrictForm.value && syntaxResults.value.length > 0) {
+      completeResult.syntaxData = syntaxResults.value[syntaxResults.value.length - 1].syntaxData
+    }
+
+    // 一次性发送完整结果到主界面
+    emit('formula-calculated', completeResult)
 
     ElMessage.success(`已完成 ${formulas.length} 个公式的真值表计算`)
   } catch (error) {
@@ -383,20 +476,32 @@ const startCalculation = async () => {
 }
 
 const generateFormula = () => {
-  // 模拟生成随机公式 - 使用单反斜杠格式
+  // 模拟生成随机公式 - 使用与例题相同的双反斜杠格式
   const randomFormulas = [
     'p\\wedge q',
     'p\\vee q',
     '\\neg p\\rightarrow q',
     'p\\leftrightarrow q',
     '(p\\vee q)\\wedge r',
-    'p\\rightarrow(q\\wedge r)'
+    'p\\rightarrow(q\\wedge r)',
+    'p\\wedge\\neg q',
+    '(p\\rightarrow q)\\vee r'
   ]
 
   const randomFormula = randomFormulas[Math.floor(Math.random() * randomFormulas.length)]
 
-  // 清空原有公式，只保留新生成的公式
-  formulaInput.value = randomFormula
+  // 清除之前的结果（先清除状态，再设置新公式）
+  astResults.value = [] // 清除之前的AST结果
+  syntaxResults.value = [] // 清除之前的严格形式公式结果
+  results.value = [] // 清除之前的真值表结果
+  feedback.value = [] // 清除之前的反馈
+  counter.value = 0   // 重置计数器
+
+  // 设置新公式，确保格式正确
+  formulaInput.value = cleanFormulaForDisplay(randomFormula)
+
+  console.log('generateFormula: 生成公式:', formulaInput.value)
+  console.log('generateFormula: 原始公式:', randomFormula)
 
   ElMessage.info('已生成随机公式')
 }
@@ -438,6 +543,7 @@ const checkFormula = () => {
 const clearResults = () => {
   results.value = []
   syntaxResults.value = []
+  astResults.value = []
   feedback.value = []
   counter.value = 0
   ElMessage.info('已清除所有结果')
@@ -471,7 +577,19 @@ const closeInterface = () => {
 
 const loadExample = (exampleKey) => {
   if (exampleFormulas[exampleKey]) {
+    // 清除之前的结果（先清除状态，再设置新公式）
+    astResults.value = [] // 清除之前的AST结果
+    syntaxResults.value = [] // 清除之前的严格形式公式结果
+    results.value = [] // 清除之前的真值表结果
+    feedback.value = [] // 清除之前的反馈
+    counter.value = 0   // 重置计数器
+
+    // 设置新公式，确保格式正确
     formulaInput.value = cleanFormulaForDisplay(exampleFormulas[exampleKey])
+
+    console.log('loadExample: 加载示例:', formulaInput.value)
+    console.log('loadExample: 原始公式:', exampleFormulas[exampleKey])
+
     ElMessage.info(`已加载示例：${exampleKey}`)
   }
 }
@@ -548,6 +666,127 @@ const generateTruthTable = async (formulas, detailed = false, checkType = true) 
     console.error('Error generating truth table:', error)
     throw error
   }
+}
+
+// 生成抽象语法树图片（用于startCalculation流程）
+const generateASTImageForStartCalculation = async (formula) => {
+  try {
+    // 调用后端AST生成API
+    const baseUrl = window.location.origin
+    const response = await fetch(`${baseUrl}/api/formula-syntax/ast`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        formula: formula
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to generate AST`)
+    }
+
+    const data = await response.json()
+    console.log('AST API响应:', data)
+
+    if (data.success && data.webPath) {
+      return {
+        success: true,
+        imageUrl: data.webPath,
+        dotPath: data.dotPath,
+        error: null
+      }
+    } else {
+      return {
+        success: false,
+        imageUrl: null,
+        dotPath: null,
+        error: data.error || '生成抽象语法树失败'
+      }
+    }
+  } catch (error) {
+    console.error('生成AST图片失败:', error)
+    return {
+      success: false,
+      imageUrl: null,
+      dotPath: null,
+      error: error.message || '网络错误'
+    }
+  }
+}
+
+// 生成抽象语法树图片（独立按钮调用）
+const generateASTImage = async () => {
+  if (!formulaInput.value.trim()) {
+    ElMessage.warning('请先输入公式')
+    return
+  }
+
+  astGenerating.value = true
+
+  // 获取第一个公式进行AST生成
+  const formula = normalizeFormulaFormat(formulaInput.value.split(';')[0].trim())
+
+  try {
+    console.log('开始生成AST图片，公式:', formula)
+
+    const astData = await generateASTImageForStartCalculation(formula)
+    console.log('获取到AST数据:', astData)
+
+    if (astData.success) {
+      // 创建AST结果
+      const astResult = {
+        index: counter.value + 1,
+        formula: cleanFormulaForDisplay(formula),
+        astData: astData
+      }
+
+      // 添加到AST结果数组
+      astResults.value.push(astResult)
+
+      ElMessage.success('抽象语法树生成成功')
+    } else {
+      // 生成失败，添加错误结果
+      const astResult = {
+        index: counter.value + 1,
+        formula: cleanFormulaForDisplay(formula),
+        astData: astData
+      }
+
+      astResults.value.push(astResult)
+      ElMessage.error('生成抽象语法树失败: ' + (astData.error || '未知错误'))
+    }
+  } catch (error) {
+    console.error('生成AST图片失败:', error)
+
+    // 添加错误结果
+    const astResult = {
+      index: counter.value + 1,
+      formula: cleanFormulaForDisplay(formula),
+      astData: {
+        imageUrl: null,
+        dotPath: null,
+        error: error.message || '网络错误'
+      }
+    }
+
+    astResults.value.push(astResult)
+    ElMessage.error('生成抽象语法树失败: ' + error.message)
+  } finally {
+    astGenerating.value = false
+  }
+}
+
+// 图片加载成功处理
+const handleImageLoad = (event) => {
+  console.log('AST图片加载成功:', event.target.src)
+}
+
+// 图片加载失败处理
+const handleImageError = (event) => {
+  console.error('AST图片加载失败:', event.target.src)
+  ElMessage.error('抽象语法树图片加载失败')
 }
 // =========================================================================================
 
@@ -895,6 +1134,89 @@ const getFormulaTypeTag = (type) => {
 
   .truth-table-wrapper .math-content {
     font-size: 0.7em;
+  }
+}
+
+/* AST图片样式 */
+.ast-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.ast-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  min-height: 100px;
+}
+
+.ast-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  object-fit: contain;
+}
+
+.ast-error {
+  margin: 1rem 0;
+}
+
+.ast-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.ast-loading .el-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #409eff;
+}
+
+/* AST图片响应式样式 */
+@media (max-width: 768px) {
+  .ast-content {
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .ast-image-container {
+    padding: 0.5rem;
+  }
+
+  .ast-loading {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ast-content {
+    padding: 0.25rem;
+  }
+
+  .ast-image-container {
+    padding: 0.25rem;
+    min-height: 80px;
+  }
+
+  .ast-loading {
+    padding: 0.5rem;
+  }
+
+  .ast-loading .el-icon {
+    font-size: 1.5rem;
   }
 }
 </style>

@@ -88,6 +88,7 @@ public class FormulaSyntaxController {
         try {
             // 安全检查：只允许特定的文件名格式
             if (!filename.matches("AST_[a-f0-9-]+\\.png")) {
+                System.out.println("FormulaSyntaxController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

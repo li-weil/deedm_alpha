@@ -201,7 +201,6 @@
       <truth-table-interface
         @close="showTruthTable = false"
         @formula-calculated="onFormulaCalculated"
-        @syntax-calculated="onSyntaxCalculated"
       />
     </el-dialog>
   </div>
@@ -306,12 +305,23 @@ const handleTruthTableClose = () => {
 
 // 处理公式计算完成事件
 const onFormulaCalculated = (result) => {
-  // 添加到结果列表
+  // 确保结果有索引信息，如果没有则自动分配
+  if (!result.index) {
+    result.index = formulaResults.value.length + 1
+  }
+
+  // 直接添加到结果列表，包含所有数据
   formulaResults.value.push(result)
   // 更新当前显示的公式
   currentFormula.value = result.formula
 
-  // 生成LaTeX代码（公式和真值表）
+  console.log('MainView: 添加完整公式结果:', {
+    formula: result.formula,
+    index: result.index,
+    hasSyntaxData: !!result.syntaxData
+  })
+
+  // 生成LaTeX代码（公式、真值表和严格形式公式）
   const latexString = generateLaTeXCode(result)
   // 追加到LaTeX代码区域，不清空之前的内容
   if (latexCode.value) {
@@ -323,39 +333,6 @@ const onFormulaCalculated = (result) => {
   ElMessage.success('公式和真值表已添加到主界面')
 }
 
-// 处理严格形式公式计算完成事件
-const onSyntaxCalculated = (syntaxResult) => {
-  console.log('MainView: 收到语法结果事件:', syntaxResult)
-  console.log('MainView: 当前公式结果:', formulaResults.value.map(r => ({ formula: r.formula, index: r.index })))
-
-  // 找到对应的公式结果并添加语法数据
-  const targetResult = formulaResults.value.find(result =>
-    result.formula === syntaxResult.formula
-  )
-
-  console.log('MainView: 查找结果:', targetResult)
-
-  if (targetResult) {
-    // 将语法数据添加到对应的公式结果中
-    targetResult.syntaxData = syntaxResult.syntaxData
-    console.log('MainView: 语法数据已添加到公式结果')
-
-    // 生成LaTeX代码（严格形式公式）
-    const latexString = generateSyntaxLaTeXCode(syntaxResult)
-    // 追加到LaTeX代码区域
-    if (latexCode.value) {
-      latexCode.value += '\n\n' + latexString
-    } else {
-      latexCode.value = latexString
-    }
-
-    ElMessage.success('严格形式公式已添加到主界面')
-  } else {
-    console.warn('MainView: 未找到对应的公式结果')
-    console.warn('MainView: 尝试匹配的公式:', syntaxResult.formula)
-    ElMessage.warning('未找到对应的公式结果')
-  }
-}
 
 // 获取公式类型标签样式
 const getFormulaTypeTag = (type) => {
@@ -455,16 +432,6 @@ const generateLaTeXCode = (result) => {
   return latexCode
 }
 
-// 生成严格形式公式的LaTeX代码
-const generateSyntaxLaTeXCode = (syntaxResult) => {
-  let latexCode = `\\begin{array}{c}\n\\text{严格形式公式:} ${syntaxResult.formula}\n\\end{array}\n\n`
-
-  latexCode += `\\begin{array}{c}\n\\text{严格形式:} ${syntaxResult.syntaxData.strictForm}\n\\end{array}\n\n`
-  latexCode += `\\begin{array}{c}\n\\text{简化写为:} ${syntaxResult.syntaxData.simpleForm}\n\\end{array}\n\n`
-  latexCode += `\\begin{array}{c}\n\\text{公式类型:} ${syntaxResult.syntaxData.formulaType}\n\\end{array}\n\n`
-
-  return latexCode
-}
 
 onMounted(() => {
   // 组件挂载后的初始化逻辑
