@@ -168,7 +168,9 @@ public class FormulaSyntaxService {
             // 生成PNG图片
             boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, true);
 
-            if (success) {
+            // 检查PNG文件是否实际生成，即使Graphviz报告错误
+            File pngFile = new File(pngFileName);
+            if (pngFile.exists() && pngFile.isFile()) {
                 result.put("success", true);
                 result.put("astInfo", "AST graph generated successfully");
                 result.put("formula", latexFormula);

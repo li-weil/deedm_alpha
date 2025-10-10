@@ -45,7 +45,21 @@ public class FormulaASTNode implements GraphNode {
 	 */
 	@Override
 	public String getLabel() {
-		return "" + operator;
+		// Convert ASCII operators to proper Unicode logical symbols
+		switch (operator) {
+			case '&':
+				return "∧";
+			case '|':
+				return "∨";
+			case '~':
+				return "¬";
+			case '>':
+				return "→";
+			case '=':
+				return "↔";
+			default:
+				return "" + operator;
+		}
 	}
 
 	/* (non-Javadoc)

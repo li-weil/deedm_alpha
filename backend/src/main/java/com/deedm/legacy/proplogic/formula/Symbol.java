@@ -80,6 +80,24 @@ public class Symbol {
 		else if (operator == OPERATOR_NOT) fileName = "neg.png";
 		else if (operator == OPERATOR_IMP) fileName = "rightarrow.png";
 		else fileName = "leftrightarrow.png";
+
+		// Try multiple possible paths for the image files
+		String[] possiblePaths = {
+			"./img/" + fileName,                    // Relative path from working directory
+			"src/main/resources/static/img/" + fileName, // Relative path from project root
+			"target/classes/static/img/" + fileName,     // Relative path from project root after build
+			System.getProperty("user.dir") + "/src/main/resources/static/img/" + fileName, // Absolute path
+			System.getProperty("user.dir") + "/target/classes/static/img/" + fileName       // Absolute path after build
+		};
+
+		// Return the first path that exists, or default to the first one
+		for (String path : possiblePaths) {
+			if (new java.io.File(path).exists()) {
+				return path;
+			}
+		}
+
+		// If none found, return the default path
 		return "./img/" + fileName;
 	}
 }
