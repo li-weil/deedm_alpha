@@ -158,6 +158,29 @@
                 </div>
               </div>
 
+              <!-- 显示抽象语法树 - 条件渲染：只有当result.astData存在时才显示 -->
+              <div v-if="result.astData" class="ast-content">
+                <h5 class="ast-title">抽象语法树：</h5>
+                <div class="ast-image-container" v-if="result.astData.imageUrl">
+                  <img
+                    :src="result.astData.imageUrl"
+                    :alt="'公式' + result.index + '的抽象语法树'"
+                    class="ast-image"
+                    @error="handleASTImageError"
+                    @load="handleASTImageLoad"
+                  />
+                </div>
+                <div v-else-if="result.astData.error" class="ast-error">
+                  <el-alert
+                    title="生成抽象语法树失败"
+                    :description="result.astData.error"
+                    type="error"
+                    show-icon
+                    :closable="false"
+                  />
+                </div>
+              </div>
+
               </div>
           </div>
         </div>
@@ -333,6 +356,16 @@ const onFormulaCalculated = (result) => {
   ElMessage.success('公式和真值表已添加到主界面')
 }
 
+// AST图片加载成功处理
+const handleASTImageLoad = (event) => {
+  console.log('MainView: AST图片加载成功:', event.target.src)
+}
+
+// AST图片加载失败处理
+const handleASTImageError = (event) => {
+  console.error('MainView: AST图片加载失败:', event.target.src)
+  ElMessage.error('抽象语法树图片加载失败')
+}
 
 // 获取公式类型标签样式
 const getFormulaTypeTag = (type) => {
@@ -379,6 +412,15 @@ const generateLaTeXCode = (result) => {
   if (result.syntaxData) {
     latexCode += `\\begin{array}{c}\n\\text{严格形式公式:} ${result.syntaxData.strictForm} \\text{，简化写为:} ${result.syntaxData.simpleForm}\n\\end{array}\n\n`
     latexCode += `\\begin{array}{c}\n\\text{语法公式类型: } ${result.syntaxData.formulaType}\n\\end{array}\n\n`
+  }
+
+  // 添加抽象语法树的LaTeX代码
+  if (result.astData) {
+    if (result.astData.imageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{抽象语法树已生成 (图片路径: ${result.astData.imageUrl})}\n\\end{array}\n\n`
+    } else if (result.astData.error) {
+      latexCode += `\\begin{array}{c}\n\\text{抽象语法树生成失败: ${result.astData.error}}\n\\end{array}\n\n`
+    }
   }
 
   // 生成真值表LaTeX代码 - 优先使用新的latexTable格式
@@ -681,6 +723,45 @@ onMounted(() => {
   color: #2c3e50;
   font-size: 1rem;
   font-weight: 600;
+}
+
+/* AST图片样式 */
+.ast-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.ast-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ast-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  min-height: 100px;
+}
+
+.ast-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  object-fit: contain;
+}
+
+.ast-error {
+  margin: 1rem 0;
 }
 
 .syntax-row {

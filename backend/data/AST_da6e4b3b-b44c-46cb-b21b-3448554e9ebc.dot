@@ -1,0 +1,11 @@
+graph AST_da6e4b3b_b44c_46cb_b21b_3448554e9ebc {
+    nodeASTNODE0[label = "p", shape = box]
+    nodeASTNODE1[label = "q", shape = box]
+    nodeASTNODE2[label = "", image = "src/main/resources/static/img/vee.png", shape = ellipse]
+    nodeASTNODE3[label = "r", shape = box]
+    nodeASTNODE4[label = "", image = "src/main/resources/static/img/wedge.png", shape = ellipse]
+    nodeASTNODE2--nodeASTNODE0[label = ""]
+    nodeASTNODE2--nodeASTNODE1[label = ""]
+    nodeASTNODE4--nodeASTNODE2[label = ""]
+    nodeASTNODE4--nodeASTNODE3[label = ""]
+};

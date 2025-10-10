@@ -453,12 +453,18 @@ const startCalculation = async () => {
       tableData: tableData,
       formulaType: checkFormulaType.value && tableData.formulaType ? translateFormulaType(tableData.formulaType) : null,
       index: counter.value,
-      syntaxData: null  // 默认为空
+      syntaxData: null,  // 默认为空
+      astData: null      // 默认为空
     }
 
     // 如果生成了严格形式公式，添加到结果中
     if (showStrictForm.value && syntaxResults.value.length > 0) {
       completeResult.syntaxData = syntaxResults.value[syntaxResults.value.length - 1].syntaxData
+    }
+
+    // 如果生成了AST图片，添加到结果中
+    if (showAST.value && astResults.value.length > 0) {
+      completeResult.astData = astResults.value[astResults.value.length - 1].astData
     }
 
     // 一次性发送完整结果到主界面

@@ -1,0 +1,9 @@
+graph AST_f41f6a1b_9082_4723_933c_b0dd6a8c014a {
+    nodeASTNODE0[label = "p", shape = box]
+    nodeASTNODE1[label = "", image = "src/main/resources/static/img/neg.png", shape = ellipse]
+    nodeASTNODE2[label = "q", shape = box]
+    nodeASTNODE3[label = "", image = "src/main/resources/static/img/rightarrow.png", shape = ellipse]
+    nodeASTNODE1--nodeASTNODE0[label = ""]
+    nodeASTNODE3--nodeASTNODE1[label = ""]
+    nodeASTNODE3--nodeASTNODE2[label = ""]
+};
