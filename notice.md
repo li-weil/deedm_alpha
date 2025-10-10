@@ -6,8 +6,9 @@
 
 注意，每次后端运用到legacy代码，都要把/home/admin-unix/D
 eedm/legacy源代码迁移到迁移到/home/admin-unix/Deedm/backen
-d/src/main/java/com/deedm/legacy
+d/src/main/java/com/deedm/legacy，注意迁移后要加上com.deedm.legacy 包前缀
 
+~/Deedm/backend/src/main/resources/application.yml已经记录了context path设置为'/api'，之后设计controller路由注意不要重复
 先不要考虑太多ui优化，完
   成完整的构建，减少bug，注意各个文件之间的适配性
   ，严丝合缝，用到了新配置需要在配置文件里修改，

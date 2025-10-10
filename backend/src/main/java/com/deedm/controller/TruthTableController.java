@@ -22,7 +22,6 @@ public class TruthTableController {
     public ResponseEntity<TruthTableResponse> generateTruthTable(@RequestBody TruthTableRequest request) {
         try {
             TruthTableResponse response = truthTableService.generateTruthTable(request);
-            console.log("hello world" );
             if (response.getErrorMessage() != null) {
                 return ResponseEntity.badRequest().body(response);
             }

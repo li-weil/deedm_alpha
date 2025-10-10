@@ -1,7 +1,7 @@
 /**
  * 
  */
-package proplogic.equiv;
+package com.deedm.legacy.proplogic.equiv;
 
 import java.util.ArrayList;
 import java.util.List;

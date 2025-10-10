@@ -130,10 +130,39 @@
                   {{ result.formulaType }}
                 </el-tag>
               </div>
-            </div>
+
+              <!-- 显示严格形式公式 - 条件渲染：只有当result.syntaxData存在时才显示 -->
+              <div v-if="result.syntaxData" class="syntax-content">
+                <h5 class="syntax-title">严格形式公式：</h5>
+                <div class="syntax-row">
+                  <span class="syntax-label">严格形式：</span>
+                  <math-renderer
+                    :formula="cleanFormulaForDisplay(result.syntaxData.strictForm)"
+                    :type="'katex'"
+                    :display-mode="false"
+                    class="syntax-formula"
+                  />
+                </div>
+                <div class="syntax-row">
+                  <span class="syntax-label">简化写为：</span>
+                  <math-renderer
+                    :formula="cleanFormulaForDisplay(result.syntaxData.simpleForm)"
+                    :type="'katex'"
+                    :display-mode="false"
+                    class="syntax-formula"
+                  />
+                </div>
+                <div class="syntax-row">
+                  <span class="syntax-label">公式类型：</span>
+                  <span class="syntax-type">{{ result.syntaxData.formulaType }}</span>
+                </div>
+              </div>
+
+              </div>
           </div>
         </div>
-      </el-aside>
+
+        </el-aside>
 
       <!-- 右侧面板 - LaTeX代码 -->
       <el-aside class="right-panel" @wheel="handleRightWheel">  <!-- 监听鼠标滚轮事件 -->
@@ -170,8 +199,9 @@
     >
       <!-- 引入真值表界面组件 -->
       <truth-table-interface
-        @close="showTruthTable = false"  
-        @formula-calculated="onFormulaCalculated" 
+        @close="showTruthTable = false"
+        @formula-calculated="onFormulaCalculated"
+        @syntax-calculated="onSyntaxCalculated"
       />
     </el-dialog>
   </div>
@@ -293,6 +323,40 @@ const onFormulaCalculated = (result) => {
   ElMessage.success('公式和真值表已添加到主界面')
 }
 
+// 处理严格形式公式计算完成事件
+const onSyntaxCalculated = (syntaxResult) => {
+  console.log('MainView: 收到语法结果事件:', syntaxResult)
+  console.log('MainView: 当前公式结果:', formulaResults.value.map(r => ({ formula: r.formula, index: r.index })))
+
+  // 找到对应的公式结果并添加语法数据
+  const targetResult = formulaResults.value.find(result =>
+    result.formula === syntaxResult.formula
+  )
+
+  console.log('MainView: 查找结果:', targetResult)
+
+  if (targetResult) {
+    // 将语法数据添加到对应的公式结果中
+    targetResult.syntaxData = syntaxResult.syntaxData
+    console.log('MainView: 语法数据已添加到公式结果')
+
+    // 生成LaTeX代码（严格形式公式）
+    const latexString = generateSyntaxLaTeXCode(syntaxResult)
+    // 追加到LaTeX代码区域
+    if (latexCode.value) {
+      latexCode.value += '\n\n' + latexString
+    } else {
+      latexCode.value = latexString
+    }
+
+    ElMessage.success('严格形式公式已添加到主界面')
+  } else {
+    console.warn('MainView: 未找到对应的公式结果')
+    console.warn('MainView: 尝试匹配的公式:', syntaxResult.formula)
+    ElMessage.warning('未找到对应的公式结果')
+  }
+}
+
 // 获取公式类型标签样式
 const getFormulaTypeTag = (type) => {
   switch (type) {
@@ -331,7 +395,13 @@ const generateLaTeXCode = (result) => {
   let latexCode = `\\begin{array}{c}\n\\text{公式: } ${result.formula}\n\\end{array}\n\n`
 
   if (result.formulaType) {
-    latexCode += `\\begin{array}{c}\n\n\\text{公式类型: } ${result.formulaType}\n\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{公式类型: } ${result.formulaType}\n\\end{array}\n\n`
+  }
+
+  // 添加严格形式公式的LaTeX代码
+  if (result.syntaxData) {
+    latexCode += `\\begin{array}{c}\n\\text{严格形式公式:} ${result.syntaxData.strictForm} \\text{，简化写为:} ${result.syntaxData.simpleForm}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{语法公式类型: } ${result.syntaxData.formulaType}\n\\end{array}\n\n`
   }
 
   // 生成真值表LaTeX代码 - 优先使用新的latexTable格式
@@ -381,6 +451,17 @@ const generateLaTeXCode = (result) => {
 
     latexCode += '\\end{array}'
   }
+
+  return latexCode
+}
+
+// 生成严格形式公式的LaTeX代码
+const generateSyntaxLaTeXCode = (syntaxResult) => {
+  let latexCode = `\\begin{array}{c}\n\\text{严格形式公式:} ${syntaxResult.formula}\n\\end{array}\n\n`
+
+  latexCode += `\\begin{array}{c}\n\\text{严格形式:} ${syntaxResult.syntaxData.strictForm}\n\\end{array}\n\n`
+  latexCode += `\\begin{array}{c}\n\\text{简化写为:} ${syntaxResult.syntaxData.simpleForm}\n\\end{array}\n\n`
+  latexCode += `\\begin{array}{c}\n\\text{公式类型:} ${syntaxResult.syntaxData.formulaType}\n\\end{array}\n\n`
 
   return latexCode
 }
@@ -617,6 +698,55 @@ onMounted(() => {
 
 .type-tag {
   margin-left: 0.5rem;
+}
+
+/* 严格形式公式结果样式 */
+.syntax-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.syntax-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.syntax-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.syntax-row:last-child {
+  margin-bottom: 0;
+}
+
+.syntax-label {
+  font-weight: 600;
+  color: #374151;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.syntax-formula {
+  flex: 1;
+  min-width: 0;
+}
+
+.syntax-type {
+  color: #059669;
+  font-weight: 500;
+  background: #f0fdf4;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #bbf7d0;
 }
 
 /* 响应式设计 */

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package proplogic.equiv;
+package com.deedm.legacy.proplogic.equiv;
 
 import com.deedm.legacy.proplogic.formula.Formula;
 

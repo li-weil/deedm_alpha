@@ -68,15 +68,27 @@
       <!-- 选项设置 -->
       <el-divider content-position="left">选择显示内容</el-divider>
       <el-row :gutter="20">
-        <el-col :span="12">
+        <el-col :span="8">
           <el-checkbox v-model="showDetailedTable" size="large">
             显示详细公式真值表
           </el-checkbox>
         </el-col>
-        <el-col :span="12">
+        <el-col :span="8">
           <el-checkbox v-model="checkFormulaType" size="large">
             判断公式是否为重言式、可满足式或矛盾式
           </el-checkbox>
+        </el-col>
+        <el-col :span="8">
+          <el-checkbox v-model="showStrictForm" size="large">
+            给出符合公式归纳定义的严格形式公式
+          </el-checkbox>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" style="margin-top: 1rem;">
+        <el-col :span="12">
+          <el-button type="info" @click="testSyntaxAPI" size="small">
+            测试语法API连接
+          </el-button>
         </el-col>
       </el-row>
     </div>
@@ -192,6 +204,48 @@
         </div>
       </div>
     </div>
+
+    <!-- 严格形式公式显示区域 -->
+    <div v-if="syntaxResults.length > 0" class="results-section">
+      <el-divider content-position="left">严格形式公式</el-divider>
+      <div class="results-content">
+        <div v-for="(result, index) in syntaxResults" :key="'syntax-' + index" class="result-item">
+          <div class="result-formula">
+            <strong>公式 {{ result.index }}: </strong>
+            <math-renderer
+              :formula="result.formula"
+              :type="'katex'"
+              :display-mode="false"
+            />
+          </div>
+
+          <div class="syntax-content">
+            <div class="syntax-row">
+              <span class="syntax-label">严格形式：</span>
+              <math-renderer
+                :formula="result.syntaxData.strictForm"
+                :type="'katex'"
+                :display-mode="false"
+                class="syntax-formula"
+              />
+            </div>
+            <div class="syntax-row">
+              <span class="syntax-label">简化写为：</span>
+              <math-renderer
+                :formula="result.syntaxData.simpleForm"
+                :type="'katex'"
+                :display-mode="false"
+                class="syntax-formula"
+              />
+            </div>
+            <div class="syntax-row">
+              <span class="syntax-label">公式类型：</span>
+              <span class="syntax-type">{{ result.syntaxData.formulaType }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -212,8 +266,10 @@ import MathRenderer from '@/components/common/MathRenderer.vue'
 const formulaInput = ref('')
 const showDetailedTable = ref(true)
 const checkFormulaType = ref(true)
+const showStrictForm = ref(false)
 const feedback = ref([])
 const results = ref([])
+const syntaxResults = ref([])
 const counter = ref(0)
 
 // 示例公式映射
@@ -227,7 +283,7 @@ const exampleFormulas = {
 }
 
 // 事件处理函数
-const emit = defineEmits(['close', 'formula-calculated'])
+const emit = defineEmits(['close', 'formula-calculated', 'syntax-calculated'])
 
 const startCalculation = async () => {
   if (!formulaInput.value.trim()) {
@@ -262,6 +318,36 @@ const startCalculation = async () => {
     // 如果需要检查公式类型
     if (checkFormulaType.value && tableData.formulaType) {
       result.formulaType = translateFormulaType(tableData.formulaType)
+    }
+
+    // 如果需要显示严格形式公式
+    if (showStrictForm.value) {
+      try {
+        console.log('TruthTableInterface: 开始获取严格形式公式，公式:', formulas[0])
+        const syntaxData = await getFormulaSyntaxData(formulas[0])
+        console.log('TruthTableInterface: 获取到语法数据:', syntaxData)
+        if (syntaxData.success) {
+          // 创建独立的严格形式公式结果
+          const syntaxResult = {
+            index: counter.value + 1,
+            formula: cleanFormulaForDisplay(formulas[0]),
+            syntaxData: syntaxData
+          }
+          syntaxResults.value.push(syntaxResult)
+
+          // 发送语法结果到主界面
+          emit('syntax-calculated', syntaxResult)
+
+          console.log('TruthTableInterface: 严格形式公式数据已添加到syntaxResults')
+        } else {
+          console.warn('TruthTableInterface: 语法分析失败:', syntaxData.error)
+        }
+      } catch (error) {
+        console.error('获取严格形式公式失败:', error)
+        ElMessage.error(`获取严格形式公式失败: ${error.message}`)
+      }
+    } else {
+      console.log('TruthTableInterface: 未勾选严格形式公式选项，跳过语法分析')
     }
 
     // 添加一个延迟，确保DOM准备就绪和MathRenderer初始化完成
@@ -351,9 +437,32 @@ const checkFormula = () => {
 
 const clearResults = () => {
   results.value = []
+  syntaxResults.value = []
   feedback.value = []
   counter.value = 0
   ElMessage.info('已清除所有结果')
+}
+
+const testSyntaxAPI = async () => {
+  console.log('=== 开始测试语法API ===')
+  const testFormula = 'p\\wedge q'
+
+  try {
+    console.log('测试公式:', testFormula)
+    const result = await getFormulaSyntaxData(testFormula)
+    console.log('测试结果:', result)
+
+    if (result.success) {
+      ElMessage.success('API连接成功！严格形式: ' + result.strictForm)
+    } else {
+      ElMessage.error('API返回错误: ' + result.error)
+    }
+  } catch (error) {
+    console.error('API测试失败:', error)
+    ElMessage.error('API连接失败: ' + error.message)
+  }
+
+  console.log('=== API测试结束 ===')
 }
 
 const closeInterface = () => {
@@ -369,6 +478,40 @@ const loadExample = (exampleKey) => {
 
 // Real backend API call
 // ==================================== BACKEND API CALL ====================================
+const getFormulaSyntaxData = async (formula) => {
+  try {
+    const baseUrl = window.location.origin
+    const url = `${baseUrl}/api/formula-syntax/analyze`
+    console.log('getFormulaSyntaxData: 发送请求到:', url)
+    console.log('getFormulaSyntaxData: 请求数据:', { formula: formula })
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        formula: formula
+      })
+    })
+
+    console.log('getFormulaSyntaxData: 收到响应，状态:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('getFormulaSyntaxData: 响应错误，内容:', errorText)
+      throw new Error(`HTTP ${response.status}: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('getFormulaSyntaxData: 解析响应数据:', data)
+    return data
+  } catch (error) {
+    console.error('getFormulaSyntaxData: 请求失败:', error)
+    throw error
+  }
+}
+
 const generateTruthTable = async (formulas, detailed = false, checkType = true) => {
   try {
     // 使用绝对路径，确保移动端也能正确访问
@@ -554,6 +697,48 @@ const getFormulaTypeTag = (type) => {
 
 .type-tag {
   margin-left: 0.5rem;
+}
+
+/* 严格形式公式样式 */
+.syntax-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.syntax-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.syntax-row:last-child {
+  margin-bottom: 0;
+}
+
+.syntax-label {
+  font-weight: 600;
+  color: #374151;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.syntax-formula {
+  flex: 1;
+  min-width: 0;
+}
+
+.syntax-type {
+  color: #059669;
+  font-weight: 500;
+  background: #f0fdf4;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #bbf7d0;
 }
 
 /* HTML表格样式 */
