@@ -47,6 +47,12 @@ public class PrincipalNormalFormService {
                     List<PrincipalNormalFormResponse.CalculationStep> cnfSteps = getCNFCalculationSteps(combinedFormula);
                     response.setCnfSteps(cnfSteps);
                 }
+
+                // Calculate expansion steps if PNF is requested
+                if (request.getNormalFormTypes().contains("pnf")) {
+                    List<PrincipalNormalFormResponse.ExpansionStep> cnfExpansionSteps = getCNFExpansionSteps(combinedFormula, request.getVariableSet());
+                    response.setCnfExpansionSteps(cnfExpansionSteps);
+                }
             }
 
             // Calculate DNF if requested
@@ -58,6 +64,12 @@ public class PrincipalNormalFormService {
                 if (request.getCalculationMethods().contains("detailed")) {
                     List<PrincipalNormalFormResponse.CalculationStep> dnfSteps = getDNFCalculationSteps(combinedFormula);
                     response.setDnfSteps(dnfSteps);
+                }
+
+                // Calculate expansion steps if PNF is requested
+                if (request.getNormalFormTypes().contains("pnf")) {
+                    List<PrincipalNormalFormResponse.ExpansionStep> dnfExpansionSteps = getDNFExpansionSteps(combinedFormula, request.getVariableSet());
+                    response.setDnfExpansionSteps(dnfExpansionSteps);
                 }
             }
 
@@ -317,6 +329,90 @@ public class PrincipalNormalFormService {
             steps.add(new PrincipalNormalFormResponse.CalculationStep(formula, "原始公式"));
             steps.add(new PrincipalNormalFormResponse.CalculationStep(formula, "计算完成"));
             return steps;
+        }
+    }
+
+    /**
+     * Get detailed CNF expansion steps like the original application
+     */
+    private List<PrincipalNormalFormResponse.ExpansionStep> getCNFExpansionSteps(String formula, String variableSet) {
+        try {
+            List<PrincipalNormalFormResponse.ExpansionStep> steps = new ArrayList<>();
+
+            // Parse formula and calculate CNF
+            Formula parsedFormula = FormulaBuilder.buildFromLaTexFormulaString(formula);
+            if (parsedFormula == null) {
+                return steps;
+            }
+
+            Formula cnfFormula = NormalFormulaCalculator.calculateCNF(parsedFormula);
+            ConjunctiveNormalFormula conjNormForm = ConjunctiveNormalFormula.convertAndSimplify(cnfFormula);
+
+            // Get expansion recorder for detailed steps
+            ExpandNFRecorder expandRecorder = NormalFormulaCalculator.getExpandRecorder();
+            List<ExpandNFStep> stepList = expandRecorder.getStepList();
+
+            for (ExpandNFStep step : stepList) {
+                Formula stepFormula = step.getFormula();
+                String formulaCode = step.getFormulaBinaryCodeString();
+                String resultCodes = step.getResultCodesNamedLaTeXString(ExpandNFRecorder.TYPE_CNF);
+
+                steps.add(new PrincipalNormalFormResponse.ExpansionStep(
+                    stepFormula.toSimpleLaTeXString(),
+                    formulaCode,
+                    resultCodes,
+                    "扩展简单合取式",
+                    "得到极大项"
+                ));
+            }
+
+            return steps;
+
+        } catch (Exception e) {
+            System.err.println("Error getting CNF expansion steps: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Get detailed DNF expansion steps like the original application
+     */
+    private List<PrincipalNormalFormResponse.ExpansionStep> getDNFExpansionSteps(String formula, String variableSet) {
+        try {
+            List<PrincipalNormalFormResponse.ExpansionStep> steps = new ArrayList<>();
+
+            // Parse formula and calculate DNF
+            Formula parsedFormula = FormulaBuilder.buildFromLaTexFormulaString(formula);
+            if (parsedFormula == null) {
+                return steps;
+            }
+
+            Formula dnfFormula = NormalFormulaCalculator.calculateDNF(parsedFormula);
+            DisjunctiveNormalFormula disjNormForm = DisjunctiveNormalFormula.convertAndSimplify(dnfFormula);
+
+            // Get expansion recorder for detailed steps
+            ExpandNFRecorder expandRecorder = NormalFormulaCalculator.getExpandRecorder();
+            List<ExpandNFStep> stepList = expandRecorder.getStepList();
+
+            for (ExpandNFStep step : stepList) {
+                Formula stepFormula = step.getFormula();
+                String formulaCode = step.getFormulaBinaryCodeString();
+                String resultCodes = step.getResultCodesNamedLaTeXString(ExpandNFRecorder.TYPE_DNF);
+
+                steps.add(new PrincipalNormalFormResponse.ExpansionStep(
+                    stepFormula.toSimpleLaTeXString(),
+                    formulaCode,
+                    resultCodes,
+                    "扩展简单析取式",
+                    "得到极小项"
+                ));
+            }
+
+            return steps;
+
+        } catch (Exception e) {
+            System.err.println("Error getting DNF expansion steps: " + e.getMessage());
+            return new ArrayList<>();
         }
     }
 

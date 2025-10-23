@@ -176,15 +176,43 @@
               />
             </div>
 
+            <!-- PCNF 扩展步骤 -->
+            <div v-if="result.cnfExpansionSteps && result.cnfExpansionSteps.length > 0" class="expansion-steps">
+              <h4 class="expansion-title">主合取范式扩展步骤：</h4>
+              <div v-for="(step, stepIndex) in result.cnfExpansionSteps" :key="'cnf-expansion-' + stepIndex" class="expansion-step">
+                <div class="expansion-formula">
+                  <math-renderer
+                    :formula="step.formula"
+                    :type="'katex'"
+                    :display-mode="false"
+                    class="step-formula"
+                  />
+                  <span v-if="step.formulaCode" class="formula-code">[{{ step.formulaCode }}]</span>
+                </div>
+                <div class="expansion-description">
+                  <el-text type="primary" class="expansion-text">{{ step.expansionDescription }}</el-text>
+                </div>
+                <div v-if="step.resultCodes" class="expansion-result">
+                  <el-text type="success" class="result-text">{{ step.resultDescription }}：</el-text>
+                  <math-renderer
+                    :formula="step.resultCodes"
+                    :type="'katex'"
+                    :display-mode="false"
+                    class="result-codes"
+                  />
+                </div>
+              </div>
+            </div>
+
             <!-- PCNF 结果 -->
             <div v-if="result.cnfResult.pcnf && normalFormTypes.includes('pnf')" class="pnf-result">
-              <h5 class="pnf-title">主合取范式：</h5>
+              <h5 class="pnf-title">最终的主合取范式是：</h5>
               <math-renderer
                 :formula="result.cnfResult.pcnf"
                 :type="'katex'"
                 :display-mode="false"
               />
-              <h5 class="pnf-title">对应的析取范式：</h5>
+              <h5 class="pnf-title">相应的主析取范式是：</h5>
               <math-renderer
                 :formula="result.cnfResult.pdnf"
                 :type="'katex'"
@@ -216,15 +244,43 @@
               />
             </div>
 
+            <!-- PDNF 扩展步骤 -->
+            <div v-if="result.dnfExpansionSteps && result.dnfExpansionSteps.length > 0" class="expansion-steps">
+              <h4 class="expansion-title">主析取范式扩展步骤：</h4>
+              <div v-for="(step, stepIndex) in result.dnfExpansionSteps" :key="'dnf-expansion-' + stepIndex" class="expansion-step">
+                <div class="expansion-formula">
+                  <math-renderer
+                    :formula="step.formula"
+                    :type="'katex'"
+                    :display-mode="false"
+                    class="step-formula"
+                  />
+                  <span v-if="step.formulaCode" class="formula-code">[{{ step.formulaCode }}]</span>
+                </div>
+                <div class="expansion-description">
+                  <el-text type="primary" class="expansion-text">{{ step.expansionDescription }}</el-text>
+                </div>
+                <div v-if="step.resultCodes" class="expansion-result">
+                  <el-text type="success" class="result-text">{{ step.resultDescription }}：</el-text>
+                  <math-renderer
+                    :formula="step.resultCodes"
+                    :type="'katex'"
+                    :display-mode="false"
+                    class="result-codes"
+                  />
+                </div>
+              </div>
+            </div>
+
             <!-- PDNF 结果 -->
             <div v-if="result.dnfResult.pdnf && normalFormTypes.includes('pnf')" class="pnf-result">
-              <h5 class="pnf-title">主析取范式：</h5>
+              <h5 class="pnf-title">最终的主析取范式是：</h5>
               <math-renderer
                 :formula="result.dnfResult.pdnf"
                 :type="'katex'"
                 :display-mode="false"
               />
-              <h5 class="pnf-title">对应的合取范式：</h5>
+              <h5 class="pnf-title">相应的主合取范式是：</h5>
               <math-renderer
                 :formula="result.dnfResult.pcnf"
                 :type="'katex'"
@@ -332,8 +388,13 @@ const startCalculation = async () => {
   try {
     console.log('PrincipalNormalFormInterface: 开始计算主范式，公式:', formulas)
 
+    // 根据是否需要扩展步骤选择不同的端点
+    const endpoint = normalFormTypes.value.includes('pnf') && calculationMethods.value.includes('detailed')
+      ? '/principal-normal-form/calculate-with-expansion'
+      : '/principal-normal-form/calculate'
+
     // 调用后端API计算主范式
-    const result = await callBackendApi('/principal-normal-form/calculate', {
+    const result = await callBackendApi(endpoint, {
       method: 'POST',
       body: JSON.stringify({
         formulas: formulas,
@@ -591,6 +652,20 @@ const convertBackendResultToFrontend = (backendResult) => {
       formula: step.formula,
       comment: step.comment
     })) : null,
+    cnfExpansionSteps: backendResult.cnfExpansionSteps ? backendResult.cnfExpansionSteps.map(step => ({
+      formula: step.formula,
+      formulaCode: step.formulaCode,
+      resultCodes: step.resultCodes,
+      expansionDescription: step.expansionDescription,
+      resultDescription: step.resultDescription
+    })) : null,
+    dnfExpansionSteps: backendResult.dnfExpansionSteps ? backendResult.dnfExpansionSteps.map(step => ({
+      formula: step.formula,
+      formulaCode: step.formulaCode,
+      resultCodes: step.resultCodes,
+      expansionDescription: step.expansionDescription,
+      resultDescription: step.resultDescription
+    })) : null,
     truthTable: backendResult.truthTable
   }
 }
@@ -772,6 +847,85 @@ const cleanFormulaForDisplay = (formula) => {
   color: #856404;
   font-size: 0.95rem;
   font-weight: 600;
+}
+
+.expansion-steps {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+}
+
+.expansion-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.expansion-step {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #d0e3ff;
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.1);
+}
+
+.expansion-step:last-child {
+  margin-bottom: 0;
+}
+
+.expansion-formula {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.formula-code {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  background: #f1f3f4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #5f6368;
+  border: 1px solid #dadce0;
+}
+
+.expansion-description {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.expansion-text {
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.expansion-result {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.result-text {
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.result-codes {
+  background: #f8fff8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #c3e6c3;
 }
 
 .truth-table-result {

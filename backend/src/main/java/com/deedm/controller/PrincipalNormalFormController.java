@@ -43,6 +43,36 @@ public class PrincipalNormalFormController {
     }
 
     /**
+     * Calculate principal normal forms with detailed expansion steps (like original application)
+     */
+    @PostMapping("/calculate-with-expansion")
+    public ResponseEntity<PrincipalNormalFormResponse> calculateWithExpansionSteps(
+            @RequestBody PrincipalNormalFormRequest request) {
+        try {
+            // Ensure PNF and detailed methods are included
+            if (!request.getNormalFormTypes().contains("pnf")) {
+                request.getNormalFormTypes().add("pnf");
+            }
+            if (!request.getCalculationMethods().contains("detailed")) {
+                request.getCalculationMethods().add("detailed");
+            }
+
+            PrincipalNormalFormResponse response = principalNormalFormService.calculatePrincipalNormalForm(request);
+
+            if (!response.isSuccess()) {
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            PrincipalNormalFormResponse errorResponse = new PrincipalNormalFormResponse();
+            errorResponse.setSuccess(false);
+            errorResponse.setErrorMessage("Internal server error: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    /**
      * Generate random formulas for normal form practice
      */
     @PostMapping("/generate")

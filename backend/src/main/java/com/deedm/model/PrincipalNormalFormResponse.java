@@ -22,6 +22,10 @@ public class PrincipalNormalFormResponse {
     private List<CalculationStep> cnfSteps;
     private List<CalculationStep> dnfSteps;
 
+    // Expansion steps for principal normal forms (like original application)
+    private List<ExpansionStep> cnfExpansionSteps;
+    private List<ExpansionStep> dnfExpansionSteps;
+
     // Truth table (when table method is used)
     private String truthTable;
 
@@ -107,6 +111,22 @@ public class PrincipalNormalFormResponse {
 
     public void setDnfSteps(List<CalculationStep> dnfSteps) {
         this.dnfSteps = dnfSteps;
+    }
+
+    public List<ExpansionStep> getCnfExpansionSteps() {
+        return cnfExpansionSteps;
+    }
+
+    public void setCnfExpansionSteps(List<ExpansionStep> cnfExpansionSteps) {
+        this.cnfExpansionSteps = cnfExpansionSteps;
+    }
+
+    public List<ExpansionStep> getDnfExpansionSteps() {
+        return dnfExpansionSteps;
+    }
+
+    public void setDnfExpansionSteps(List<ExpansionStep> dnfExpansionSteps) {
+        this.dnfExpansionSteps = dnfExpansionSteps;
     }
 
     public String getTruthTable() {
@@ -238,6 +258,66 @@ public class PrincipalNormalFormResponse {
 
         public void setComment(String comment) {
             this.comment = comment;
+        }
+    }
+
+    public static class ExpansionStep {
+        private String formula;
+        private String formulaCode;
+        private String resultCodes;
+        private String expansionDescription;
+        private String resultDescription;
+
+        public ExpansionStep() {}
+
+        public ExpansionStep(String formula, String formulaCode, String resultCodes,
+                           String expansionDescription, String resultDescription) {
+            this.formula = formula;
+            this.formulaCode = formulaCode;
+            this.resultCodes = resultCodes;
+            this.expansionDescription = expansionDescription;
+            this.resultDescription = resultDescription;
+        }
+
+        // Getters and Setters
+        public String getFormula() {
+            return formula;
+        }
+
+        public void setFormula(String formula) {
+            this.formula = formula;
+        }
+
+        public String getFormulaCode() {
+            return formulaCode;
+        }
+
+        public void setFormulaCode(String formulaCode) {
+            this.formulaCode = formulaCode;
+        }
+
+        public String getResultCodes() {
+            return resultCodes;
+        }
+
+        public void setResultCodes(String resultCodes) {
+            this.resultCodes = resultCodes;
+        }
+
+        public String getExpansionDescription() {
+            return expansionDescription;
+        }
+
+        public void setExpansionDescription(String expansionDescription) {
+            this.expansionDescription = expansionDescription;
+        }
+
+        public String getResultDescription() {
+            return resultDescription;
+        }
+
+        public void setResultDescription(String resultDescription) {
+            this.resultDescription = resultDescription;
         }
     }
 }

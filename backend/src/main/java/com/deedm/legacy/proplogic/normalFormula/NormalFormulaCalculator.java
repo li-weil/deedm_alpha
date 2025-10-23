@@ -37,19 +37,19 @@ public class NormalFormulaCalculator {
 	 */
 	public static Formula calculateCNF(Formula formula) {
 		calculusRecorder.clearStep();
-		EquivCalculusStep step = new EquivCalculusStep(formula, " Òª¼ÆËãºÏÈ¡·¶Ê½µÄ¹«Ê½");
+		EquivCalculusStep step = new EquivCalculusStep(formula, " è¦è®¡ç®—åˆå–èŒƒå¼çš„å…¬å¼");
 		calculusRecorder.addStep(step);
 
 		Formula implicationFreeFormula = calculateImplicationFreeFormula(formula);
-		step = new EquivCalculusStep(implicationFreeFormula, " Ê¹ÓÃÔÌº­µÈÖµÊ½ºÍË«ÔÌº­µÈÖµÊ½Ïû³ıÔÌº­ºÍË«ÔÌº­ÔËËã·û ");
+		step = new EquivCalculusStep(implicationFreeFormula, " ä½¿ç”¨è•´æ¶µç­‰å€¼å¼å’ŒåŒè•´æ¶µç­‰å€¼å¼æ¶ˆé™¤è•´æ¶µå’ŒåŒè•´æ¶µè¿ç®—ç¬¦ ");
 		calculusRecorder.addStep(step);
 
 		Formula negationNormalFormula = calculateNegationNormalFormula(implicationFreeFormula);
-		step = new EquivCalculusStep(negationNormalFormula, " ½«·ñ¶¨ÔËËã·ûÒÆµ½ÃüÌâ±äÁ¿µÄÇ°Ãæ ");
+		step = new EquivCalculusStep(negationNormalFormula, " å°†å¦å®šè¿ç®—ç¬¦ç§»åˆ°å‘½é¢˜å˜é‡çš„å‰é¢ ");
 		calculusRecorder.addStep(step);
 		
 		Formula result = calculateCNFofNegationNormalFormula(negationNormalFormula);
-		step = new EquivCalculusStep(result, " ×îºóµÃµ½µÄºÏÈ¡·¶Ê½ ");
+		step = new EquivCalculusStep(result, " æœ€åå¾—åˆ°çš„åˆå–èŒƒå¼ ");
 		calculusRecorder.addStep(step);
 
 		return result;
@@ -60,18 +60,18 @@ public class NormalFormulaCalculator {
 	 */
 	public static Formula calculateDNF(Formula formula) {
 		calculusRecorder.clearStep();
-		EquivCalculusStep step = new EquivCalculusStep(formula, " Òª¼ÆËãÎöÈ¡·¶Ê½µÄ¹«Ê½");
+		EquivCalculusStep step = new EquivCalculusStep(formula, " è¦è®¡ç®—æå–èŒƒå¼çš„å…¬å¼");
 		calculusRecorder.addStep(step);
 
 		Formula implicationFreeFormula = calculateImplicationFreeFormula(formula);
-		step = new EquivCalculusStep(implicationFreeFormula, " Ê¹ÓÃÔÌº­µÈÖµÊ½ºÍË«ÔÌº­µÈÖµÊ½Ïû³ıÔÌº­ºÍË«ÔÌº­ÔËËã·û ");
+		step = new EquivCalculusStep(implicationFreeFormula, " ä½¿ç”¨è•´æ¶µç­‰å€¼å¼å’ŒåŒè•´æ¶µç­‰å€¼å¼æ¶ˆé™¤è•´æ¶µå’ŒåŒè•´æ¶µè¿ç®—ç¬¦ ");
 		calculusRecorder.addStep(step);
 
 		Formula negationNormalFormula = calculateNegationNormalFormula(implicationFreeFormula);
-		step = new EquivCalculusStep(negationNormalFormula, " ½«·ñ¶¨ÔËËã·ûÒÆµ½ÃüÌâ±äÁ¿µÄÇ°Ãæ ");
+		step = new EquivCalculusStep(negationNormalFormula, " å°†å¦å®šè¿ç®—ç¬¦ç§»åˆ°å‘½é¢˜å˜é‡çš„å‰é¢ ");
 
 		Formula result = calculateDNFofNegationNormalFormula(negationNormalFormula);
-		step = new EquivCalculusStep(result, " ×îºóµÃµ½µÄÎöÈ¡·¶Ê½ ");
+		step = new EquivCalculusStep(result, " æœ€åå¾—åˆ°çš„æå–èŒƒå¼ ");
 		calculusRecorder.addStep(step);
 
 		return result;
