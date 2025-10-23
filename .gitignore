@@ -157,3 +157,6 @@ generated/
 # Backup files
 *.bak
 *.backup
+
+# resources
+data/
