@@ -227,6 +227,22 @@
       />
       <!-- @监听时间，formula-calculated由 TruthTableInterface.vue emit过来-->
     </el-dialog>
+
+    <!-- 主范式界面模态框 - 弹出对话框 -->
+    <el-dialog
+      v-model="showPrincipalNormalForm"
+      title="扩展范式为主范式"
+      width="90%"
+      :before-close="handlePrincipalNormalFormClose"
+      class="principal-normal-form-dialog"
+    >
+      <!-- 引入主范式界面组件 -->
+      <principal-normal-form-interface
+        @close="showPrincipalNormalForm = false"
+        @formula-calculated="onFormulaCalculated"
+      />
+      <!-- @监听时间，formula-calculated由 PrincipalNormalFormInterface.vue emit过来-->
+    </el-dialog>
   </div>
 </template>
 
@@ -236,6 +252,7 @@ import { ElMessage } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
 import MathRenderer from '@/components/common/MathRenderer.vue'
 import TruthTableInterface from '@/components/logic/TruthTableInterface.vue'
+import PrincipalNormalFormInterface from '@/components/logic/PrincipalNormalFormInterface.vue'
 
 // 响应式数据
 const activeMenu = ref('')
@@ -247,6 +264,9 @@ const formulaResults = ref([])
 
 // 控制真值表界面的显示
 const showTruthTable = ref(false)
+
+// 控制主范式界面的显示
+const showPrincipalNormalForm = ref(false)
 
 // 左右面板内容区域的引用
 const leftContent = ref(null)
@@ -293,7 +313,8 @@ const handleMenuSelect = (index) => {
       ElMessage.info('构造公式真值表界面已打开')
       break
     case 'normal-form':
-      ElMessage.info('扩展范式为主范式功能')
+      showPrincipalNormalForm.value = true
+      ElMessage.info('扩展范式为主范式界面已打开')
       break
     case 'set-operations':
       ElMessage.info('集合运算功能')
@@ -324,6 +345,11 @@ const handleMenuSelect = (index) => {
 // 处理真值表界面关闭
 const handleTruthTableClose = () => {
   showTruthTable.value = false
+}
+
+// 处理主范式界面关闭
+const handlePrincipalNormalFormClose = () => {
+  showPrincipalNormalForm.value = false
 }
 
 // 处理公式计算完成事件
@@ -435,7 +461,7 @@ const cleanFormulaForDisplay = (formula) => {
   return normalizeFormulaFormat(formula)
 }
 
-// 生成LaTeX代码（公式和真值表）
+// 生成LaTeX代码（公式和真值表），用于右侧面板展示
 const generateLaTeXCode = (result) => {
   let latexCode = `\\begin{array}{c}\n\\text{公式: } ${result.formula}\n\\end{array}\n\n`
 

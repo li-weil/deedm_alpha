@@ -477,34 +477,54 @@ const startCalculation = async () => {
   }
 }
 
-const generateFormula = () => {
-  // 模拟生成随机公式 - 使用与例题相同的双反斜杠格式
-  const randomFormulas = [
-    'p\\wedge q',
-    'p\\vee q',
-    '\\neg p\\rightarrow q',
-    'p\\leftrightarrow q',
-    '(p\\vee q)\\wedge r',
-    'p\\rightarrow(q\\wedge r)',
-    'p\\wedge\\neg q',
-    '(p\\rightarrow q)\\vee r'
-  ]
+const generateFormula = async () => {
+  try {
+    // 清除之前的结果（先清除状态，再设置新公式）
+    astResults.value = [] // 清除之前的AST结果
+    syntaxResults.value = [] // 清除之前的严格形式公式结果
+    results.value = [] // 清除之前的真值表结果
+    feedback.value = [] // 清除之前的反馈
+    counter.value = 0   // 重置计数器
 
-  const randomFormula = randomFormulas[Math.floor(Math.random() * randomFormulas.length)]
+    console.log('generateFormula: 开始调用后端生成随机公式API')
 
-  // 清除之前的结果（先清除状态，再设置新公式）
-  astResults.value = [] // 清除之前的AST结果
-  syntaxResults.value = [] // 清除之前的严格形式公式结果
-  results.value = [] // 清除之前的真值表结果
-  feedback.value = [] // 清除之前的反馈
-  counter.value = 0   // 重置计数器
+    // 调用后端API生成随机公式
+    const result = await callBackendApi('/formula-syntax/generate', {
+      method: 'GET'
+    })
 
-  // 设置新公式，确保格式正确
-  formulaInput.value = cleanFormulaForDisplay(randomFormula)
+    console.log('generateFormula: 后端返回结果:', result)
 
-  console.log('generateFormula: 随机生成公式:', formulaInput.value)
+    if (result.formula) {
+      // 设置新公式，确保格式正确
+      formulaInput.value = cleanFormulaForDisplay(result.formula)
+      console.log('generateFormula: 生成公式:', formulaInput.value)
+      ElMessage.success('已生成随机公式')
+    } else {
+      console.error('generateFormula: 后端返回结果中没有formula字段:', result)
+      ElMessage.error('生成公式失败：后端返回格式错误')
+    }
+  } catch (error) {
+    console.error('generateFormula: 生成随机公式失败:', error)
 
-  ElMessage.info('已生成随机公式')
+    // 如果后端调用失败，使用本地备用公式
+    console.log('generateFormula: 使用备用本地公式生成')
+    const fallbackFormulas = [
+      'p\\wedge q',
+      'p\\vee q',
+      '\\neg p\\rightarrow q',
+      'p\\leftrightarrow q',
+      '(p\\vee q)\\wedge r',
+      'p\\rightarrow(q\\wedge r)',
+      'p\\wedge\\neg q',
+      '(p\\rightarrow q)\\vee r'
+    ]
+
+    const randomFormula = fallbackFormulas[Math.floor(Math.random() * fallbackFormulas.length)]
+    formulaInput.value = cleanFormulaForDisplay(randomFormula)
+    console.log('generateFormula: 使用备用公式:', formulaInput.value)
+    ElMessage.warning('后端服务不可用，已使用本地公式')
+  }
 }
 
 const removeFormula = () => {
