@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/truth-table")
-@CrossOrigin(origins = "*")
 public class TruthTableController {
 
     @Autowired

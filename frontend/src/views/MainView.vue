@@ -225,12 +225,13 @@
         @close="showTruthTable = false"
         @formula-calculated="onFormulaCalculated"
       />
+      <!-- @监听时间，formula-calculated由 TruthTableInterface.vue emit过来-->
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
 import MathRenderer from '@/components/common/MathRenderer.vue'
@@ -239,7 +240,6 @@ import TruthTableInterface from '@/components/logic/TruthTableInterface.vue'
 // 响应式数据
 const activeMenu = ref('')
 const currentFormula = ref('\\forall x \\in S, P(x) \\rightarrow Q(x)')
-const formulaType = ref('latex')
 const latexCode = ref('\\forall x \\in S, P(x) \\rightarrow Q(x)')
 
 // 存储公式和真值表结果
@@ -274,12 +274,12 @@ const handleRightWheel = (event) => {
 
 // 公式渲染完成回调
 const onFormulaRendered = () => {
-  console.log('Formula rendered successfully')
+  console.log('Formula rendered successfully on left panel of mainview')
 }
 
 // 公式渲染错误回调
 const onFormulaError = (error) => {
-  console.error('Formula rendering error:', error)
+  console.error('Formula rendering error on left panel of mainview:', error)
   ElMessage.error('公式渲染失败')
 }
 
@@ -378,16 +378,51 @@ const getFormulaTypeTag = (type) => {
 }
 
 // 清空公式内容
-const clearFormulaContent = () => {
-  formulaResults.value = []
-  currentFormula.value = '\\forall x \\in S, P(x) \\rightarrow Q(x)'
-  ElMessage.success('公式内容已清空')
+const clearFormulaContent = async () => {
+  try {
+    // 同时清理后端data目录
+    await cleanupBackendData()
+
+    // 清空前端数据
+    formulaResults.value = []
+    currentFormula.value = '\\forall x \\in S, P(x) \\rightarrow Q(x)'
+
+    ElMessage.success('公式内容和数据文件已清空')
+  } catch (error) {
+    console.error('清空操作失败:', error)
+    ElMessage.error('清空操作失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 清空LaTeX代码
 const clearLatexCode = () => {
   latexCode.value = ''
   ElMessage.success('LaTeX代码已清空')
+}
+
+// 清理后端data目录
+const cleanupBackendData = async () => {
+  try {
+    // 使用绝对路径，确保移动端也能正确访问
+    const baseUrl = window.location.origin
+    const response = await fetch(`${baseUrl}/api/cleanup/data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const result = await response.json()
+
+    if (result.success) {
+      console.log(`清理了 ${result.deletedCount} 个数据文件`)
+    } else {
+      console.warn('后端数据清理失败:', result.message)
+    }
+  } catch (error) {
+    console.error('调用后端清理接口失败:', error)
+    // 不抛出错误，避免影响前端清空操作
+  }
 }
 
 // 统一处理公式格式，将双反斜杠转换为单反斜杠

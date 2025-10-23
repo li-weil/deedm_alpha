@@ -12,6 +12,13 @@
       <span>公式渲染失败: {{ error }}</span>
     </div>
     <!-- Main content container: Always exists for rendering math content -->
+    <!-- ref="mathContainer" -Vue的ref属性，用于在JavaScript中直接引用这个DOM元素 -->
+    <!-- :data-formula="formula" - Vue的动态属性绑定：- : 是 v-bind: 的简写 -->
+    <!-- - 将JavaScript变量 formula 的值绑定到HTML5 data属性data-formula 上 -->
+    <!-- :style="{ display: loading || error ? 'none' : 'block' }"- 动态样式绑定： -->
+    <!-- - 使用JavaScript表达式决定CSS display 属性 -->
+    <!-- - 如果 loading 或 error 为true，显示 none（隐藏元素） -->
+    <!-- - 否则显示 block（正常显示） -->
     <div class="math-content" ref="mathContainer" :data-formula="formula" :style="{ display: loading || error ? 'none' : 'block' }">
       <!-- Math content will be rendered here by JavaScript -->
     </div>
@@ -24,7 +31,7 @@ import { ref, onMounted, watch, nextTick } from 'vue'
 // Element Plus icon imports for loading and error states
 import { Loading, WarningFilled } from '@element-plus/icons-vue'
 
-// Component props configuration
+// Component props(property) configuration
 const props = defineProps({
   formula: {
     type: String,
@@ -63,36 +70,90 @@ const loadKaTeX = async () => {
   }
 
   try {
-    // Load KaTeX CSS styles for mathematical formatting
-    const cssLink = document.createElement('link')
-    cssLink.rel = 'stylesheet'
-    cssLink.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css'
-    document.head.appendChild(cssLink)
+    // 中国境内CDN镜像配置 - 优先使用国内CDN提高加载速度
+    const cdnOptions = [
+      // 首选：七牛云CDN（国内）
+      {
+        css: 'https://cdn.staticfile.org/KaTeX/0.16.9/katex.min.css',
+        js: 'https://cdn.staticfile.org/KaTeX/0.16.9/katex.min.js',
+        autoRender: 'https://cdn.staticfile.org/KaTeX/0.16.9/contrib/auto-render.min.js'
+      },
+      // 备选1：BootCDN（国内）
+      {
+        css: 'https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.css',
+        js: 'https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.js',
+        autoRender: 'https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js'
+      },
+      // 备选2：jsdelivr（国外，作为最后备用）
+      {
+        css: 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css',
+        js: 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js',
+        autoRender: 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js'
+      }
+    ]
 
-    // Load main KaTeX JavaScript library
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js'
-      script.async = true
-      script.onload = resolve
-      script.onerror = reject
-      document.head.appendChild(script)
-    })
+    let loadSuccess = false
+    let lastError = null
 
-    // Load KaTeX auto-render extension for enhanced LaTeX support
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js'
-      script.async = true
-      script.onload = resolve
-      script.onerror = reject
-      document.head.appendChild(script)
-    })
+    // 尝试从不同的CDN加载KaTeX资源
+    for (let i = 0; i < cdnOptions.length; i++) {
+      const cdn = cdnOptions[i]
+      try {
+        console.log(`尝试从CDN ${i + 1}/${cdnOptions.length} 加载KaTeX...`)
+
+        // Load KaTeX CSS styles for mathematical formatting
+        const cssLink = document.createElement('link')
+        cssLink.rel = 'stylesheet'
+        cssLink.href = cdn.css
+        document.head.appendChild(cssLink)
+
+        // Load main KaTeX JavaScript library
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = cdn.js
+          script.async = true
+          script.timeout = 10000 // 10秒超时
+          script.onload = resolve
+          script.onerror = reject
+          script.ontimeout = reject
+          document.head.appendChild(script)
+        })
+
+        // Load KaTeX auto-render extension for enhanced LaTeX support
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = cdn.autoRender
+          script.async = true
+          script.timeout = 10000 // 10秒超时
+          script.onload = resolve
+          script.onerror = reject
+          script.ontimeout = reject
+          document.head.appendChild(script)
+        })
+
+        console.log(`CDN ${i + 1} 加载成功！`)
+        loadSuccess = true
+        break
+      } catch (err) {
+        console.warn(`CDN ${i + 1} 加载失败:`, err)
+        lastError = err
+        // 清理已添加的标签
+        const links = document.querySelectorAll('link[href*="katex"]')
+        const scripts = document.querySelectorAll('script[src*="katex"]')
+        links.forEach(link => link.remove())
+        scripts.forEach(script => script.remove())
+        continue
+      }
+    }
+
+    if (!loadSuccess) {
+      throw new Error(`所有CDN都无法加载KaTeX。最后错误: ${lastError?.message || '未知错误'}`)
+    }
 
     katexLoaded.value = true
-    console.log('KaTeX loaded successfully')
+    console.log('KaTeX lib loaded successfully')
   } catch (err) {
-    console.error('Failed to load KaTeX:', err)
+    console.error('Failed to load KaTeX lib:', err)
     throw err
   }
 }
@@ -150,7 +211,7 @@ const renderKaTeX = () => {
   // Clean and validate formula input
   const cleanedFormula = cleanFormula(props.formula)
   if (!cleanedFormula) {
-    throw new Error('Formula is empty after cleaning')
+    throw new Error('Katex Rendering: Formula is empty after cleaning')
   }
 
   // Determine display mode based on props
@@ -158,6 +219,7 @@ const renderKaTeX = () => {
 
   try {
     // Check if formula contains LaTeX array/table environment (both array and tabular)
+    //Katex不支持渲染tabular样式的表格，且Katex表格渲染样式不美观
     if (cleanedFormula.includes('\\begin{array}') || cleanedFormula.includes('\\begin{tabular}')) {
       console.log("Rendering as HTML table:", cleanedFormula)
 
@@ -212,18 +274,18 @@ const createBeautifulHTMLTable = (latexTable) => {
   try {
     // Debug logging for troubleshooting LaTeX parsing
     console.log('createBeautifulHTMLTable input:', JSON.stringify(latexTable))
-    console.log('Input length:', latexTable.length)
-    console.log('Contains \\begin{array}:', latexTable.includes('\\begin{array}'))
-    console.log('Contains \\end{array}:', latexTable.includes('\\end{array}'))
+    // console.log('Input length:', latexTable.length)
+    // console.log('Contains \\begin{array}:', latexTable.includes('\\begin{array}'))
+    // console.log('Contains \\end{array}:', latexTable.includes('\\end{array}'))
 
     // Parse the LaTeX array/tabular structure using regex to extract column spec and content
     let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
-    console.log('Array regex match result:', arrayMatch)
+    // console.log('Array regex match result:', arrayMatch)
 
     // If not array, try tabular format
     if (!arrayMatch) {
       arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
-      console.log('Tabular regex match result:', arrayMatch)
+      // console.log('Tabular regex match result:', arrayMatch)
     }
 
     // Fallback pattern matching if primary pattern fails
@@ -348,135 +410,6 @@ const createBeautifulHTMLTable = (latexTable) => {
   }
 }
 
-// Fallback HTML table creation function (simpler version)
-const createHTMLTable = (latexTable) => {
-  try {
-    // Parse the LaTeX array/tabular structure using corrected regex pattern
-    let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
-
-    // If not array, try tabular format
-    if (!arrayMatch) {
-      arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
-    }
-
-    if (!arrayMatch) return null
-
-    const columns = arrayMatch[1].length // number of columns from {ccccc}
-    const content = arrayMatch[2]
-
-    // Split content by \\ (rows) and then by & (cells)
-    const rows = content.split('\\\\').map(row => row.trim()).filter(row => row)
-
-    // Create basic table element with simple styling
-    const table = document.createElement('table')
-    table.style.borderCollapse = 'collapse'
-    table.style.margin = '0 auto'
-    table.style.fontFamily = 'Times New Roman, serif'
-
-    // Process each row
-    let actualRowIndex = 0
-    rows.forEach((rowContent) => {
-      // Skip rows that only contain \hline
-      if (rowContent.trim() === '\\hline') return
-
-      const row = document.createElement('tr')
-      const cells = rowContent.split('&').map(cell => cell.trim())
-
-      // Process each cell in the row
-      cells.forEach(cellContent => {
-        // Remove \hline from cell content if present
-        let cleanCellContent = cellContent.replace(/\\hline/g, '').trim()
-
-        // Skip empty cells
-        if (cleanCellContent === '') return
-
-        const cell = actualRowIndex === 0 ? document.createElement('th') : document.createElement('td')
-        cell.style.border = '1px solid #ddd'
-        cell.style.padding = '8px'
-        cell.style.textAlign = 'center'
-
-        // Process cell content: Convert LaTeX commands to HTML and logic symbols
-        let processedContent = cleanCellContent
-          .replace(/\$([^\$]+)\$/g, '$1') // Remove $ delimiters
-          .replace(/\\mathbf\{([^}]+)\}/g, '<strong>$1</strong>')
-          .replace(/\\leftrightarrow/g, '↔')
-          .replace(/\\rightarrow/g, '→')
-          .replace(/\\wedge/g, '∧')
-          .replace(/\\vee/g, '∨')
-          .replace(/\\neg/g, '¬')
-          // Remove curly braces around formulas that don't contain LaTeX commands
-          .replace(/\{([^{}\\]+)\}/g, (match, content) => {
-            // Only remove braces if content doesn't contain LaTeX commands
-            return content.includes('\\') ? match : content;
-          })
-
-        // Convert header formulas to italic for mathematical conventions
-        if (actualRowIndex === 0) {
-          processedContent = `<em style="font-style: italic; font-family: 'Times New Roman', serif;">${processedContent}</em>`
-        }
-
-        cell.innerHTML = processedContent
-        row.appendChild(cell)
-      })
-
-      table.appendChild(row)
-      actualRowIndex++
-    })
-
-    return table
-  } catch (err) {
-    console.error('Failed to create HTML table:', err)
-    return null
-  }
-}
-
-// Fallback rendering for simple formulas using Unicode symbol replacement
-const renderSimpleLaTeX = () => {
-  const cleanedFormula = cleanFormula(props.formula)
-  if (!cleanedFormula) {
-    throw new Error('Formula is empty after cleaning')
-  }
-
-  // Map LaTeX commands to Unicode symbols for basic mathematical rendering
-  const symbolMap = {
-    '\\wedge': '∧',        // Logical AND
-    '\\vee': '∨',         // Logical OR
-    '\\neg': '¬',         // Logical NOT
-    '\\rightarrow': '→',  // Implication
-    '\\leftrightarrow': '↔', // Biconditional
-    '\\forall': '∀',      // Universal quantifier
-    '\\exists': '∃',      // Existential quantifier
-    '\\in': '∈',          // Element of
-    '\\subset': '⊂',      // Subset
-    '\\cup': '∪',         // Union
-    '\\cap': '∩',         // Intersection
-    '\\emptyset': '∅',    // Empty set
-    '\\land': '∧',        // Alternative AND
-    '\\lor': '∨',         // Alternative OR
-    '\\lnot': '¬',        // Alternative NOT
-    '\\to': '→',          // Alternative implication
-    '\\iff': '↔'          // Alternative biconditional
-  }
-
-  // Replace all LaTeX commands with Unicode symbols
-  let rendered = cleanedFormula
-  for (const [latex, symbol] of Object.entries(symbolMap)) {
-    rendered = rendered.replace(new RegExp(latex, 'g'), symbol)
-  }
-
-  // Remove formatting commands that don't have direct Unicode equivalents
-  rendered = rendered.replace(/\\mathbf\{([^}]+)\}/g, '$1')
-  rendered = rendered.replace(/\\texttt\{([^}]+)\}/g, '$1')
-
-  // Render the processed content to DOM
-  if (mathContainer.value) {
-    mathContainer.value.innerHTML = rendered
-    mathContainer.value.className += ' simple-latex'
-    console.log('Simple LaTeX rendering completed:', rendered)
-  } else {
-    throw new Error('Math container not available for simple rendering')
-  }
-}
 
 // Main rendering function that orchestrates the entire rendering process
 const renderFormula = async () => {
@@ -506,11 +439,9 @@ const renderFormula = async () => {
       } catch (katexError) {
         // Fallback to simple LaTeX rendering if KaTeX fails
         console.warn('KaTeX failed, using fallback:', katexError)
-        renderSimpleLaTeX()
       }
     } else {
       // Use simple LaTeX rendering for other types
-      renderSimpleLaTeX()
     }
 
     // Emit success event to parent component

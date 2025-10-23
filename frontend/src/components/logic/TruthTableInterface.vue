@@ -110,12 +110,12 @@
       />
       <div class="input-hint">
         <el-text type="info" size="small">
-          支持的LaTeX符号：\\neg(¬), \\wedge(∧), \\vee(∨), \\rightarrow(→), \\leftrightarrow(↔)
+          支持的LaTeX符号：\neg(¬), \wedge(∧), \vee(∨), \rightarrow(→), \leftrightarrow(↔)
         </el-text>
       </div>
     </div>
 
-    <!-- 反馈信息区域 -->
+    <!-- 反馈信息区域，如果有反馈就渲染组件 -->
     <div v-if="feedback.length > 0" class="feedback-section">
       <el-divider content-position="left">反馈信息</el-divider>
       <div class="feedback-content">
@@ -334,7 +334,7 @@ const exampleFormulas = {
 }
 
 // 事件处理函数
-const emit = defineEmits(['close', 'formula-calculated', 'syntax-calculated'])
+const emit = defineEmits(['close', 'formula-calculated'])
 
 const startCalculation = async () => {
   if (!formulaInput.value.trim()) {
@@ -358,7 +358,7 @@ const startCalculation = async () => {
     console.log('TruthTableInterface: 开始计算真值表，公式:', formulas)
     // 调用后端API生成真值表
     const tableData = await generateTruthTable(formulas, showDetailedTable.value, checkFormulaType.value)
-    console.log('TruthTableInterface: 收到API响应:', tableData)
+    console.log('TruthTableInterface: 收到真值表计算API响应:', tableData)
 
     // 添加到结果，直接存储表格数据
     const result = {
@@ -377,11 +377,8 @@ const startCalculation = async () => {
     if (showStrictForm.value) {
       try {
         console.log('TruthTableInterface: 开始获取严格形式公式，公式:', formulas[0])
-        console.log('TruthTableInterface: showStrictForm:', showStrictForm.value)
-        console.log('TruthTableInterface: counter.value:', counter.value)
 
         const syntaxData = await getFormulaSyntaxData(formulas[0])
-        console.log('TruthTableInterface: 获取到语法数据:', syntaxData)
 
         if (syntaxData.success) {
           // 创建独立的严格形式公式结果
@@ -392,8 +389,8 @@ const startCalculation = async () => {
           }
           syntaxResults.value.push(syntaxResult)
 
-          console.log('TruthTableInterface: 严格形式公式数据已添加到syntaxResults，将在主界面统一显示')
-          console.log('TruthTableInterface: syntaxResults.value.length:', syntaxResults.value.length)
+          console.log('TruthTableInterface: 严格形式公式数据已获取')
+
         } else {
           console.warn('TruthTableInterface: 语法分析失败:', syntaxData.error)
           ElMessage.error('语法分析失败: ' + (syntaxData.error || '未知错误'))
@@ -436,7 +433,6 @@ const startCalculation = async () => {
     // 添加一个延迟，确保DOM准备就绪和MathRenderer初始化完成
     await new Promise(resolve => setTimeout(resolve, 200))
 
-    console.log('TruthTableInterface: 准备添加结果到数组，当前results长度:', results.value.length)
     results.value.push(result)
     console.log('TruthTableInterface: 结果已添加，新results长度:', results.value.length)
 
@@ -472,7 +468,7 @@ const startCalculation = async () => {
 
     ElMessage.success(`已完成 ${formulas.length} 个公式的真值表计算`)
   } catch (error) {
-    console.error('TruthTableInterface: 计算真值表时发生错误:', error)
+    console.error('TruthTableInterface: 处理公式时发生错误:', error)
     feedback.value.push({
       formula: cleanFormulaForDisplay(formulas[0]),
       type: 'error',
@@ -506,8 +502,7 @@ const generateFormula = () => {
   // 设置新公式，确保格式正确
   formulaInput.value = cleanFormulaForDisplay(randomFormula)
 
-  console.log('generateFormula: 生成公式:', formulaInput.value)
-  console.log('generateFormula: 原始公式:', randomFormula)
+  console.log('generateFormula: 随机生成公式:', formulaInput.value)
 
   ElMessage.info('已生成随机公式')
 }
@@ -517,7 +512,7 @@ const removeFormula = () => {
   ElMessage.info('已清空公式输入')
 }
 
-const checkFormula = () => {
+const checkFormula = async () => {
   if (!formulaInput.value.trim()) {
     ElMessage.warning('请先输入公式')
     return
@@ -529,21 +524,46 @@ const checkFormula = () => {
     .filter(f => f)
     .map(f => normalizeFormulaFormat(f))  // 统一转换为单反斜杠格式
 
-  formulas.forEach(formula => {
-    if (isValidFormula(formula)) {
-      feedback.value.push({
-        formula: cleanFormulaForDisplay(formula),
-        type: 'success',
-        message: '公式格式正确'
-      })
-    } else {
-      feedback.value.push({
-        formula: cleanFormulaForDisplay(formula),
-        type: 'error',
-        message: '公式格式不正确'
-      })
-    }
-  })
+  try {
+    // 并行检查所有公式的合法性
+    const checkPromises = formulas.map(async (formula) => {
+      try {
+        const result = await callBackendApi('/formula-syntax/check', {
+          method: 'POST',
+          body: JSON.stringify({
+            formula: formula
+          })
+        })
+
+        if (result.valid) {
+          feedback.value.push({
+            formula: cleanFormulaForDisplay(formula),
+            type: 'success',
+            message: '公式格式正确'
+          })
+        } else {
+          feedback.value.push({
+            formula: cleanFormulaForDisplay(formula),
+            type: 'error',
+            message: result.error || '公式格式不正确'
+          })
+        }
+      } catch (error) {
+        console.error('检查公式失败:', formula, error)
+        feedback.value.push({
+          formula: cleanFormulaForDisplay(formula),
+          type: 'error',
+          message: `检查失败: ${error.message}`
+        })
+      }
+    })
+
+    await Promise.all(checkPromises)
+    ElMessage.success('公式合法性检查完成')
+  } catch (error) {
+    console.error('批量检查公式失败:', error)
+    ElMessage.error(`检查失败: ${error.message}`)
+  }
 }
 
 const clearResults = () => {
@@ -597,6 +617,33 @@ const loadExample = (exampleKey) => {
     console.log('loadExample: 原始公式:', exampleFormulas[exampleKey])
 
     ElMessage.info(`已加载示例：${exampleKey}`)
+  }
+}
+
+// 通用API调用函数
+const callBackendApi = async (endpoint, options = {}) => {
+  try {
+    // 使用绝对路径，确保移动端也能正确访问
+    const baseUrl = window.location.origin
+    const response = await fetch(`${baseUrl}/api${endpoint}`, {
+      method: 'POST', // 默认使用POST方法
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.message || `HTTP error! status: ${response.status}`)
+    }
+
+    return result
+  } catch (error) {
+    console.error(`API调用失败 (${endpoint}):`, error)
+    throw error
   }
 }
 
@@ -722,67 +769,7 @@ const generateASTImageForStartCalculation = async (formula) => {
   }
 }
 
-// 生成抽象语法树图片（独立按钮调用）
-const generateASTImage = async () => {
-  if (!formulaInput.value.trim()) {
-    ElMessage.warning('请先输入公式')
-    return
-  }
 
-  astGenerating.value = true
-
-  // 获取第一个公式进行AST生成
-  const formula = normalizeFormulaFormat(formulaInput.value.split(';')[0].trim())
-
-  try {
-    console.log('开始生成AST图片，公式:', formula)
-
-    const astData = await generateASTImageForStartCalculation(formula)
-    console.log('获取到AST数据:', astData)
-
-    if (astData.success) {
-      // 创建AST结果
-      const astResult = {
-        index: counter.value + 1,
-        formula: cleanFormulaForDisplay(formula),
-        astData: astData
-      }
-
-      // 添加到AST结果数组
-      astResults.value.push(astResult)
-
-      ElMessage.success('抽象语法树生成成功')
-    } else {
-      // 生成失败，添加错误结果
-      const astResult = {
-        index: counter.value + 1,
-        formula: cleanFormulaForDisplay(formula),
-        astData: astData
-      }
-
-      astResults.value.push(astResult)
-      ElMessage.error('生成抽象语法树失败: ' + (astData.error || '未知错误'))
-    }
-  } catch (error) {
-    console.error('生成AST图片失败:', error)
-
-    // 添加错误结果
-    const astResult = {
-      index: counter.value + 1,
-      formula: cleanFormulaForDisplay(formula),
-      astData: {
-        imageUrl: null,
-        dotPath: null,
-        error: error.message || '网络错误'
-      }
-    }
-
-    astResults.value.push(astResult)
-    ElMessage.error('生成抽象语法树失败: ' + error.message)
-  } finally {
-    astGenerating.value = false
-  }
-}
 
 // 图片加载成功处理
 const handleImageLoad = (event) => {
@@ -817,12 +804,6 @@ const cleanFormulaForDisplay = (formula) => {
   return normalizeFormulaFormat(formula)
 }
 
-// 辅助函数
-const isValidFormula = (formula) => {
-  // 简单的公式验证逻辑（实际应该调用后端API）
-  const basicPattern = /^[pqrst\s\\\\neg\\\\wedge\\\\vee\\\\rightarrow\\\\leftrightarrow\\(\\)]+$/
-  return basicPattern.test(formula) && formula.length > 0
-}
 
 const getFormulaTypeTag = (type) => {
   switch (type) {
