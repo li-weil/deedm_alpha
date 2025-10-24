@@ -355,12 +355,21 @@ public class PrincipalNormalFormService {
             for (ExpandNFStep step : stepList) {
                 Formula stepFormula = step.getFormula();
                 String formulaCode = step.getFormulaBinaryCodeString();
-                String resultCodes = step.getResultCodesNamedLaTeXString(ExpandNFRecorder.TYPE_CNF);
 
+                // 获取原始结果代码，然后修正连接符
+                String originalResultCodes = step.getResultCodesNamedLaTeXString(ExpandNFRecorder.TYPE_CNF);
+                String correctedResultCodes = originalResultCodes.replaceAll("\\\\vee", "\\\\wedge");
+
+                // 恢复原来的下标格式，使用新的KaTeX字体配置
+                // correctedResultCodes = correctedResultCodes
+                //     .replaceAll("M_\\{(\\d+)\\}", "M($1)")
+                //     .replaceAll("m_\\{(\\d+)\\}", "m($1)");
+
+                
                 steps.add(new PrincipalNormalFormResponse.ExpansionStep(
                     stepFormula.toSimpleLaTeXString(),
                     formulaCode,
-                    resultCodes,
+                    correctedResultCodes,
                     "扩展简单合取式",
                     "得到极大项"
                 ));
@@ -397,8 +406,16 @@ public class PrincipalNormalFormService {
             for (ExpandNFStep step : stepList) {
                 Formula stepFormula = step.getFormula();
                 String formulaCode = step.getFormulaBinaryCodeString();
+
+                // 对于DNF，极小项之间应该使用\vee连接（这本身就是正确的，所以不需要修正）
                 String resultCodes = step.getResultCodesNamedLaTeXString(ExpandNFRecorder.TYPE_DNF);
 
+                // 恢复原来的下标格式，使用新的KaTeX字体配置
+                // resultCodes = resultCodes
+                //     .replaceAll("M_\\{(\\d+)\\}", "M($1)")
+                //     .replaceAll("m_\\{(\\d+)\\}", "m($1)");
+
+                
                 steps.add(new PrincipalNormalFormResponse.ExpansionStep(
                     stepFormula.toSimpleLaTeXString(),
                     formulaCode,

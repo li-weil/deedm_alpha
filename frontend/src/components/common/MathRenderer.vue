@@ -61,6 +61,118 @@ const loading = ref(false)            // Loading state flag
 const error = ref(null)              // Error state storage
 const katexLoaded = ref(false)        // KaTeX library loaded status
 
+// Load MathJax library dynamically as alternative to KaTeX
+const loadMathJax = async () => {
+  // Check if MathJax is already loaded globally and ready
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    katexLoaded.value = true
+    console.log('MathJax already loaded and ready')
+    return
+  }
+
+  try {
+    console.log('Loading MathJax...')
+
+    // Load MathJax configuration - 使用更简单的配置
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      startup: {
+        typeset: false
+      }
+    }
+
+    // Load MathJax script with better timing control - 使用多个CDN源和版本
+    const mathjaxSources = [
+      'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js',  // 指定版本
+      'https://unpkg.com/mathjax@3.2.2/es5/tex-mml-chtml.js',              // 指定版本
+      'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js',
+      'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',  // 回退到最新版
+      'https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js',              // 回退到最新版
+    ]
+
+    let loadSuccess = false
+    let lastError = null
+
+    for (let i = 0; i < mathjaxSources.length; i++) {
+      try {
+        console.log(`尝试从源 ${i + 1}/${mathjaxSources.length} 加载MathJax: ${mathjaxSources[i]}`)
+
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = mathjaxSources[i]
+          script.async = false // 改为同步加载以确保顺序
+          script.timeout = 10000 // 10秒超时
+
+          script.onload = () => {
+            console.log(`MathJax script loaded from source ${i + 1}, checking readiness...`)
+
+            // 等待MathJax完全初始化
+            let attempts = 0
+            const maxAttempts = 100 // 减少尝试次数，避免等待太长
+
+            const checkReady = () => {
+              attempts++
+              if (window.MathJax && window.MathJax.typesetPromise) {
+                console.log(`MathJax ready after ${attempts} attempts`)
+                if (window.MathJax.version) {
+                  console.log('MathJax version:', window.MathJax.version)
+                }
+                loadSuccess = true
+                katexLoaded.value = true
+                resolve()
+              } else if (attempts < maxAttempts) {
+                setTimeout(checkReady, 100) // 增加间隔时间
+              } else {
+                console.error('MathJax failed to initialize after maximum attempts')
+                reject(new Error('MathJax initialization timeout'))
+              }
+            }
+
+            // 开始检查MathJax是否就绪
+            setTimeout(checkReady, 500) // 给MathJax更多初始化时间
+          }
+
+          script.onerror = () => {
+            console.error(`Failed to load MathJax from source ${i + 1}`)
+            lastError = new Error(`Failed to load MathJax from source ${i + 1}`)
+            reject(lastError)
+          }
+
+          script.ontimeout = () => {
+            console.error(`MathJax loading timeout from source ${i + 1}`)
+            lastError = new Error(`MathJax loading timeout from source ${i + 1}`)
+            reject(lastError)
+          }
+
+          document.head.appendChild(script)
+        })
+
+        if (loadSuccess) {
+          break // 成功加载，退出循环
+        }
+      } catch (error) {
+        console.warn(`Source ${i + 1} failed, trying next...`)
+        lastError = error
+        continue
+      }
+    }
+
+    if (!loadSuccess) {
+      throw new Error(`All MathJax sources failed. Last error: ${lastError?.message}`)
+    }
+
+    console.log('MathJax library loaded and configured successfully')
+
+  } catch (error) {
+    console.error('Failed to load MathJax:', error)
+    throw error
+  }
+}
+
 // Load KaTeX library dynamically from CDN
 const loadKaTeX = async () => {
   // Check if KaTeX is already loaded globally
@@ -410,6 +522,56 @@ const createBeautifulHTMLTable = (latexTable) => {
   }
 }
 
+// Render formula using MathJax
+const renderMathJax = async () => {
+  console.log('renderMathJax called, mathContainer:', mathContainer.value)
+
+  // Validate MathJax library is loaded
+  if (!katexLoaded.value || !window.MathJax || !window.MathJax.typesetPromise) {
+    throw new Error('MathJax not loaded or not ready')
+  }
+
+  // Validate DOM container is available
+  if (!mathContainer.value) {
+    throw new Error('Math container not available')
+  }
+
+  // Clean and validate formula input
+  const cleanedFormula = cleanFormula(props.formula)
+  if (!cleanedFormula) {
+    throw new Error('MathJax Rendering: Formula is empty after cleaning')
+  }
+
+  try {
+    // Clear previous content
+    mathContainer.value.innerHTML = ''
+
+    // Determine display mode and prepare formula
+    const displayMode = props.displayMode || !props.inline
+    let mathJaxFormula = cleanedFormula
+
+    // For display mode, use display math delimiters
+    if (displayMode) {
+      mathJaxFormula = `\\[${mathJaxFormula}\\]`
+    } else {
+      mathJaxFormula = `\\(${mathJaxFormula}\\)`
+    }
+
+    // Create a temporary container for MathJax rendering
+    const tempContainer = document.createElement('div')
+    tempContainer.innerHTML = mathJaxFormula
+    tempContainer.style.display = displayMode ? 'block' : 'inline'
+    mathContainer.value.appendChild(tempContainer)
+
+    // Wait for MathJax to finish typesetting
+    await window.MathJax.typesetPromise([tempContainer])
+    console.log('MathJax rendering successful:', cleanedFormula)
+
+  } catch (err) {
+    console.warn('MathJax rendering failed:', err)
+    throw err
+  }
+}
 
 // Main rendering function that orchestrates the entire rendering process
 const renderFormula = async () => {
@@ -439,6 +601,56 @@ const renderFormula = async () => {
       } catch (katexError) {
         // Fallback to simple LaTeX rendering if KaTeX fails
         console.warn('KaTeX failed, using fallback:', katexError)
+      }
+    } else if (props.type === 'mathjax') {
+      try {
+        // Load MathJax library if not already loaded
+        if (!katexLoaded.value) {
+          console.log('Loading MathJax...')
+          await loadMathJax()
+        } else {
+          // 即使标记为已加载，也要再次确认MathJax完全就绪
+          if (!window.MathJax || !window.MathJax.typesetPromise) {
+            console.log('MathJax marked as loaded but not ready, reloading...')
+            katexLoaded.value = false
+            await loadMathJax()
+          }
+        }
+
+        await nextTick()
+        console.log('Before renderMathJax, mathContainer:', mathContainer.value)
+
+        // 确保MathJax完全就绪后再渲染
+        let retries = 0
+        const maxRetries = 10
+        while (retries < maxRetries) {
+          try {
+            await renderMathJax()
+            break // 成功渲染，退出重试循环
+          } catch (renderError) {
+            retries++
+            console.warn(`MathJax render attempt ${retries} failed:`, renderError)
+            if (retries >= maxRetries) {
+              throw renderError
+            }
+            // 等待一段时间后重试
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
+        }
+
+        console.log('MathJax rendering completed successfully')
+      } catch (mathjaxError) {
+        console.warn('MathJax failed after multiple attempts:', mathjaxError)
+        error.value = `MathJax渲染失败: ${mathjaxError.message}`
+
+        // 如果MathJax失败，尝试使用KaTeX作为后备
+        try {
+          console.log('Attempting KaTeX fallback...')
+          await loadKaTeX()
+          renderKaTeX()
+        } catch (fallbackError) {
+          console.error('Both MathJax and KaTeX failed:', fallbackError)
+        }
       }
     } else {
       // Use simple LaTeX rendering for other types

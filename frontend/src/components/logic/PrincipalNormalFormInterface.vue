@@ -179,28 +179,22 @@
             <!-- PCNF 扩展步骤 -->
             <div v-if="result.cnfExpansionSteps && result.cnfExpansionSteps.length > 0" class="expansion-steps">
               <h4 class="expansion-title">主合取范式扩展步骤：</h4>
-              <div v-for="(step, stepIndex) in result.cnfExpansionSteps" :key="'cnf-expansion-' + stepIndex" class="expansion-step">
-                <div class="expansion-formula">
-                  <math-renderer
-                    :formula="step.formula"
-                    :type="'katex'"
-                    :display-mode="false"
-                    class="step-formula"
-                  />
-                  <span v-if="step.formulaCode" class="formula-code">[{{ step.formulaCode }}]</span>
-                </div>
-                <div class="expansion-description">
-                  <el-text type="primary" class="expansion-text">{{ step.expansionDescription }}</el-text>
-                </div>
-                <div v-if="step.resultCodes" class="expansion-result">
-                  <el-text type="success" class="result-text">{{ step.resultDescription }}：</el-text>
-                  <math-renderer
-                    :formula="step.resultCodes"
-                    :type="'katex'"
-                    :display-mode="false"
-                    class="result-codes"
-                  />
-                </div>
+              <div v-for="(step, stepIndex) in result.cnfExpansionSteps" :key="'cnf-expansion-' + stepIndex" class="expansion-step-inline">
+                <el-text type="primary" class="step-description">{{ step.expansionDescription }}</el-text>
+                <math-renderer
+                  :formula="step.formula"
+                  :type="'katex'"
+                  :display-mode="false"
+                  class="step-formula-inline"
+                />
+                <span v-if="step.formulaCode" class="formula-code-inline">[{{ step.formulaCode }}]</span>
+                <el-text type="success" class="step-description">{{ step.resultDescription }}</el-text>
+                <math-renderer
+                  :formula="step.resultCodes"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="result-codes-inline"
+                />
               </div>
             </div>
 
@@ -209,13 +203,13 @@
               <h5 class="pnf-title">最终的主合取范式是：</h5>
               <math-renderer
                 :formula="result.cnfResult.pcnf"
-                :type="'katex'"
+                :type="'mathjax'"
                 :display-mode="false"
               />
               <h5 class="pnf-title">相应的主析取范式是：</h5>
               <math-renderer
                 :formula="result.cnfResult.pdnf"
-                :type="'katex'"
+                :type="'mathjax'"
                 :display-mode="false"
               />
             </div>
@@ -247,28 +241,22 @@
             <!-- PDNF 扩展步骤 -->
             <div v-if="result.dnfExpansionSteps && result.dnfExpansionSteps.length > 0" class="expansion-steps">
               <h4 class="expansion-title">主析取范式扩展步骤：</h4>
-              <div v-for="(step, stepIndex) in result.dnfExpansionSteps" :key="'dnf-expansion-' + stepIndex" class="expansion-step">
-                <div class="expansion-formula">
-                  <math-renderer
-                    :formula="step.formula"
-                    :type="'katex'"
-                    :display-mode="false"
-                    class="step-formula"
-                  />
-                  <span v-if="step.formulaCode" class="formula-code">[{{ step.formulaCode }}]</span>
-                </div>
-                <div class="expansion-description">
-                  <el-text type="primary" class="expansion-text">{{ step.expansionDescription }}</el-text>
-                </div>
-                <div v-if="step.resultCodes" class="expansion-result">
-                  <el-text type="success" class="result-text">{{ step.resultDescription }}：</el-text>
-                  <math-renderer
-                    :formula="step.resultCodes"
-                    :type="'katex'"
-                    :display-mode="false"
-                    class="result-codes"
-                  />
-                </div>
+              <div v-for="(step, stepIndex) in result.dnfExpansionSteps" :key="'dnf-expansion-' + stepIndex" class="expansion-step-inline">
+                <el-text type="primary" class="step-description">{{ step.expansionDescription }}</el-text>
+                <math-renderer
+                  :formula="step.formula"
+                  :type="'katex'"
+                  :display-mode="false"
+                  class="step-formula-inline"
+                />
+                <span v-if="step.formulaCode" class="formula-code-inline">[{{ step.formulaCode }}]</span>
+                <el-text type="success" class="step-description">{{ step.resultDescription }}</el-text>
+                <math-renderer
+                  :formula="step.resultCodes"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="result-codes-inline"
+                />
               </div>
             </div>
 
@@ -277,13 +265,13 @@
               <h5 class="pnf-title">最终的主析取范式是：</h5>
               <math-renderer
                 :formula="result.dnfResult.pdnf"
-                :type="'katex'"
+                :type="'mathjax'"
                 :display-mode="false"
               />
               <h5 class="pnf-title">相应的主合取范式是：</h5>
               <math-renderer
                 :formula="result.dnfResult.pcnf"
-                :type="'katex'"
+                :type="'mathjax'"
                 :display-mode="false"
               />
             </div>
@@ -580,6 +568,41 @@ const createMockResult = (formula) => {
     { formula: '(p\\wedge q)\\vee(\\neg p\\wedge r)', comment: '简化结果' }
   ]
 
+  // 模拟扩展步骤
+  const mockCnfExpansionSteps = normalFormTypes.value.includes('pnf') && calculationMethods.includes('detailed') ? [
+    {
+      formula: '(p\\vee \\neg q)',
+      formulaCode: '10-',
+      resultCodes: 'M_2 \\vee M_6',
+      expansionDescription: '扩展简单合取式',
+      resultDescription: '得到极大项'
+    },
+    {
+      formula: '(\\neg p \\vee q)',
+      formulaCode: '-1-',
+      resultCodes: 'M_1 \\vee M_5',
+      expansionDescription: '扩展简单合取式',
+      resultDescription: '得到极大项'
+    }
+  ] : null
+
+  const mockDnfExpansionSteps = normalFormTypes.value.includes('pnf') && calculationMethods.includes('detailed') ? [
+    {
+      formula: '(p\\wedge q)',
+      formulaCode: '11-',
+      resultCodes: 'm_3 \\vee m_7',
+      expansionDescription: '扩展简单析取式',
+      resultDescription: '得到极小项'
+    },
+    {
+      formula: '(\\neg p \\wedge r)',
+      formulaCode: '-01',
+      resultCodes: 'm_1 \\vee m_5',
+      expansionDescription: '扩展简单析取式',
+      resultDescription: '得到极小项'
+    }
+  ] : null
+
   return {
     index: counter.value,
     formula: cleanFormulaForDisplay(formula),
@@ -595,6 +618,8 @@ const createMockResult = (formula) => {
     } : null,
     cnfSteps: normalFormTypes.value.includes('cnf') && calculationMethods.includes('detailed') ? mockSteps : null,
     dnfSteps: normalFormTypes.value.includes('dnf') && calculationMethods.includes('detailed') ? mockSteps : null,
+    cnfExpansionSteps: mockCnfExpansionSteps,
+    dnfExpansionSteps: mockDnfExpansionSteps,
     truthTable: calculationMethods.includes('table') ?
       '\\begin{array}{ccc|c}\np & q & r & (p\\wedge q)\\vee(\\neg p\\wedge r) \\\\\\hline\nT & T & T & T \\\\\nT & T & F & T \\\\\nT & F & T & T \\\\\nT & F & F & F \\\\\nF & T & T & F \\\\\nF & T & F & F \\\\\nF & F & T & T \\\\\nF & F & F & F \\\\\n\\end{array}' : null
   }
@@ -878,6 +903,54 @@ const cleanFormulaForDisplay = (formula) => {
   margin-bottom: 0;
 }
 
+.expansion-step-inline {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.expansion-step-inline:last-child {
+  margin-bottom: 0;
+}
+
+.step-description {
+  font-weight: 600;
+  font-size: 0.95em;
+  white-space: nowrap;
+}
+
+.step-formula-inline {
+  background: #f8f9ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+}
+
+.formula-code-inline {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  background: #f1f3f4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #5f6368;
+  border: 1px solid #dadce0;
+  white-space: nowrap;
+}
+
+.result-codes-inline {
+  background: #f8fff8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #c3e6c3;
+}
+
 .expansion-formula {
   display: flex;
   align-items: center;
@@ -996,6 +1069,16 @@ const cleanFormulaForDisplay = (formula) => {
   .step-comment {
     margin-left: 0;
     margin-top: 0.25rem;
+  }
+
+  .expansion-step-inline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .step-description {
+    white-space: normal;
   }
 }
 
