@@ -108,6 +108,7 @@
             />
           </div>
 
+  
           <!-- 显示所有公式和真值表 - 条件渲染：只有当formulaResults数组有内容时才显示 -->
           <div v-if="formulaResults.length > 0" class="formula-results">
             <!-- 循环遍历formulaResults数组，v-for类似for循环，:key用于Vue性能优化 -->
@@ -120,6 +121,58 @@
                   :type="'katex'"
                   :display-mode="false"
                 />
+              </div>
+
+    
+              <!-- 范式扩展结果 -->
+              <div v-if="result.type === 'normal-form-expansion'" class="normal-form-expansion-results">
+                <!-- 变量集信息 -->
+                <div class="variable-info">
+                  <h4 class="result-title">扩展变量集：</h4>
+                  <span>{{ result.variableSet }}</span>
+                </div>
+
+                <!-- 扩展步骤 -->
+                <div v-if="result.expansionSteps && result.expansionSteps.length > 0" class="expansion-steps">
+                  <h4 class="expansion-title">{{ result.targetType }}扩展步骤：</h4>
+                  <div v-for="(step, stepIndex) in result.expansionSteps" :key="'expansion-step-' + stepIndex" class="expansion-step-inline">
+                    <el-text type="primary" class="step-description">{{ step.description }}</el-text>
+                    <math-renderer
+                      :formula="step.formula"
+                      :type="'katex'"
+                      :display-mode="false"
+                      class="step-formula-inline"
+                    />
+                    <span v-if="step.binaryCode" class="formula-code-inline">[{{ step.binaryCode }}]</span>
+                    <el-text type="success" class="step-description">得到</el-text>
+                    <math-renderer
+                      :formula="step.resultCodes"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                      class="result-codes-inline"
+                    />
+                  </div>
+                </div>
+
+                <!-- 最终结果 -->
+                <div class="pnf-result">
+                  <div v-if="result.pdnfResult">
+                    <h5 class="pnf-title">最终的主析取范式(PDNF)是：</h5>
+                    <math-renderer
+                      :formula="result.pdnfResult"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                    />
+                  </div>
+                  <div v-if="result.pcnfResult">
+                    <h5 class="pnf-title">相应的主合取范式(PCNF)是：</h5>
+                    <math-renderer
+                      :formula="result.pcnfResult"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                    />
+                  </div>
+                </div>
               </div>
 
               <!-- 显示真值表 - 优先使用新的LaTeX表格格式 -->
@@ -395,6 +448,7 @@
                   </div>
                 </div>
 
+  
                 <!-- 真值表结果 -->
                 <div v-if="result.truthTable" class="truth-table-result">
                   <h5 class="result-title">真值表计算结果：</h5>
@@ -488,6 +542,21 @@
       <!-- @监听时间，formula-calculated由 PrincipalNormalFormInterface.vue emit过来-->
     </el-dialog>
 
+    <!-- 范式扩展界面模态框 - 弹出对话框 -->
+    <el-dialog
+      v-model="showNormalFormulaExpansion"
+      title="将范式扩展为主范式"
+      width="90%"
+      :before-close="handleNormalFormulaExpansionClose"
+      class="normal-form-expansion-dialog"
+    >
+      <!-- 引入范式扩展界面组件 -->
+      <normal-formula-expansion-interface
+        @close="showNormalFormulaExpansion = false"
+        @result="onNormalFormulaExpansionResult"
+      />
+    </el-dialog>
+
     <!-- 公式语法分析界面模态框 - 弹出对话框 -->
     <el-dialog
       v-model="showFormulaSyntax"
@@ -530,6 +599,7 @@ import MathRenderer from '@/components/common/MathRenderer.vue'
 import TruthTableInterface from '@/components/logic/TruthTableInterface.vue'
 import TruthTableConstructor from '@/components/logic/TruthTableConstructor.vue'
 import PrincipalNormalFormInterface from '@/components/logic/PrincipalNormalFormInterface.vue'
+import NormalFormulaExpansionInterface from '@/components/logic/NormalFormulaExpansionInterface.vue'
 import FormulaSyntaxInterface from '@/components/logic/FormulaSyntaxInterface.vue'
 import TruthValueCalculator from '@/components/logic/TruthValueCalculator.vue'
 
@@ -549,6 +619,9 @@ const showTruthTableConstructor = ref(false)
 
 // 控制主范式界面的显示
 const showPrincipalNormalForm = ref(false)
+
+// 控制范式扩展界面的显示
+const showNormalFormulaExpansion = ref(false)
 
 // 控制公式语法分析界面的显示
 const showFormulaSyntax = ref(false)
@@ -614,7 +687,8 @@ const handleMenuSelect = (index) => {
       ElMessage.info('计算与公式逻辑等值的范式界面已打开')
       break
     case 'expand-nf':
-      ElMessage.info('将范式扩展为主范式功能')
+      showNormalFormulaExpansion.value = true
+      ElMessage.info('将范式扩展为主范式界面已打开')
       break
     case 'calculus-check':
       ElMessage.info('等值演算过程检查功能')
@@ -758,6 +832,11 @@ const handlePrincipalNormalFormClose = () => {
   showPrincipalNormalForm.value = false
 }
 
+// 处理范式扩展界面关闭
+const handleNormalFormulaExpansionClose = () => {
+  showNormalFormulaExpansion.value = false
+}
+
 // 处理公式语法分析界面关闭
 const handleFormulaSyntaxClose = () => {
   showFormulaSyntax.value = false
@@ -806,6 +885,45 @@ const onFormulaCalculated = (result) => {
     ElMessage.success('公式真值计算结果已添加到主界面')
   } else {
     ElMessage.success('公式分析结果已添加到主界面')
+  }
+}
+
+// 处理范式扩展结果
+const onNormalFormulaExpansionResult = (result) => {
+  if (result && result.data) {
+    // 创建一个符合现有格式的结果对象
+    const formattedResult = {
+      index: formulaResults.value.length + 1,
+      formula: result.data.originalFormula,
+      type: 'normal-form-expansion',
+      targetType: result.data.targetType,
+      originalFormula: result.data.originalFormula,
+      variableSet: result.data.variableSet,
+      expansionSteps: result.data.expansionSteps,
+      pdnfResult: result.data.pdnfResult,
+      pcnfResult: result.data.pcnfResult,
+      success: result.data.success,
+      message: result.data.message
+    }
+
+    // 添加到结果列表
+    formulaResults.value.push(formattedResult)
+
+    // 更新当前显示的公式
+    currentFormula.value = result.data.originalFormula
+
+    console.log('MainView: 添加范式扩展结果:', formattedResult)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    // 追加到LaTeX代码区域
+    if (latexCode.value) {
+      latexCode.value += '\n\n' + latexString
+    } else {
+      latexCode.value = latexString
+    }
+
+    ElMessage.success('范式扩展结果已添加到主界面')
   }
 }
 
@@ -1003,7 +1121,7 @@ const generateLaTeXCode = (result) => {
     if (result.cnfExpansionSteps && result.cnfExpansionSteps.length > 0) {
       latexCode += `\\begin{array}{c}\n\\text{主合取范式扩展步骤:}\n\\end{array}\n\n`
       result.cnfExpansionSteps.forEach(step => {
-        latexCode += `\\begin{array}{c}\n\\text{${step.expansionDescription}}\n${step.formula}\n\\text{${step.resultDescription}}\n${step.resultCodes}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n\\text{${step.expansionDescription}}\n${step.formula}[${step.formulaCode}]\n\\text{${step.resultDescription}}\n${step.resultCodes}\n\\end{array}\n\n`
       })
     }
 
@@ -1011,7 +1129,7 @@ const generateLaTeXCode = (result) => {
     if (result.dnfExpansionSteps && result.dnfExpansionSteps.length > 0) {
       latexCode += `\\begin{array}{c}\n\\text{主析取范式扩展步骤:}\n\\end{array}\n\n`
       result.dnfExpansionSteps.forEach(step => {
-        latexCode += `\\begin{array}{c}\n\\text{${step.expansionDescription}}\n${step.formula}\n\\text{${step.resultDescription}}\n${step.resultCodes}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n\\text{${step.expansionDescription}}\n${step.formula}[${step.formulaCode}]\n\\text{${step.resultDescription}}\n${step.resultCodes}\n\\end{array}\n\n`
       })
     }
 
@@ -1038,6 +1156,30 @@ const generateLaTeXCode = (result) => {
       if (result.dnfResult.pcnf) {
         latexCode += `\\begin{array}{c}\n\\text{对应的主合取范式(PCNF):}\n${result.dnfResult.pcnf}\n\\end{array}\n\n`
       }
+    }
+  }
+
+  // 添加范式扩展结果的LaTeX代码
+  if (result.type === 'normal-form-expansion') {
+    latexCode += `\\begin{array}{c}\n\\text{${result.targetType}扩展结果:}\n\\end{array}\n\n`
+
+    // 原始公式和变量集
+    latexCode += `\\begin{array}{c}\n\\text{原始公式: } ${result.originalFormula}\n\\text{变量集: } \\{${result.variableSet}\\}\n\\end{array}\n\n`
+
+    // 扩展步骤
+    if (result.expansionSteps && result.expansionSteps.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{扩展步骤:}\n\\end{array}\n\n`
+      result.expansionSteps.forEach(step => {
+        latexCode += `\\begin{array}{c}\n\\text{${step.description}}\n${step.formula}[${step.binaryCode}]\n\\text{得到} ${step.resultCodes}\n\\end{array}\n\n`
+      })
+    }
+
+    // 最终结果
+    if (result.pdnfResult) {
+      latexCode += `\\begin{array}{c}\n\\text{最终的主析取范式(PDNF):}\n${result.pdnfResult}\n\\end{array}\n\n`
+    }
+    if (result.pcnfResult) {
+      latexCode += `\\begin{array}{c}\n\\text{最终的主合取范式(PCNF):}\n${result.pcnfResult}\n\\end{array}\n\n`
     }
   }
 
@@ -1664,5 +1806,142 @@ onMounted(() => {
   .latex-textarea :deep(.el-textarea__inner) {
     font-size: 12px;
   }
+}
+
+/* 范式扩展结果样式 */
+.normal-form-expansion-results {
+  margin: 1rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f6f9ff 0%, #e8f4fd 100%);
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+}
+
+.expansion-result-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #4a90e2;
+}
+
+.expansion-info {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #d0e3ff;
+}
+
+.info-item {
+  margin: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-item strong {
+  color: #2c3e50;
+  min-width: 100px;
+}
+
+.expansion-steps-detail {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8fbff;
+  border-radius: 6px;
+  border: 1px solid #b8d4f1;
+}
+
+.steps-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.expansion-step-detail {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #d0e3ff;
+  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.1);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.step-formula-detail {
+  margin: 0 0.5rem;
+  font-size: 1.1em;
+}
+
+.binary-code {
+  color: #e74c3c;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  background: #ffe6e6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.step-result {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-top: 1px dashed #d0e3ff;
+}
+
+.result-codes-detail {
+  font-size: 1.1em;
+  color: #27ae60;
+}
+
+.final-expansion-results {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4f1d4 100%);
+  border-radius: 8px;
+  border: 2px solid #27ae60;
+}
+
+.final-pdnf,
+.final-pcnf {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #c3e6c3;
+}
+
+.final-title {
+  margin: 0 0 0.75rem 0;
+  color: #27ae60;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.final-formula {
+  font-size: 1.2em;
+  color: #2c3e50;
+  text-align: center;
+  padding: 0.5rem;
+  background: #f8fff8;
+  border-radius: 4px;
+  border: 1px solid #e6f7e6;
 }
 </style>

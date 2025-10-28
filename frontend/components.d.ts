@@ -31,6 +31,7 @@ declare module 'vue' {
     ElText: typeof import('element-plus/es')['ElText']
     FormulaSyntaxInterface: typeof import('./src/components/logic/FormulaSyntaxInterface.vue')['default']
     MathRenderer: typeof import('./src/components/common/MathRenderer.vue')['default']
+    NormalFormulaExpansionInterface: typeof import('./src/components/logic/NormalFormulaExpansionInterface.vue')['default']
     PrincipalNormalFormInterface: typeof import('./src/components/logic/PrincipalNormalFormInterface.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
