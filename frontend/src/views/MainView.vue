@@ -5,28 +5,80 @@
     <el-header class="header">
       <!-- 水平菜单，类似HTML的nav -->
       <el-menu
-        mode="horizontal"  
-        :default-active="activeMenu" 
+        mode="horizontal"
+        :default-active="activeMenu"
         class="main-menu"
-        @select="handleMenuSelect" 
+        @select="handleMenuSelect"
       >
-        <!-- 命题逻辑菜单 - 可展开的子菜单，类似HTML的dropdown -->
+        <!-- 命题逻辑(P)菜单 -->
         <el-sub-menu index="propositional-logic">
-          <template #title>命题逻辑</template>  <!-- 子菜单标题 -->
-          <el-menu-item index="truth-table">构造公式真值表</el-menu-item>  <!-- 菜单项，点击触发index="truth-table" -->
-          <el-menu-item index="normal-form">扩展范式为主范式</el-menu-item>
+          <template #title>命题逻辑(P)</template>
+          <el-menu-item index="formula-syntax">分析公式的语法</el-menu-item>
+          <el-menu-item index="truth-value">计算公式的真值</el-menu-item>
+          <el-menu-item index="truth-table">构造公式的真值表</el-menu-item>
+          <el-menu-item index="calculate-nf">计算与公式逻辑等值的范式</el-menu-item>
+          <el-menu-item index="expand-nf">将范式扩展为主范式</el-menu-item>
+          <el-menu-item index="calculus-check">等值演算过程检查</el-menu-item>
+          <el-menu-item index="argument-check">验证推理有效性论证检查</el-menu-item>
         </el-sub-menu>
 
-        <!-- 集合关系函数菜单 - 另一个可展开的子菜单 -->
+        <!-- 集合关系函数(S)菜单 -->
         <el-sub-menu index="set-relation-function">
-          <template #title>集合关系函数</template>
-          <el-menu-item index="set-operations">集合运算</el-menu-item>
-          <el-menu-item index="relation-operations">关系运算</el-menu-item>
-          <el-menu-item index="relation-properties">关系性质判断</el-menu-item>
-          <el-menu-item index="relation-closure">关系闭包</el-menu-item>
-          <el-menu-item index="equivalence-relations">等价关系</el-menu-item>
-          <el-menu-item index="partial-order">偏序关系</el-menu-item>
-          <el-menu-item index="function-properties">函数性质判断</el-menu-item>
+          <template #title>集合关系函数(S)</template>
+          <el-menu-item index="set-operation">单个集合的运算</el-menu-item>
+          <el-menu-item index="set-expr-operation">集合表达式运算</el-menu-item>
+          <el-menu-item index="relation-operation">单个关系的运算</el-menu-item>
+          <el-menu-item index="relation-property">关系性质判断</el-menu-item>
+          <el-menu-item index="relation-closure">关系闭包的计算</el-menu-item>
+          <el-menu-item index="equivalence-relation">等价关系的计算</el-menu-item>
+          <el-menu-item index="partial-order">偏序关系的计算</el-menu-item>
+          <el-menu-item index="function">函数性质的判断</el-menu-item>
+        </el-sub-menu>
+
+        <!-- 组合计数(C)菜单 -->
+        <el-sub-menu index="combinatorics">
+          <template #title>组合计数(C)</template>
+          <el-menu-item index="comb-calculator">排列组合数计算</el-menu-item>
+          <el-menu-item index="expr-calculator">组合表达式计算</el-menu-item>
+          <el-menu-item index="recu-expr-calculator">递归表达式计算</el-menu-item>
+          <el-menu-item index="count-string">字符串计数</el-menu-item>
+          <el-menu-item index="count-integer">基于整除性质的整数计数</el-menu-item>
+          <el-menu-item index="count-solver">不定方程非负整数解计数</el-menu-item>
+          <el-menu-item index="count-function">不同性质的函数计数</el-menu-item>
+          <el-menu-item index="generate-permutation">排列的生成(G)</el-menu-item>
+          <el-menu-item index="generate-combination">不重复组合的生成(N)</el-menu-item>
+          <el-menu-item index="generate-repcomb">允许重复组合的生成(F)</el-menu-item>
+        </el-sub-menu>
+
+        <!-- 图与树(G)菜单 -->
+        <el-sub-menu index="graph-theory">
+          <template #title>图与树(G)</template>
+          <el-menu-item index="graph-travel">图的遍历</el-menu-item>
+          <el-menu-item index="tree-travel">树的遍历</el-menu-item>
+          <el-menu-item index="shortest-path">带权图最短路径计算</el-menu-item>
+          <el-menu-item index="spanning-tree">带权图最小生成树计算</el-menu-item>
+          <el-menu-item index="huffman-tree">哈夫曼树构造</el-menu-item>
+          <el-menu-item index="special-graph">展示特殊的图</el-menu-item>
+        </el-sub-menu>
+
+        <!-- 代数结构(B)菜单 -->
+        <el-sub-menu index="algebra-structure">
+          <template #title>代数结构(B)</template>
+          <el-menu-item index="binary-operator">运算性质的判断</el-menu-item>
+          <el-menu-item index="group-um">群U(m)及其子群与陪集</el-menu-item>
+          <el-menu-item index="group-perm">置换群及其子群与陪集</el-menu-item>
+          <el-menu-item index="lattice">偏序关系是否格的判断</el-menu-item>
+          <el-menu-item index="boolean">整除与布尔代数的判断</el-menu-item>
+        </el-sub-menu>
+
+        <!-- 帮助(H)菜单 -->
+        <el-sub-menu index="help">
+          <template #title>帮助(H)</template>
+          <el-menu-item index="about">关于</el-menu-item>
+          <el-menu-item index="usage">使用说明</el-menu-item>
+          <el-menu-item index="config">首选项</el-menu-item>
+          <el-menu-item index="clear">清理屏幕</el-menu-item>
+          <el-menu-item index="exit">退出</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-header>
@@ -120,6 +172,38 @@
                     :display-mode="true"
                     class="truth-table-content"
                   />
+                </div>
+
+                <!-- 显示真值计算结果 - 条件渲染：只有当result.truthValue存在时才显示 -->
+                <div v-else-if="result.truthValue !== undefined" class="truth-value-result">
+                  <div class="truth-value-display">
+                    <span class="truth-value-label">公式真值 = </span>
+                    <el-tag
+                      :type="result.truthValue ? 'success' : 'danger'"
+                      size="large"
+                      class="truth-value-tag"
+                    >
+                      {{ result.truthValue ? '1' : '0' }}
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 显示详细计算过程 - 条件渲染：只有当result.detailedSteps存在时才显示 -->
+              <div v-if="result.detailedSteps && result.detailedSteps.length > 0" class="detailed-steps">
+                <div class="steps-content">
+                  <div v-for="(step, stepIndex) in result.detailedSteps" :key="stepIndex" class="step-item">
+                    <div v-if="step.explanation" class="step-explanation">
+                      {{ step.explanation }}
+                    </div>
+                    <div class="step-formula">
+                      <math-renderer
+                        :formula="step.formula"
+                        :type="'katex'"
+                        :display-mode="true"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -228,6 +312,21 @@
       <!-- @监听时间，formula-calculated由 TruthTableInterface.vue emit过来-->
     </el-dialog>
 
+    <!-- 真值表构造器界面模态框 - 弹出对话框 -->
+    <el-dialog
+      v-model="showTruthTableConstructor"
+      title="构造公式的真值表"
+      width="90%"
+      :before-close="handleTruthTableConstructorClose"
+      class="truth-table-constructor-dialog"
+    >
+      <!-- 引入真值表构造器界面组件 -->
+      <truth-table-constructor
+        @close="showTruthTableConstructor = false"
+        @formula-calculated="onFormulaCalculated"
+      />
+    </el-dialog>
+
     <!-- 主范式界面模态框 - 弹出对话框 -->
     <el-dialog
       v-model="showPrincipalNormalForm"
@@ -243,6 +342,38 @@
       />
       <!-- @监听时间，formula-calculated由 PrincipalNormalFormInterface.vue emit过来-->
     </el-dialog>
+
+    <!-- 公式语法分析界面模态框 - 弹出对话框 -->
+    <el-dialog
+      v-model="showFormulaSyntax"
+      title="分析公式的语法"
+      width="90%"
+      :before-close="handleFormulaSyntaxClose"
+      class="formula-syntax-dialog"
+    >
+      <!-- 引入公式语法分析界面组件 -->
+      <formula-syntax-interface
+        @close="showFormulaSyntax = false"
+        @formula-calculated="onFormulaCalculated"
+      />
+      <!-- @监听时间，formula-calculated由 FormulaSyntaxInterface.vue emit过来-->
+    </el-dialog>
+
+    <!-- 计算公式真值界面模态框 - 弹出对话框 -->
+    <el-dialog
+      v-model="showTruthValue"
+      title="计算公式的真值"
+      width="90%"
+      :before-close="handleTruthValueClose"
+      class="truth-value-dialog"
+    >
+      <!-- 引入计算公式真值界面组件 -->
+      <truth-value-calculator
+        @close="showTruthValue = false"
+        @formula-calculated="onFormulaCalculated"
+      />
+      <!-- @监听时间，formula-calculated由 TruthValueCalculator.vue emit过来-->
+    </el-dialog>
   </div>
 </template>
 
@@ -252,7 +383,10 @@ import { ElMessage } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
 import MathRenderer from '@/components/common/MathRenderer.vue'
 import TruthTableInterface from '@/components/logic/TruthTableInterface.vue'
+import TruthTableConstructor from '@/components/logic/TruthTableConstructor.vue'
 import PrincipalNormalFormInterface from '@/components/logic/PrincipalNormalFormInterface.vue'
+import FormulaSyntaxInterface from '@/components/logic/FormulaSyntaxInterface.vue'
+import TruthValueCalculator from '@/components/logic/TruthValueCalculator.vue'
 
 // 响应式数据
 const activeMenu = ref('')
@@ -265,8 +399,17 @@ const formulaResults = ref([])
 // 控制真值表界面的显示
 const showTruthTable = ref(false)
 
+// 控制真值表构造器界面的显示
+const showTruthTableConstructor = ref(false)
+
 // 控制主范式界面的显示
 const showPrincipalNormalForm = ref(false)
+
+// 控制公式语法分析界面的显示
+const showFormulaSyntax = ref(false)
+
+// 控制计算公式真值界面的显示
+const showTruthValue = ref(false)
 
 // 左右面板内容区域的引用
 const leftContent = ref(null)
@@ -306,38 +449,151 @@ const onFormulaError = (error) => {
 // 处理菜单项点击
 const handleMenuSelect = (index) => {
   console.log('Selected menu item:', index)
-  // 这里可以根据不同的菜单项执行不同的操作
+
   switch (index) {
+    // 命题逻辑菜单项
+    case 'formula-syntax':
+      showFormulaSyntax.value = true
+      ElMessage.info('分析公式的语法界面已打开')
+      break
+    case 'truth-value':
+      showTruthValue.value = true
+      ElMessage.info('计算公式的真值界面已打开')
+      break
     case 'truth-table':
-      showTruthTable.value = true
-      ElMessage.info('构造公式真值表界面已打开')
+      showTruthTableConstructor.value = true
+      ElMessage.info('构造公式的真值表界面已打开')
       break
-    case 'normal-form':
+    case 'calculate-nf':
+      ElMessage.info('计算与公式逻辑等值的范式功能')
+      break
+    case 'expand-nf':
       showPrincipalNormalForm.value = true
-      ElMessage.info('扩展范式为主范式界面已打开')
+      ElMessage.info('将范式扩展为主范式界面已打开')
       break
-    case 'set-operations':
-      ElMessage.info('集合运算功能')
+    case 'calculus-check':
+      ElMessage.info('等值演算过程检查功能')
       break
-    case 'relation-operations':
-      ElMessage.info('关系运算功能')
+    case 'argument-check':
+      ElMessage.info('验证推理有效性论证检查功能')
       break
-    case 'relation-properties':
+
+    // 集合关系函数菜单项
+    case 'set-operation':
+      ElMessage.info('单个集合的运算功能')
+      break
+    case 'set-expr-operation':
+      ElMessage.info('集合表达式运算功能')
+      break
+    case 'relation-operation':
+      ElMessage.info('单个关系的运算功能')
+      break
+    case 'relation-property':
       ElMessage.info('关系性质判断功能')
       break
     case 'relation-closure':
-      ElMessage.info('关系闭包功能')
+      ElMessage.info('关系闭包的计算功能')
       break
-    case 'equivalence-relations':
-      ElMessage.info('等价关系功能')
+    case 'equivalence-relation':
+      ElMessage.info('等价关系的计算功能')
       break
     case 'partial-order':
-      ElMessage.info('偏序关系功能')
+      ElMessage.info('偏序关系的计算功能')
       break
-    case 'function-properties':
-      ElMessage.info('函数性质判断功能')
+    case 'function':
+      ElMessage.info('函数性质的判断功能')
       break
+
+    // 组合计数菜单项
+    case 'comb-calculator':
+      ElMessage.info('排列组合数计算功能')
+      break
+    case 'expr-calculator':
+      ElMessage.info('组合表达式计算功能')
+      break
+    case 'recu-expr-calculator':
+      ElMessage.info('递归表达式计算功能')
+      break
+    case 'count-string':
+      ElMessage.info('字符串计数功能')
+      break
+    case 'count-integer':
+      ElMessage.info('基于整除性质的整数计数功能')
+      break
+    case 'count-solver':
+      ElMessage.info('不定方程非负整数解计数功能')
+      break
+    case 'count-function':
+      ElMessage.info('不同性质的函数计数功能')
+      break
+    case 'generate-permutation':
+      ElMessage.info('排列的生成功能')
+      break
+    case 'generate-combination':
+      ElMessage.info('不重复组合的生成功能')
+      break
+    case 'generate-repcomb':
+      ElMessage.info('允许重复组合的生成功能')
+      break
+
+    // 图与树菜单项
+    case 'graph-travel':
+      ElMessage.info('图的遍历功能')
+      break
+    case 'tree-travel':
+      ElMessage.info('树的遍历功能')
+      break
+    case 'shortest-path':
+      ElMessage.info('带权图最短路径计算功能')
+      break
+    case 'spanning-tree':
+      ElMessage.info('带权图最小生成树计算功能')
+      break
+    case 'huffman-tree':
+      ElMessage.info('哈夫曼树构造功能')
+      break
+    case 'special-graph':
+      ElMessage.info('展示特殊的图功能')
+      break
+
+    // 代数结构菜单项
+    case 'binary-operator':
+      ElMessage.info('运算性质的判断功能')
+      break
+    case 'group-um':
+      ElMessage.info('群U(m)及其子群与陪集功能')
+      break
+    case 'group-perm':
+      ElMessage.info('置换群及其子群与陪集功能')
+      break
+    case 'lattice':
+      ElMessage.info('偏序关系是否格的判断功能')
+      break
+    case 'boolean':
+      ElMessage.info('整除与布尔代数的判断功能')
+      break
+
+    // 帮助菜单项
+    case 'about':
+      showAboutDialog()
+      break
+    case 'usage':
+      showUsageDialog()
+      break
+    case 'config':
+      ElMessage.info('首选项功能')
+      break
+    case 'clear':
+      clearFormulaContent()
+      break
+    case 'exit':
+      if (confirm('确定要退出吗？')) {
+        window.close()
+      }
+      break
+
     default:
+      ElMessage.info(`选择了菜单项: ${index}`)
       break
   }
 }
@@ -347,9 +603,24 @@ const handleTruthTableClose = () => {
   showTruthTable.value = false
 }
 
+// 处理真值表构造器界面关闭
+const handleTruthTableConstructorClose = () => {
+  showTruthTableConstructor.value = false
+}
+
 // 处理主范式界面关闭
 const handlePrincipalNormalFormClose = () => {
   showPrincipalNormalForm.value = false
+}
+
+// 处理公式语法分析界面关闭
+const handleFormulaSyntaxClose = () => {
+  showFormulaSyntax.value = false
+}
+
+// 处理计算公式真值界面关闭
+const handleTruthValueClose = () => {
+  showTruthValue.value = false
 }
 
 // 处理公式计算完成事件
@@ -379,7 +650,16 @@ const onFormulaCalculated = (result) => {
     latexCode.value = latexString
   }
 
-  ElMessage.success('公式和真值表已添加到主界面')
+  // 根据结果类型显示不同的成功消息
+  if (result.syntaxData && !result.tableData) {
+    ElMessage.success('公式语法分析结果已添加到主界面')
+  } else if (result.tableData && !result.syntaxData) {
+    ElMessage.success('公式和真值表已添加到主界面')
+  } else if (result.truthValue !== undefined) {
+    ElMessage.success('公式真值计算结果已添加到主界面')
+  } else {
+    ElMessage.success('公式分析结果已添加到主界面')
+  }
 }
 
 // AST图片加载成功处理
@@ -469,6 +749,7 @@ const generateLaTeXCode = (result) => {
     latexCode += `\\begin{array}{c}\n\\text{公式类型: } ${result.formulaType}\n\\end{array}\n\n`
   }
 
+  
   // 添加严格形式公式的LaTeX代码
   if (result.syntaxData) {
     latexCode += `\\begin{array}{c}\n\\text{严格形式公式:} ${result.syntaxData.strictForm} \\text{，简化写为:} ${result.syntaxData.simpleForm}\n\\end{array}\n\n`
@@ -532,9 +813,33 @@ const generateLaTeXCode = (result) => {
     latexCode += '\\end{array}'
   }
 
+  // 添加真值计算结果的LaTeX代码
+  if (result.truthValue !== undefined) {
+    latexCode += `\\begin{array}{c}\n\\text{公式真值: } ${result.formula} = ${result.truthValue ? '\\mathbf{1}' : '\\mathbf{0}'}\n\\end{array}\n\n`
+  }
+
+  // 添加详细计算步骤的LaTeX代码
+  if (result.detailedSteps && result.detailedSteps.length > 0) {
+    result.detailedSteps.forEach(step => {
+      if (step.formula) {
+        latexCode += `\\begin{array}{c}\n\\text{${step.explanation || '计算步骤'}}\n${step.formula}\n\\end{array}\n\n`
+      }
+    })
+  }
+
   return latexCode
 }
 
+
+// 显示关于对话框
+const showAboutDialog = () => {
+  ElMessage.info('离散数学教学演示辅助工具展示(Deedm)\n\n(Demonstrator of Examples in Elementary Discrete Mathematics)\n\n(C) 版权所有，中山大学， 2020--2030\n\n中山大学数学学院和中山大学数据科学与计算机学院')
+}
+
+// 显示使用说明对话框
+const showUsageDialog = () => {
+  ElMessage.info('Deedm(Demonstrator of Examples in Elementary Discrete Mathematics)是一个用于展示教材《离散数学（上）：集合、关系、函数、组合计数》（中山大学数学学院，2018）中的计算例子的工具。')
+}
 
 onMounted(() => {
   // 组件挂载后的初始化逻辑
@@ -757,6 +1062,73 @@ onMounted(() => {
 
 .truth-table-html tbody tr:hover {
   background: #e9ecef;
+}
+
+/* 真值计算结果样式 */
+.truth-value-result {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.truth-value-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.truth-value-label {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.truth-value-tag {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* 详细计算步骤样式 */
+.detailed-steps {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.steps-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.step-item {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.step-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.step-explanation {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.step-formula {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
 }
 
 .formula-type {

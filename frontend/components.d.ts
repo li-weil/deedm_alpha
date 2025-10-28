@@ -29,10 +29,13 @@ declare module 'vue' {
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElText: typeof import('element-plus/es')['ElText']
+    FormulaSyntaxInterface: typeof import('./src/components/logic/FormulaSyntaxInterface.vue')['default']
     MathRenderer: typeof import('./src/components/common/MathRenderer.vue')['default']
     PrincipalNormalFormInterface: typeof import('./src/components/logic/PrincipalNormalFormInterface.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TruthTableConstructor: typeof import('./src/components/logic/TruthTableConstructor.vue')['default']
     TruthTableInterface: typeof import('./src/components/logic/TruthTableInterface.vue')['default']
+    TruthValueCalculator: typeof import('./src/components/logic/TruthValueCalculator.vue')['default']
   }
 }
