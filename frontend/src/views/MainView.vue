@@ -106,22 +106,13 @@
       <LeftPanel
         :formula-results="formulaResults"
         :current-formula="currentFormula"
-        :latex-code="latexCode"
-        :current-view-component="currentViewComponent"
-        @clear-formula="clearFormulaContent"
-        @formula-calculated="onFormulaCalculated"
-        @equiv-calculus-result="onEquivCalculusResult"
-        @reason-argument-check-result="onReasonArgumentCheckResult"
-        @normal-form-expansion-result="onNormalFormulaExpansionResult"
-        @update-current-formula="updateCurrentFormula"
-        @update-latex-code="updateLatexCode"
+        @clear="clearFormulaContent"
       />
 
       <!-- 右侧面板 - 分离的组件 -->
       <RightPanel
         :latex-code="latexCode"
-        @clear-latex="clearLatexCode"
-        @update-latex-code="updateLatexCode"
+        @clear="clearLatexCode"
         ref="rightPanelRef"
       />
     </el-container>
@@ -131,6 +122,7 @@
       :formula-results="formulaResults"
       :current-formula="currentFormula"
       :latex-code="latexCode"
+      :right-panel-ref="rightPanelRef"
       @formula-calculated="onFormulaCalculated"
       @equiv-calculus-result="onEquivCalculusResult"
       @reason-argument-check-result="onReasonArgumentCheckResult"
@@ -209,15 +201,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Tools, Connection, Histogram, Share, Notebook, QuestionFilled } from '@element-plus/icons-vue'
 
 // 导入布局组件
-import LeftPanel from '@/components/layout/LeftPanel.vue'
-import RightPanel from '@/components/layout/RightPanel.vue'
+import LeftPanel from '@/components/common/LeftPanel.vue'
+import RightPanel from '@/components/common/RightPanel.vue'
 
-// 导入模态框组件（现在 PropositionalLogicView 就是模态框版本）
+// 导入模态框组件
 import PropositionalLogicView from '@/views/PropositionalLogicView.vue'
 
 // 导入次级界面组件（用于左侧面板显示）
@@ -240,47 +232,6 @@ const combinatoricsModalRef = ref(null)
 const graphTheoryModalRef = ref(null)
 const algebraStructureModalRef = ref(null)
 
-// 计算当前要显示的组件 - 根据一级菜单项确定
-const currentViewComponent = computed(() => {
-  // 从 activeMenu 中提取一级菜单项
-  let parentMenu = activeMenu.value.split('-')[0]
-
-  switch (parentMenu) {
-    case 'formula':
-    case 'truth':
-    case 'calculate':
-    case 'expand':
-    case 'calculus':
-    case 'argument':
-      return PropositionalLogicView
-    case 'set':
-    case 'relation':
-    case 'equivalence':
-    case 'partial':
-    case 'function':
-      return SetRelationFunctionView
-    case 'comb':
-    case 'expr':
-    case 'recu':
-    case 'count':
-    case 'generate':
-      return CombinatoricsView
-    case 'graph':
-    case 'tree':
-    case 'shortest':
-    case 'spanning':
-    case 'huffman':
-    case 'special':
-      return GraphTheoryView
-    case 'binary':
-    case 'group':
-    case 'lattice':
-    case 'boolean':
-      return AlgebraStructureView
-    default:
-      return PropositionalLogicView
-  }
-})
 
 // 处理菜单项点击
 const handleMenuSelect = (index) => {
@@ -421,7 +372,7 @@ const handleMenuSelect = (index) => {
       clearFormulaContent()
       break
     case 'exit':
-      if (confirm('确定要退出吗？')) {
+      if (window.confirm('确定要退出吗？')) {
         window.close()
       }
       break
@@ -433,128 +384,27 @@ const handleMenuSelect = (index) => {
 }
 
 // 处理公式计算完成事件
-const onFormulaCalculated = (result) => {
-  if (!result.index) {
-    result.index = formulaResults.value.length + 1
-  }
-
-  formulaResults.value.push(result)
-  currentFormula.value = result.formula
-
-  // 使用右侧面板的 LaTeX 生成函数
-  if (rightPanelRef.value) {
-    const latexString = rightPanelRef.value.generateLaTeXCode(result)
-    if (latexCode.value) {
-      latexCode.value += '\n\n' + latexString
-    } else {
-      latexCode.value = latexString
-    }
-  }
-
-  ElMessage.success('公式分析结果已添加到主界面')
+const onFormulaCalculated = (data) => {
+  const { result, latexString } = data
+  handleResultWithLatex(result, latexString, '公式分析结果已添加到主界面')
 }
 
 // 处理等值演算检查结果
-const onEquivCalculusResult = (result) => {
-  if (result && result.data) {
-    const formattedResult = {
-      index: formulaResults.value.length + 1,
-      formula: `等值演算检查步骤${result.data.stepNumber}`,
-      type: 'equiv-calculus-check',
-      stepNumber: result.data.stepNumber,
-      steps: result.data.steps,
-      valid: result.data.valid,
-      errorMessage: result.data.errorMessage,
-      counterExample: result.data.counterExample,
-      checkingFormula: result.data.checkingFormula,
-      success: result.data.success,
-      message: result.data.message
-    }
-
-    formulaResults.value.push(formattedResult)
-    currentFormula.value = `等值演算检查步骤${result.data.stepNumber}`
-
-    // 使用右侧面板的 LaTeX 生成函数
-    if (rightPanelRef.value) {
-      const latexString = rightPanelRef.value.generateLaTeXCode(formattedResult)
-      if (latexCode.value) {
-        latexCode.value += '\n\n' + latexString
-      } else {
-        latexCode.value = latexString
-      }
-    }
-  }
+const onEquivCalculusResult = (data) => {
+  const { result, latexString } = data
+  handleResultWithLatex(result, latexString)
 }
 
 // 处理推理有效性论证检查结果
-const onReasonArgumentCheckResult = (result) => {
-  if (result && result.data) {
-    const formattedResult = {
-      index: formulaResults.value.length + 1,
-      formula: `推理有效性论证检查步骤${result.data.stepNumber || formulaResults.value.length + 1}`,
-      type: 'reason-argument-check',
-      stepNumber: result.data.stepNumber || formulaResults.value.length + 1,
-      steps: result.data.steps,
-      checkSteps: result.data.checkSteps,
-      valid: result.data.valid,
-      errorMessage: result.data.message,
-      counterExample: result.data.counterExample,
-      checkingFormula: result.data.checkingFormula,
-      success: result.data.success,
-      latexString: result.data.latexString,
-      premises: result.data.premises,
-      consequent: result.data.consequent
-    }
-
-    formulaResults.value.push(formattedResult)
-    currentFormula.value = formattedResult.formula
-
-    // 使用右侧面板的 LaTeX 生成函数
-    if (rightPanelRef.value) {
-      const latexString = rightPanelRef.value.generateLaTeXCode(formattedResult)
-      if (latexCode.value) {
-        latexCode.value += '\n\n' + latexString
-      } else {
-        latexCode.value = latexString
-      }
-    }
-
-    ElMessage.success('推理有效性论证检查结果已添加到主界面')
-  }
+const onReasonArgumentCheckResult = (data) => {
+  const { result, latexString } = data
+  handleResultWithLatex(result, latexString, '推理有效性论证检查结果已添加到主界面')
 }
 
 // 处理范式扩展结果
-const onNormalFormulaExpansionResult = (result) => {
-  if (result && result.data) {
-    const formattedResult = {
-      index: formulaResults.value.length + 1,
-      formula: result.data.originalFormula,
-      type: 'normal-form-expansion',
-      targetType: result.data.targetType,
-      originalFormula: result.data.originalFormula,
-      variableSet: result.data.variableSet,
-      expansionSteps: result.data.expansionSteps,
-      pdnfResult: result.data.pdnfResult,
-      pcnfResult: result.data.pcnfResult,
-      success: result.data.success,
-      message: result.data.message
-    }
-
-    formulaResults.value.push(formattedResult)
-    currentFormula.value = result.data.originalFormula
-
-    // 使用右侧面板的 LaTeX 生成函数
-    if (rightPanelRef.value) {
-      const latexString = rightPanelRef.value.generateLaTeXCode(formattedResult)
-      if (latexCode.value) {
-        latexCode.value += '\n\n' + latexString
-      } else {
-        latexCode.value = latexString
-      }
-    }
-
-    ElMessage.success('范式扩展结果已添加到主界面')
-  }
+const onNormalFormulaExpansionResult = (data) => {
+  const { result, latexString } = data
+  handleResultWithLatex(result, latexString, '范式扩展结果已添加到主界面')
 }
 
 // 集合关系函数结果处理函数
@@ -719,19 +569,30 @@ const updateLatexCode = (code) => {
   }
 }
 
+// 通用的结果处理函数
+const handleResultWithLatex = (result, latexString, successMessage) => {
+  formulaResults.value.push(result)
+  currentFormula.value = result.formula
+
+  if (latexString) {
+    updateLatexCode(latexString)
+  }
+
+  if (successMessage) {
+    ElMessage.success(successMessage)
+  }
+}
+
 // 清空公式内容
 const clearFormulaContent = async () => {
-  try {
+  await handleAsyncError(async () => {
     await cleanupBackendData()
 
     formulaResults.value = []
     currentFormula.value = '\\forall x \\in S, P(x) \\rightarrow Q(x)'
 
     ElMessage.success('公式内容和数据文件已清空')
-  } catch (error) {
-    console.error('清空操作失败:', error)
-    ElMessage.error('清空操作失败: ' + (error.message || '未知错误'))
-  }
+  }, '清空操作失败')
 }
 
 // 清空LaTeX代码
@@ -760,6 +621,17 @@ const cleanupBackendData = async () => {
     }
   } catch (error) {
     console.error('调用后端清理接口失败:', error)
+  }
+}
+
+// 错误边界处理函数
+const handleAsyncError = async (asyncFunction, errorMessage) => {
+  try {
+    return await asyncFunction()
+  } catch (error) {
+    console.error(`${errorMessage}:`, error)
+    ElMessage.error(`${errorMessage}: ${error.message || '未知错误'}`)
+    return null
   }
 }
 

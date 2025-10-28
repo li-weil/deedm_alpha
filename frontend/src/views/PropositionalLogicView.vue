@@ -102,7 +102,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
 
 // 导入所有子组件
 import FormulaSyntaxInterface from '@/components/logic/FormulaSyntaxInterface.vue'
@@ -126,6 +125,10 @@ const props = defineProps({
   latexCode: {
     type: String,
     default: ''
+  },
+  rightPanelRef: {
+    type: Object,
+    default: null
   }
 })
 
@@ -207,22 +210,105 @@ const handleReasonArgumentCheckClose = () => {
 
 // 处理公式计算完成事件
 const onFormulaCalculated = (result) => {
-  emit('formula-calculated', result)
+  if (!result.index) {
+    result.index = props.formulaResults.length + 1
+  }
+
+  // 使用右侧面板的 LaTeX 生成函数
+  let latexString = ''
+  if (props.rightPanelRef && props.rightPanelRef.value) {
+    latexString = props.rightPanelRef.value.generateLaTeXCode(result)
+  }
+
+  // 发送结果给父组件，包含LaTeX代码
+  emit('formula-calculated', { result, latexString })
 }
 
 // 处理等值演算检查结果
 const onEquivCalculusResult = (result) => {
-  emit('equiv-calculus-result', result)
+  if (result && result.data) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: `等值演算检查步骤${result.data.stepNumber}`,
+      type: 'equiv-calculus-check',
+      stepNumber: result.data.stepNumber,
+      steps: result.data.steps,
+      valid: result.data.valid,
+      errorMessage: result.data.errorMessage,
+      counterExample: result.data.counterExample,
+      checkingFormula: result.data.checkingFormula,
+      success: result.data.success,
+      message: result.data.message
+    }
+
+    // 使用右侧面板的 LaTeX 生成函数
+    let latexString = ''
+    if (props.rightPanelRef && props.rightPanelRef.value) {
+      latexString = props.rightPanelRef.value.generateLaTeXCode(formattedResult)
+    }
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('equiv-calculus-result', { result: formattedResult, latexString })
+  }
 }
 
 // 处理推理有效性论证检查结果
 const onReasonArgumentCheckResult = (result) => {
-  emit('reason-argument-check-result', result)
+  if (result && result.data) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: `推理有效性论证检查步骤${result.data.stepNumber || props.formulaResults.length + 1}`,
+      type: 'reason-argument-check',
+      stepNumber: result.data.stepNumber || props.formulaResults.length + 1,
+      steps: result.data.steps,
+      checkSteps: result.data.checkSteps,
+      valid: result.data.valid,
+      errorMessage: result.data.message,
+      counterExample: result.data.counterExample,
+      checkingFormula: result.data.checkingFormula,
+      success: result.data.success,
+      latexString: result.data.latexString,
+      premises: result.data.premises,
+      consequent: result.data.consequent
+    }
+
+    // 使用右侧面板的 LaTeX 生成函数
+    let latexString = ''
+    if (props.rightPanelRef && props.rightPanelRef.value) {
+      latexString = props.rightPanelRef.value.generateLaTeXCode(formattedResult)
+    }
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('reason-argument-check-result', { result: formattedResult, latexString })
+  }
 }
 
 // 处理范式扩展结果
 const onNormalFormulaExpansionResult = (result) => {
-  emit('normal-form-expansion-result', result)
+  if (result && result.data) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.data.originalFormula,
+      type: 'normal-form-expansion',
+      targetType: result.data.targetType,
+      originalFormula: result.data.originalFormula,
+      variableSet: result.data.variableSet,
+      expansionSteps: result.data.expansionSteps,
+      pdnfResult: result.data.pdnfResult,
+      pcnfResult: result.data.pcnfResult,
+      success: result.data.success,
+      message: result.data.message
+    }
+
+    // 使用右侧面板的 LaTeX 生成函数
+    let latexString = ''
+    if (props.rightPanelRef && props.rightPanelRef.value) {
+      latexString = props.rightPanelRef.value.generateLaTeXCode(formattedResult)
+    }
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('normal-form-expansion-result', { result: formattedResult, latexString })
+  }
 }
 
 // 暴露方法给父组件
@@ -239,7 +325,8 @@ defineExpose({
 
 <style scoped>
 .propositional-logic-modals {
-  /* 不需要额外样式，只用于包装模态框 */
+  /* 包装所有模态框的容器 */
+  position: relative;
 }
 
 /* 对话框样式保持一致 */
