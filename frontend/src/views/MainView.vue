@@ -175,6 +175,73 @@
                 </div>
               </div>
 
+              <!-- 等值演算检查结果 -->
+              <div v-if="result.type === 'equiv-calculus-check'" class="equiv-calculus-results">
+                <div class="result-title">
+                  <strong>检查演算步骤</strong>
+                </div>
+
+                <!-- 演算步骤显示 -->
+                <div class="calculus-steps">
+                  <div v-for="(step, index) in result.steps" :key="index" class="calculus-step">
+                    <div v-if="index === 0" class="step-first">
+                      <math-renderer
+                        :formula="step.formula"
+                        :type="'katex'"
+                        :display-mode="false"
+                        class="step-formula"
+                      />
+                      <span v-if="step.comment" class="step-comment"> // {{ step.comment }}</span>
+                    </div>
+                    <div v-else class="step-subsequent">
+                      <span class="equiv-prefix">≡</span>
+                      <math-renderer
+                        :formula="step.formula"
+                        :type="'katex'"
+                        :display-mode="false"
+                        class="step-formula"
+                      />
+                      <span v-if="step.comment" class="step-comment"> // {{ step.comment }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 检查结果 -->
+                <div class="check-result">
+                  <div v-if="result.valid" class="valid-result">
+                    <el-alert
+                      title="✓ 检查通过"
+                      type="success"
+                      description="通过真值表检验，上述等值演算过程没有错误。"
+                      :closable="false"
+                      show-icon
+                    />
+                  </div>
+                  <div v-else class="invalid-result">
+                    <el-alert
+                      title="✗ 检查失败"
+                      type="error"
+                      :description="result.errorMessage"
+                      :closable="false"
+                      show-icon
+                    />
+
+                    <!-- 反例信息 -->
+                    <div v-if="result.counterExample" class="counter-example">
+                      <h4 class="counter-title">反例：</h4>
+                      <p>在真值赋值 {{ result.counterExample }} 下，以下公式不是重言式：</p>
+                      <div class="checking-formula">
+                        <math-renderer
+                          :formula="result.checkingFormula"
+                          :type="'katex'"
+                          :display-mode="true"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- 显示真值表 - 优先使用新的LaTeX表格格式 -->
               <div class="truth-table">
                 <!-- 如果有latexTable，使用MathRenderer渲染 -->
@@ -588,6 +655,21 @@
       />
       <!-- @监听时间，formula-calculated由 TruthValueCalculator.vue emit过来-->
     </el-dialog>
+
+    <!-- 等值演算过程检查界面模态框 - 弹出对话框 -->
+    <el-dialog
+      v-model="showEquivCalculusCheck"
+      title="等值演算过程检查"
+      width="90%"
+      :before-close="handleEquivCalculusCheckClose"
+      class="equiv-calculus-check-dialog"
+    >
+      <!-- 引入等值演算过程检查界面组件 -->
+      <equiv-calculus-check-interface
+        @close="showEquivCalculusCheck = false"
+        @result="onEquivCalculusResult"
+      />
+    </el-dialog>
   </div>
 </template>
 
@@ -602,6 +684,7 @@ import PrincipalNormalFormInterface from '@/components/logic/PrincipalNormalForm
 import NormalFormulaExpansionInterface from '@/components/logic/NormalFormulaExpansionInterface.vue'
 import FormulaSyntaxInterface from '@/components/logic/FormulaSyntaxInterface.vue'
 import TruthValueCalculator from '@/components/logic/TruthValueCalculator.vue'
+import EquivCalculusCheckInterface from '@/components/logic/EquivCalculusCheckInterface.vue'
 
 // 响应式数据
 const activeMenu = ref('')
@@ -625,6 +708,9 @@ const showNormalFormulaExpansion = ref(false)
 
 // 控制公式语法分析界面的显示
 const showFormulaSyntax = ref(false)
+
+// 控制等值演算过程检查界面的显示
+const showEquivCalculusCheck = ref(false)
 
 // 控制计算公式真值界面的显示
 const showTruthValue = ref(false)
@@ -691,7 +777,7 @@ const handleMenuSelect = (index) => {
       ElMessage.info('将范式扩展为主范式界面已打开')
       break
     case 'calculus-check':
-      ElMessage.info('等值演算过程检查功能')
+      showEquivCalculusCheck.value = true
       break
     case 'argument-check':
       ElMessage.info('验证推理有效性论证检查功能')
@@ -847,6 +933,10 @@ const handleTruthValueClose = () => {
   showTruthValue.value = false
 }
 
+const handleEquivCalculusCheckClose = () => {
+  showEquivCalculusCheck.value = false
+}
+
 // 处理公式计算完成事件
 const onFormulaCalculated = (result) => {
   // 确保结果有索引信息，如果没有则自动分配
@@ -889,6 +979,42 @@ const onFormulaCalculated = (result) => {
 }
 
 // 处理范式扩展结果
+const onEquivCalculusResult = (result) => {
+  if (result && result.data) {
+    // 创建一个符合现有格式的结果对象
+    const formattedResult = {
+      index: formulaResults.value.length + 1,
+      formula: `等值演算检查步骤${result.data.stepNumber}`,
+      type: 'equiv-calculus-check',
+      stepNumber: result.data.stepNumber,
+      steps: result.data.steps,
+      valid: result.data.valid,
+      errorMessage: result.data.errorMessage,
+      counterExample: result.data.counterExample,
+      checkingFormula: result.data.checkingFormula,
+      success: result.data.success,
+      message: result.data.message
+    }
+
+    // 添加到结果列表
+    formulaResults.value.push(formattedResult)
+
+    // 更新当前显示的公式
+    currentFormula.value = `等值演算检查步骤${result.data.stepNumber}`
+
+    console.log('MainView: 添加等值演算检查结果:', formattedResult)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    // 追加到LaTeX代码区域
+    if (latexCode.value) {
+      latexCode.value += '\n\n' + latexString
+    } else {
+      latexCode.value = latexString
+    }
+  }
+}
+
 const onNormalFormulaExpansionResult = (result) => {
   if (result && result.data) {
     // 创建一个符合现有格式的结果对象
@@ -1180,6 +1306,47 @@ const generateLaTeXCode = (result) => {
     }
     if (result.pcnfResult) {
       latexCode += `\\begin{array}{c}\n\\text{最终的主合取范式(PCNF):}\n${result.pcnfResult}\n\\end{array}\n\n`
+    }
+  }
+
+  // 处理等值演算检查结果
+  if (result.type === 'equiv-calculus-check') {
+    latexCode += `\\begin{array}{c}\n\\text{等值演算过程检查结果:}\n\\end{array}\n\n`
+
+    // 检查步骤
+    if (result.steps && result.steps.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{演算步骤${result.stepNumber}: 检查以下等值演算过程}\n\\end{array}\n\n`
+
+      result.steps.forEach((step, index) => {
+        if (index === 0) {
+          latexCode += `\\begin{array}{c}\n\\quad${step.formula}`
+          if (step.comment) {
+            latexCode += ` // ${step.comment}`
+          }
+          latexCode += `\\end{array}\n\n`
+        } else {
+          latexCode += `\\begin{array}{c}\n\\quad\\quad\\equiv\\quad\\quad${step.formula}`
+          if (step.comment) {
+            latexCode += ` // ${step.comment}`
+          }
+          latexCode += `\\end{array}\n\n`
+        }
+      })
+    }
+
+    // 检查结果
+    if (result.valid) {
+      latexCode += `\\begin{array}{c}\n\\text{✓ 检查通过: 通过真值表检验，上述等值演算过程没有错误。}\n\\end{array}\n\n`
+    } else {
+      latexCode += `\\begin{array}{c}\n\\text{✗ 检查失败: ${result.errorMessage || '等值演算过程存在错误'}}\n\\end{array}\n\n`
+
+      // 反例信息
+      if (result.counterExample) {
+        latexCode += `\\begin{array}{c}\n\\text{反例: 在真值赋值 ${result.counterExample} 下，以下公式不是重言式:}\n\\end{array}\n\n`
+        if (result.checkingFormula) {
+          latexCode += `\\begin{array}{c}\n${result.checkingFormula}\n\\end{array}\n\n`
+        }
+      }
     }
   }
 
@@ -1943,5 +2110,96 @@ onMounted(() => {
   background: #f8fff8;
   border-radius: 4px;
   border: 1px solid #e6f7e6;
+}
+
+/* 等值演算检查结果样式 */
+.equiv-calculus-results {
+  margin: 1rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff8f0 0%, #fef3e2 100%);
+  border-radius: 8px;
+  border: 2px solid #ff9800;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+}
+
+.calculus-steps {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+}
+
+.calculus-step {
+  margin-bottom: 0.75rem;
+  font-family: 'Times New Roman', serif;
+}
+
+.calculus-step:last-child {
+  margin-bottom: 0;
+}
+
+.step-first {
+  padding-left: 2rem;
+}
+
+.step-subsequent {
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+}
+
+.equiv-prefix {
+  margin-right: 1rem;
+  font-size: 18px;
+  font-weight: bold;
+  color: #409eff;
+}
+
+.step-formula {
+  background: #f8f9ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+  margin-right: 10px;
+}
+
+.step-comment {
+  font-style: italic;
+  color: #666;
+  font-size: 14px;
+}
+
+.check-result {
+  margin-top: 1.5rem;
+}
+
+.valid-result, .invalid-result {
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.counter-example {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+}
+
+.counter-title {
+  margin: 0 0 0.5rem 0;
+  color: #856404;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.checking-formula {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
 }
 </style>

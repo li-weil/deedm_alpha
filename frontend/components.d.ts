@@ -29,6 +29,7 @@ declare module 'vue' {
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElText: typeof import('element-plus/es')['ElText']
+    EquivCalculusCheckInterface: typeof import('./src/components/logic/EquivCalculusCheckInterface.vue')['default']
     FormulaSyntaxInterface: typeof import('./src/components/logic/FormulaSyntaxInterface.vue')['default']
     MathRenderer: typeof import('./src/components/common/MathRenderer.vue')['default']
     NormalFormulaExpansionInterface: typeof import('./src/components/logic/NormalFormulaExpansionInterface.vue')['default']

@@ -105,7 +105,7 @@
         v-model="formulaInput"
         type="textarea"
         :rows="4"
-        placeholder="请输入LaTeX格式的逻辑公式，多个公式用分号分隔..."
+        placeholder="请输入LaTeX格式的逻辑公式"
         class="formula-textarea"
       />
       <div class="input-hint">
