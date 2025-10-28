@@ -9,22 +9,22 @@ package com.deedm.legacy.proplogic.reason;
  *
  */
 public class LogicReasoningRuleName {
-	public static final LogicReasoningRuleName Premise = new LogicReasoningRuleName("Premise", "Ç°Ìá", "\\textbf{P}");
-	public static final LogicReasoningRuleName AddPremise = new LogicReasoningRuleName("Additional Premise", "¸½¼ÓÇ°Ìá", "\\textbf{AP}");
-	public static final LogicReasoningRuleName APMethod = new LogicReasoningRuleName("Proof by Additional Premise", "¸½¼ÓÇ°Ìá·¨", "\\textbf{PBAP}");
-	public static final LogicReasoningRuleName Contradict = new LogicReasoningRuleName("Proof by Contradiction", "·´Ö¤·¨", "\\textbf{PBC}");
-	public static final LogicReasoningRuleName ImpIntr = new LogicReasoningRuleName("Implication Introduction", "ÔÌº­ÒıÈë", "\\rightarrow+");
-	public static final LogicReasoningRuleName ImpElim = new LogicReasoningRuleName("Implication Elimination", "¼ÙÑÔÍÆÀí", "\\rightarrow-");
-	public static final LogicReasoningRuleName ImpSyl = new LogicReasoningRuleName("Implication Syllogism", "¼ÙÑÔÈı¶ÎÂÛ", "\\rightarrow3");
-	public static final LogicReasoningRuleName ImpNeg = new LogicReasoningRuleName("Contraposition Law", "¼ÙÑÔÒ×Î»", "\\rightarrow\\neg");
-	public static final LogicReasoningRuleName ConIntr = new LogicReasoningRuleName("Conjunction Introduction", "ºÏÈ¡ÒıÈë", "\\wedge+");
-	public static final LogicReasoningRuleName ConElim = new LogicReasoningRuleName("Conjunction Elimination", "»¯¼ò¹æÔò", "\\wedge-");
-	public static final LogicReasoningRuleName DisIntr = new LogicReasoningRuleName("Disjunction Introduction", "¸½¼Ó¹æÔò", "\\vee+");
-	public static final LogicReasoningRuleName DisElim = new LogicReasoningRuleName("Disjunction Elimination", "ÎöÈ¡Ïû³ı", "\\vee-");
-	public static final LogicReasoningRuleName DisSyl = new LogicReasoningRuleName("Disjunction Syllogism", "ÎöÈ¡Èı¶ÎÂÛ", "\\vee\\neg");
-	public static final LogicReasoningRuleName BiImpIntr = new LogicReasoningRuleName("BiImplication Introduction", "Ë«ÔÌº­ÒıÈë", "\\leftrightarrow+");
-	public static final LogicReasoningRuleName BiImpElim = new LogicReasoningRuleName("BiImplication Elimination", "Ë«ÔÌº­Ïû³ı", "\\leftrightarrow-");
-	public static final LogicReasoningRuleName Equiv = new LogicReasoningRuleName("Equivalence", "µÈÖµÖÃ»»", "\\textbf{EQ}");
+	public static final LogicReasoningRuleName Premise = new LogicReasoningRuleName("Premise", "å‰æ", "\\textbf{P}");
+	public static final LogicReasoningRuleName AddPremise = new LogicReasoningRuleName("Additional Premise", "é™„åŠ å‰æ", "\\textbf{AP}");
+	public static final LogicReasoningRuleName APMethod = new LogicReasoningRuleName("Proof by Additional Premise", "é™„åŠ å‰ææ³•", "\\textbf{PBAP}");
+	public static final LogicReasoningRuleName Contradict = new LogicReasoningRuleName("Proof by Contradiction", "åè¯æ³•", "\\textbf{PBC}");
+	public static final LogicReasoningRuleName ImpIntr = new LogicReasoningRuleName("Implication Introduction", "è•´æ¶µå¼•å…¥", "\\rightarrow+");
+	public static final LogicReasoningRuleName ImpElim = new LogicReasoningRuleName("Implication Elimination", "å‡è¨€æ¨ç†", "\\rightarrow-");
+	public static final LogicReasoningRuleName ImpSyl = new LogicReasoningRuleName("Implication Syllogism", "å‡è¨€ä¸‰æ®µè®º", "\\rightarrow3");
+	public static final LogicReasoningRuleName ImpNeg = new LogicReasoningRuleName("Contraposition Law", "å‡è¨€æ˜“ä½", "\\rightarrow\\neg");
+	public static final LogicReasoningRuleName ConIntr = new LogicReasoningRuleName("Conjunction Introduction", "åˆå–å¼•å…¥", "\\wedge+");
+	public static final LogicReasoningRuleName ConElim = new LogicReasoningRuleName("Conjunction Elimination", "åŒ–ç®€è§„åˆ™", "\\wedge-");
+	public static final LogicReasoningRuleName DisIntr = new LogicReasoningRuleName("Disjunction Introduction", "é™„åŠ è§„åˆ™", "\\vee+");
+	public static final LogicReasoningRuleName DisElim = new LogicReasoningRuleName("Disjunction Elimination", "æå–æ¶ˆé™¤", "\\vee-");
+	public static final LogicReasoningRuleName DisSyl = new LogicReasoningRuleName("Disjunction Syllogism", "æå–ä¸‰æ®µè®º", "\\vee\\neg");
+	public static final LogicReasoningRuleName BiImpIntr = new LogicReasoningRuleName("BiImplication Introduction", "åŒè•´æ¶µå¼•å…¥", "\\leftrightarrow+");
+	public static final LogicReasoningRuleName BiImpElim = new LogicReasoningRuleName("BiImplication Elimination", "åŒè•´æ¶µæ¶ˆé™¤", "\\leftrightarrow-");
+	public static final LogicReasoningRuleName Equiv = new LogicReasoningRuleName("Equivalence", "ç­‰å€¼ç½®æ¢", "\\textbf{EQ}");
 
 	private static LogicReasoningRuleName[] definedRuleNames = {
 			// APMethod must before AddPremise, and AddPremise must before Premise, since the Chinese name of AddPremise included in the name of APMethod!

@@ -242,6 +242,91 @@
                 </div>
               </div>
 
+              <!-- 显示推理有效性论证检查结果 -->
+              <div v-if="result.type === 'reason-argument-check'" class="reason-argument-check-results">
+                <div class="result-title">
+                  <strong>检查推理步骤</strong>
+                </div>
+
+                <!-- 推理关系显示 -->
+                <div v-if="result.latexString" class="reasoning-overview">
+                  <h4>推理关系：</h4>
+                  <div class="reasoning-formula">
+                    <math-renderer
+                      :formula="result.latexString"
+                      :type="'katex'"
+                      :display-mode="true"
+                      class="formula-renderer"
+                    />
+                  </div>
+                </div>
+
+                <!-- 推理步骤显示 -->
+                <div class="reasoning-steps">
+                  <div v-for="(step, index) in result.steps" :key="index" class="reasoning-step">
+                    <div class="step-content">
+                      <span class="step-number">({{ step.serialNo }})</span>
+                      <math-renderer
+                        :formula="step.formula"
+                        :type="'katex'"
+                        :display-mode="false"
+                        class="step-formula"
+                      />
+                      <span v-if="step.ruleName" class="step-rule"> // {{ step.prevSN }}{{ step.ruleName }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 检查过程显示 -->
+                <div v-if="result.checkSteps && result.checkSteps.length > 0" class="check-process">
+                  <h4>检查过程：</h4>
+                  <div v-for="(step, index) in result.checkSteps" :key="index" class="check-step">
+                    <span class="check-text">检验步骤({{ step.serialNo }}){{ step.checkType }}</span>
+                    <math-renderer
+                      :formula="step.formula"
+                      :type="'katex'"
+                      :display-mode="false"
+                      class="check-formula"
+                    />
+                  </div>
+                </div>
+
+                <!-- 检查结果 -->
+                <div class="check-result">
+                  <div v-if="result.valid" class="valid-result">
+                    <el-alert
+                      title="✓ 检查通过"
+                      type="success"
+                      description="通过真值表检验，上述推理证明过程没有错误。"
+                      :closable="false"
+                      show-icon
+                    />
+                  </div>
+                  <div v-else class="invalid-result">
+                    <el-alert
+                      title="✗ 检查失败"
+                      type="error"
+                      :description="result.errorMessage"
+                      :closable="false"
+                      show-icon
+                    />
+
+                    <!-- 反例信息 -->
+                    <div v-if="result.counterExample" class="counter-example">
+                      <h4 class="counter-title">反例：</h4>
+                      <p>在真值赋值 {{ result.counterExample }} 下，以下公式不是重言式：</p>
+                      <div class="checking-formula">
+                        <math-renderer
+                          :formula="result.checkingFormula"
+                          :type="'katex'"
+                          :display-mode="true"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- 显示真值表 - 优先使用新的LaTeX表格格式 -->
               <div class="truth-table">
                 <!-- 如果有latexTable，使用MathRenderer渲染 -->
@@ -670,6 +755,21 @@
         @result="onEquivCalculusResult"
       />
     </el-dialog>
+
+    <!-- 推理有效性论证检查对话框 -->
+    <el-dialog
+      v-model="showReasonArgumentCheck"
+      title="验证推理有效性论证检查"
+      width="90%"
+      :before-close="handleReasonArgumentCheckClose"
+      class="reason-argument-check-dialog"
+    >
+      <!-- 引入推理有效性论证检查界面组件 -->
+      <reason-argument-check-interface
+        @close="showReasonArgumentCheck = false"
+        @result="onReasonArgumentCheckResult"
+      />
+    </el-dialog>
   </div>
 </template>
 
@@ -685,6 +785,7 @@ import NormalFormulaExpansionInterface from '@/components/logic/NormalFormulaExp
 import FormulaSyntaxInterface from '@/components/logic/FormulaSyntaxInterface.vue'
 import TruthValueCalculator from '@/components/logic/TruthValueCalculator.vue'
 import EquivCalculusCheckInterface from '@/components/logic/EquivCalculusCheckInterface.vue'
+import ReasonArgumentCheckInterface from '@/components/logic/ReasonArgumentCheckInterface.vue'
 
 // 响应式数据
 const activeMenu = ref('')
@@ -711,6 +812,7 @@ const showFormulaSyntax = ref(false)
 
 // 控制等值演算过程检查界面的显示
 const showEquivCalculusCheck = ref(false)
+const showReasonArgumentCheck = ref(false)
 
 // 控制计算公式真值界面的显示
 const showTruthValue = ref(false)
@@ -778,9 +880,10 @@ const handleMenuSelect = (index) => {
       break
     case 'calculus-check':
       showEquivCalculusCheck.value = true
+      ElMessage.info('等值演算过程检查界面已打开')
       break
     case 'argument-check':
-      ElMessage.info('验证推理有效性论证检查功能')
+      showReasonArgumentCheck.value = true
       break
 
     // 集合关系函数菜单项
@@ -937,6 +1040,11 @@ const handleEquivCalculusCheckClose = () => {
   showEquivCalculusCheck.value = false
 }
 
+// 处理推理有效性论证检查界面关闭事件
+const handleReasonArgumentCheckClose = () => {
+  showReasonArgumentCheck.value = false
+}
+
 // 处理公式计算完成事件
 const onFormulaCalculated = (result) => {
   // 确保结果有索引信息，如果没有则自动分配
@@ -1012,6 +1120,48 @@ const onEquivCalculusResult = (result) => {
     } else {
       latexCode.value = latexString
     }
+  }
+}
+
+// 处理推理有效性论证检查结果
+const onReasonArgumentCheckResult = (result) => {
+  if (result && result.data) {
+    // 创建一个符合现有格式的结果对象
+    const formattedResult = {
+      index: formulaResults.value.length + 1,
+      formula: `推理有效性论证检查步骤${result.data.stepNumber || formulaResults.value.length + 1}`,
+      type: 'reason-argument-check',
+      stepNumber: result.data.stepNumber || formulaResults.value.length + 1,
+      steps: result.data.steps,
+      checkSteps: result.data.checkSteps,
+      valid: result.data.valid,
+      errorMessage: result.data.message,
+      counterExample: result.data.counterExample,
+      checkingFormula: result.data.checkingFormula,
+      success: result.data.success,
+      latexString: result.data.latexString,
+      premises: result.data.premises,
+      consequent: result.data.consequent
+    }
+
+    // 添加到结果列表
+    formulaResults.value.push(formattedResult)
+
+    // 更新当前显示的公式
+    currentFormula.value = formattedResult.formula
+
+    console.log('MainView: 添加推理有效性论证检查结果:', formattedResult)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    // 追加到LaTeX代码区域
+    if (latexCode.value) {
+      latexCode.value += '\n\n' + latexString
+    } else {
+      latexCode.value = latexString
+    }
+
+    ElMessage.success('推理有效性论证检查结果已添加到主界面')
   }
 }
 
@@ -1363,6 +1513,51 @@ const generateLaTeXCode = (result) => {
         latexCode += `\\begin{array}{c}\n\\text{${step.explanation || '计算步骤'}}\n${step.formula}\n\\end{array}\n\n`
       }
     })
+  }
+
+  // 处理推理有效性论证检查结果
+  if (result.type === 'reason-argument-check') {
+    latexCode += `\\begin{array}{c}\n\\text{推理有效性论证检查结果:}\n\\end{array}\n\n`
+
+    // 显示推理关系
+    if (result.latexString) {
+      latexCode += `\\begin{array}{c}\n\\text{验证推理关系:} ${result.latexString}\n\\end{array}\n\n`
+    }
+
+    // 检查步骤
+    if (result.steps && result.steps.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{检查推理步骤${result.stepNumber}: 验证以下推理过程}\n\\end{array}\n\n`
+
+      result.steps.forEach((step) => {
+        latexCode += `\\begin{array}{c}\n\\quad(${step.serialNo})\\quad${step.formula}`
+        if (step.prevSN && step.ruleName) {
+          latexCode += ` // ${step.prevSN}${step.ruleName}`
+        }
+        latexCode += `\\end{array}\n\n`
+      })
+    }
+
+    // 检查过程
+    if (result.checkSteps && result.checkSteps.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{检查过程:}\n\\end{array}\n\n`
+
+      result.checkSteps.forEach((step) => {
+        latexCode += `\\begin{array}{c}\n\\quad检验步骤(${step.serialNo})${step.checkType}${step.formula}\n\\end{array}\n\n`
+      })
+    }
+
+    // 检查结果
+    if (result.valid) {
+      latexCode += `\\begin{array}{c}\n\\text{✓ 检查通过: 通过真值表检验，上述推理证明过程没有错误。}\n\\end{array}\n\n`
+    } else {
+      latexCode += `\\begin{array}{c}\n\\text{✗ 检查失败: ${result.errorMessage || '推理证明过程存在错误'}}\n\\end{array}\n\n`
+
+      // 反例信息
+      if (result.counterExample && result.checkingFormula) {
+        latexCode += `\\begin{array}{c}\n\\text{反例: 在真值赋值 ${result.counterExample} 下，以下公式不是重言式:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.checkingFormula}\n\\end{array}\n\n`
+      }
+    }
   }
 
   return latexCode
@@ -2201,5 +2396,92 @@ onMounted(() => {
   border: 1px solid #ddd;
   border-radius: 4px;
   text-align: center;
+}
+
+/* 推理有效性论证检查结果样式 */
+.reason-argument-check-results {
+  margin: 1rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+}
+
+.reasoning-overview {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9ff;
+  border-radius: 8px;
+  border: 1px solid #4a90e2;
+}
+
+.reasoning-steps {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+}
+
+.reasoning-step {
+  margin-bottom: 0.75rem;
+  font-family: 'Times New Roman', serif;
+}
+
+.reasoning-step:last-child {
+  margin-bottom: 0;
+}
+
+.step-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.step-number {
+  font-weight: bold;
+  color: #409eff;
+  min-width: 40px;
+}
+
+.step-formula {
+  background: #f8f9ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+}
+
+.step-rule {
+  font-style: italic;
+  color: #666;
+  font-size: 14px;
+}
+
+.check-process {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #fff9e6;
+  border-radius: 8px;
+  border: 1px solid #ffc107;
+}
+
+.check-step {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 10px;
+}
+
+.check-text {
+  font-weight: bold;
+  color: #856404;
+}
+
+.check-formula {
+  background: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
 }
 </style>
