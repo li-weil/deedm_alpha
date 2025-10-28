@@ -265,6 +265,151 @@
                 </div>
               </div>
 
+              <!-- 显示范式计算结果 - 条件渲染：只有当result.cnfResult或result.dnfResult存在时才显示 -->
+              <div v-if="result.cnfResult || result.dnfResult" class="normal-form-results">
+                <!-- CNF 结果 -->
+                <div v-if="result.cnfResult" class="normal-form-result">
+                  <h5 class="result-title">合取范式结果：</h5>
+                  <div class="calculation-steps" v-if="result.cnfSteps && result.cnfSteps.length > 0">
+                    <div v-for="(step, stepIndex) in result.cnfSteps" :key="'cnf-step-' + stepIndex" class="calculation-step">
+                      <math-renderer
+                        :formula="step.formula"
+                        :type="'katex'"
+                        :display-mode="false"
+                        class="step-formula"
+                      />
+                      <span class="step-comment">{{ step.comment }}</span>
+                    </div>
+                  </div>
+                  <div class="final-result">
+                    <strong>最终简化为CNF：</strong>
+                    <math-renderer
+                      :formula="result.cnfResult.finalFormula"
+                      :type="'katex'"
+                      :display-mode="false"
+                    />
+                  </div>
+                </div>
+
+                <!-- DNF 结果 -->
+                <div v-if="result.dnfResult" class="normal-form-result">
+                  <h5 class="result-title">析取范式结果：</h5>
+                  <div class="calculation-steps" v-if="result.dnfSteps && result.dnfSteps.length > 0">
+                    <div v-for="(step, stepIndex) in result.dnfSteps" :key="'dnf-step-' + stepIndex" class="calculation-step">
+                      <math-renderer
+                        :formula="step.formula"
+                        :type="'katex'"
+                        :display-mode="false"
+                        class="step-formula"
+                      />
+                      <span class="step-comment">{{ step.comment }}</span>
+                    </div>
+                  </div>
+                  <div class="final-result">
+                    <strong>最终简化为DNF：</strong>
+                    <math-renderer
+                      :formula="result.dnfResult.finalFormula"
+                      :type="'katex'"
+                      :display-mode="false"
+                    />
+                  </div>
+                </div>
+
+                <!-- CNF 扩展步骤 -->
+                <div v-if="result.cnfExpansionSteps && result.cnfExpansionSteps.length > 0" class="expansion-steps">
+                  <h5 class="expansion-title">主合取范式扩展步骤：</h5>
+                  <div v-for="(step, stepIndex) in result.cnfExpansionSteps" :key="'cnf-expansion-' + stepIndex" class="expansion-step-inline">
+                    <el-text type="primary" class="step-description">{{ step.expansionDescription }}</el-text>
+                    <math-renderer
+                      :formula="step.formula"
+                      :type="'katex'"
+                      :display-mode="false"
+                      class="step-formula-inline"
+                    />
+                    <span v-if="step.formulaCode" class="formula-code-inline">[{{ step.formulaCode }}]</span>
+                    <el-text type="success" class="step-description">{{ step.resultDescription }}</el-text>
+                    <math-renderer
+                      :formula="step.resultCodes"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                      class="result-codes-inline"
+                    />
+                  </div>
+                </div>
+
+                <!-- DNF 扩展步骤 -->
+                <div v-if="result.dnfExpansionSteps && result.dnfExpansionSteps.length > 0" class="expansion-steps">
+                  <h5 class="expansion-title">主析取范式扩展步骤：</h5>
+                  <div v-for="(step, stepIndex) in result.dnfExpansionSteps" :key="'dnf-expansion-' + stepIndex" class="expansion-step-inline">
+                    <el-text type="primary" class="step-description">{{ step.expansionDescription }}</el-text>
+                    <math-renderer
+                      :formula="step.formula"
+                      :type="'katex'"
+                      :display-mode="false"
+                      class="step-formula-inline"
+                    />
+                    <span v-if="step.formulaCode" class="formula-code-inline">[{{ step.formulaCode }}]</span>
+                    <el-text type="success" class="step-description">{{ step.resultDescription }}</el-text>
+                    <math-renderer
+                      :formula="step.resultCodes"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                      class="result-codes-inline"
+                    />
+                  </div>
+                </div>
+
+                <!-- 主范式结果 -->
+                <div v-if="(result.cnfResult && (result.cnfResult.pcnf || result.cnfResult.pdnf)) || (result.dnfResult && (result.dnfResult.pdnf || result.dnfResult.pcnf))" class="pnf-result">
+                  <div v-if="result.cnfResult && result.cnfResult.pcnf">
+                    <h5 class="pnf-title">最终的主合取范式是：</h5>
+                    <math-renderer
+                      :formula="result.cnfResult.pcnf"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                    />
+                  </div>
+                  <div v-if="result.cnfResult && result.cnfResult.pdnf">
+                    <h5 class="pnf-title">相应的主析取范式是：</h5>
+                    <math-renderer
+                      :formula="result.cnfResult.pdnf"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                    />
+                  </div>
+                  <div v-if="result.dnfResult && result.dnfResult.pdnf">
+                    <h5 class="pnf-title">最终的主析取范式是：</h5>
+                    <math-renderer
+                      :formula="result.dnfResult.pdnf"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                    />
+                  </div>
+                  <div v-if="result.dnfResult && result.dnfResult.pcnf">
+                    <h5 class="pnf-title">相应的主合取范式是：</h5>
+                    <math-renderer
+                      :formula="result.dnfResult.pcnf"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                    />
+                  </div>
+                </div>
+
+                <!-- 真值表结果 -->
+                <div v-if="result.truthTable" class="truth-table-result">
+                  <h5 class="result-title">真值表计算结果：</h5>
+                  <div class="truth-table-container">
+                    <math-renderer
+                      :key="'table-' + result.index + '-' + Date.now()"
+                      :formula="result.truthTable"
+                      :type="'katex'"
+                      :display-mode="true"
+                      class="truth-table-content"
+                    />
+                  </div>
+                </div>
+              </div>
+
               </div>
           </div>
         </div>
@@ -330,7 +475,7 @@
     <!-- 主范式界面模态框 - 弹出对话框 -->
     <el-dialog
       v-model="showPrincipalNormalForm"
-      title="扩展范式为主范式"
+      title="计算与公式逻辑等值的范式"
       width="90%"
       :before-close="handlePrincipalNormalFormClose"
       class="principal-normal-form-dialog"
@@ -465,11 +610,11 @@ const handleMenuSelect = (index) => {
       ElMessage.info('构造公式的真值表界面已打开')
       break
     case 'calculate-nf':
-      ElMessage.info('计算与公式逻辑等值的范式功能')
+      showPrincipalNormalForm.value = true
+      ElMessage.info('计算与公式逻辑等值的范式界面已打开')
       break
     case 'expand-nf':
-      showPrincipalNormalForm.value = true
-      ElMessage.info('将范式扩展为主范式界面已打开')
+      ElMessage.info('将范式扩展为主范式功能')
       break
     case 'calculus-check':
       ElMessage.info('等值演算过程检查功能')
@@ -651,7 +796,9 @@ const onFormulaCalculated = (result) => {
   }
 
   // 根据结果类型显示不同的成功消息
-  if (result.syntaxData && !result.tableData) {
+  if (result.cnfResult || result.dnfResult) {
+    ElMessage.success('范式计算结果已添加到主界面')
+  } else if (result.syntaxData && !result.tableData) {
     ElMessage.success('公式语法分析结果已添加到主界面')
   } else if (result.tableData && !result.syntaxData) {
     ElMessage.success('公式和真值表已添加到主界面')
@@ -816,6 +963,88 @@ const generateLaTeXCode = (result) => {
   // 添加真值计算结果的LaTeX代码
   if (result.truthValue !== undefined) {
     latexCode += `\\begin{array}{c}\n\\text{公式真值: } ${result.formula} = ${result.truthValue ? '\\mathbf{1}' : '\\mathbf{0}'}\n\\end{array}\n\n`
+  }
+
+  // 添加范式计算结果的LaTeX代码
+  if (result.cnfResult || result.dnfResult) {
+    // CNF 结果
+    if (result.cnfResult) {
+      latexCode += `\\begin{array}{c}\n\\text{合取范式(CNF)计算结果:}\n\\end{array}\n\n`
+
+      // CNF 计算步骤
+      if (result.cnfSteps && result.cnfSteps.length > 0) {
+        latexCode += `\\begin{array}{c}\n\\text{CNF计算步骤:}\n\\end{array}\n\n`
+        result.cnfSteps.forEach(step => {
+          latexCode += `\\begin{array}{c}\n\\text{${step.comment}}\n${step.formula}\n\\end{array}\n\n`
+        })
+      }
+
+      // CNF 最终结果
+      latexCode += `\\begin{array}{c}\n\\text{最终简化为CNF:}\n${result.cnfResult.finalFormula}\n\\end{array}\n\n`
+    }
+
+    // DNF 结果
+    if (result.dnfResult) {
+      latexCode += `\\begin{array}{c}\n\\text{析取范式(DNF)计算结果:}\n\\end{array}\n\n`
+
+      // DNF 计算步骤
+      if (result.dnfSteps && result.dnfSteps.length > 0) {
+        latexCode += `\\begin{array}{c}\n\\text{DNF计算步骤:}\n\\end{array}\n\n`
+        result.dnfSteps.forEach(step => {
+          latexCode += `\\begin{array}{c}\n\\text{${step.comment}}\n${step.formula}\n\\end{array}\n\n`
+        })
+      }
+
+      // DNF 最终结果
+      latexCode += `\\begin{array}{c}\n\\text{最终简化为DNF:}\n${result.dnfResult.finalFormula}\n\\end{array}\n\n`
+    }
+
+    // CNF 扩展步骤
+    if (result.cnfExpansionSteps && result.cnfExpansionSteps.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{主合取范式扩展步骤:}\n\\end{array}\n\n`
+      result.cnfExpansionSteps.forEach(step => {
+        latexCode += `\\begin{array}{c}\n\\text{${step.expansionDescription}}\n${step.formula}\n\\text{${step.resultDescription}}\n${step.resultCodes}\n\\end{array}\n\n`
+      })
+    }
+
+    // DNF 扩展步骤
+    if (result.dnfExpansionSteps && result.dnfExpansionSteps.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{主析取范式扩展步骤:}\n\\end{array}\n\n`
+      result.dnfExpansionSteps.forEach(step => {
+        latexCode += `\\begin{array}{c}\n\\text{${step.expansionDescription}}\n${step.formula}\n\\text{${step.resultDescription}}\n${step.resultCodes}\n\\end{array}\n\n`
+      })
+    }
+
+    // 最后显示主范式结果
+    if (result.cnfResult && (result.cnfResult.pcnf || result.cnfResult.pdnf)) {
+      // 主合取范式
+      if (result.cnfResult.pcnf) {
+        latexCode += `\\begin{array}{c}\n\\text{主合取范式(PCNF):}\n${result.cnfResult.pcnf}\n\\end{array}\n\n`
+      }
+
+      // 对应的主析取范式
+      if (result.cnfResult.pdnf) {
+        latexCode += `\\begin{array}{c}\n\\text{对应的主析取范式(PDNF):}\n${result.cnfResult.pdnf}\n\\end{array}\n\n`
+      }
+    }
+
+    if (result.dnfResult && (result.dnfResult.pdnf || result.dnfResult.pcnf)) {
+      // 主析取范式
+      if (result.dnfResult.pdnf) {
+        latexCode += `\\begin{array}{c}\n\\text{主析取范式(PDNF):}\n${result.dnfResult.pdnf}\n\\end{array}\n\n`
+      }
+
+      // 对应的主合取范式
+      if (result.dnfResult.pcnf) {
+        latexCode += `\\begin{array}{c}\n\\text{对应的主合取范式(PCNF):}\n${result.dnfResult.pcnf}\n\\end{array}\n\n`
+      }
+    }
+  }
+
+  // 添加真值表结果的LaTeX代码（范式计算的真值表）
+  if (result.truthTable) {
+    latexCode += `\\begin{array}{c}\n\\text{真值表计算结果:}\n\\end{array}\n\n`
+    latexCode += result.truthTable + '\n\n'
   }
 
   // 添加详细计算步骤的LaTeX代码
@@ -1230,6 +1459,148 @@ onMounted(() => {
   border: 1px solid #bbf7d0;
 }
 
+/* 范式计算结果样式 */
+.normal-form-results {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.normal-form-result {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.result-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.calculation-steps {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.calculation-step {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.calculation-step:last-child {
+  margin-bottom: 0;
+}
+
+.step-formula {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-comment {
+  font-size: 0.9em;
+  color: #666;
+  margin-left: 0.5rem;
+}
+
+.final-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #e8f5e8;
+  border-radius: 4px;
+  border: 1px solid #c3e6c3;
+}
+
+.expansion-steps {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+}
+
+.expansion-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.expansion-step-inline {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.expansion-step-inline:last-child {
+  margin-bottom: 0;
+}
+
+.step-description {
+  font-weight: 600;
+  font-size: 0.95em;
+  white-space: nowrap;
+}
+
+.step-formula-inline {
+  background: #f8f9ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+}
+
+.formula-code-inline {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  background: #f1f3f4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #5f6368;
+  border: 1px solid #dadce0;
+  white-space: nowrap;
+}
+
+.result-codes-inline {
+  background: #f8fff8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #c3e6c3;
+}
+
+.pnf-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
+
+.pnf-title {
+  margin: 0.5rem 0;
+  color: #856404;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .main-container {
@@ -1250,6 +1621,30 @@ onMounted(() => {
 
   .latex-textarea :deep(.el-textarea__inner) {
     max-height: 40vh;
+  }
+
+  .normal-form-result {
+    padding: 0.5rem;
+  }
+
+  .calculation-step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .step-comment {
+    margin-left: 0;
+    margin-top: 0.25rem;
+  }
+
+  .expansion-step-inline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .step-description {
+    white-space: normal;
   }
 }
 
