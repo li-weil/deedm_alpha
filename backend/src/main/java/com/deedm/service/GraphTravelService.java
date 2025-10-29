@@ -31,6 +31,7 @@ public class GraphTravelService {
             }
 
             // 设置基本信息
+            response.setType("graph-travel");
             response.setNodesString(request.getNodesString());
             response.setEdgesString(request.getEdgesString());
             response.setDirected(request.isDirected());

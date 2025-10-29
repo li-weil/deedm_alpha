@@ -36,11 +36,10 @@
       :before-close="handleShortestPathClose"
       class="shortest-path-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showShortestPath = false">返回</el-button>
-        </el-empty>
-      </div>
+      <shortest-path-interface
+        @close="handleShortestPathClose"
+        @shortest-path-calculated="onShortestPathResult"
+      />
     </el-dialog>
 
     <!-- 最小生成树计算界面模态框 -->
@@ -95,6 +94,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import GraphTravelInterface from '@/components/graph/GraphTravelInterface.vue'
 import TreeTraversalInterface from '@/components/graph/TreeTraversalInterface.vue'
+import ShortestPathInterface from '@/components/graph/ShortestPathInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -170,6 +170,7 @@ const onGraphTravelResult = (result) => {
     const formattedResult = {
       index: props.formulaResults.length + 1,
       formula: result.formula || '图遍历分析',
+      type: result.type || 'graph-travel',
       nodesString: result.nodesString,
       edgesString: result.edgesString,
       directed: result.directed,
@@ -235,6 +236,38 @@ const onTreeTraversalResult = (result) => {
 
 const handleShortestPathClose = () => {
   showShortestPath.value = false
+}
+
+// 处理最短路径计算结果
+const onShortestPathResult = (result) => {
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '带权图最短路径计算',
+      type: result.type || 'shortest-path',
+      nodesString: result.nodesString,
+      edgesString: result.edgesString,
+      startNode: result.startNode,
+      directed: result.directed,
+      adjacencyMatrix: result.adjacencyMatrix,
+      dijkstraDetails: result.dijkstraDetails,
+      shortestPaths: result.shortestPaths,
+      graphImageUrl: result.graphImageUrl,
+      pathGraphImageUrl: result.pathGraphImageUrl,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+
+    // 发送结果给父组件，包含LaTeX代码（与图遍历格式一致）
+    emit('shortest-path-result', { result: formattedResult, latexString })
+
+    ElMessage.success('带权图最短路径计算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '带权图最短路径计算失败')
+  }
 }
 
 const handleSpanningTreeClose = () => {

@@ -384,5 +384,50 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理最短路径计算结果
+  if (result.startNode && (result.adjacencyMatrix || result.shortestPaths || result.dijkstraDetails)) {
+    latexCode += `\\begin{array}{c}\n\\text{带权图最短路径计算结果:}\n\\end{array}\n\n`
+
+    // 显示图的基本信息
+    if (result.formula) {
+      latexCode += `\\begin{array}{c}\n\\text{带权图的基本信息:} ${result.formula}\n\\end{array}\n\n`
+    }
+
+    // 显示起始节点
+    if (result.startNode) {
+      latexCode += `\\begin{array}{c}\n\\text{起始节点:} ${result.startNode}\n\\end{array}\n\n`
+    }
+
+    // 显示邻接矩阵（带权矩阵）
+    if (result.adjacencyMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{带权图的矩阵表示 D:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.adjacencyMatrix}\n\\end{array}\n\n`
+    }
+
+    // 显示Dijkstra算法详细过程
+    if (result.dijkstraDetails) {
+      latexCode += `\\begin{array}{c}\n\\text{Dijkstra算法详细过程:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.dijkstraDetails}\n\\end{array}\n\n`
+    }
+
+    // 显示最短路径结果
+    if (result.shortestPaths && result.shortestPaths.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{得到的最短路径结果距离如下:}\n\\end{array}\n\n`
+      result.shortestPaths.forEach(path => {
+        latexCode += `\\begin{array}{c}\n${path.formula}\n\\end{array}\n\n`
+      })
+    }
+
+    // 显示原图可视化信息
+    if (result.graphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{图位置图示已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
+    }
+
+    // 显示最短路径图可视化信息
+    if (result.pathGraphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{最短路径图已生成 (图片路径: ${result.pathGraphImageUrl})}\n\\end{array}\n\n`
+    }
+  }
+
   return latexCode
 }

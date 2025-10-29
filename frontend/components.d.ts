@@ -47,6 +47,7 @@ declare module 'vue' {
     RightPanel: typeof import('./src/components/common/RightPanel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ShortestPathInterface: typeof import('./src/components/graph/ShortestPathInterface.vue')['default']
     TreeTraversalInterface: typeof import('./src/components/graph/TreeTraversalInterface.vue')['default']
     TruthTableConstructor: typeof import('./src/components/logic/TruthTableConstructor.vue')['default']
     TruthTableInterface: typeof import('./src/components/logic/TruthTableInterface.vue')['default']

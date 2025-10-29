@@ -9,6 +9,7 @@ public class GraphTravelResponse {
 
     // 图的基本信息
     private String formula;
+    private String type; // 添加类型标记
     private String nodesString;
     private String edgesString;
     private boolean directed;
@@ -61,6 +62,14 @@ public class GraphTravelResponse {
 
     public void setFormula(String formula) {
         this.formula = formula;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getNodesString() {

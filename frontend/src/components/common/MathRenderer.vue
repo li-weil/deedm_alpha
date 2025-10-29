@@ -341,12 +341,24 @@ const renderKaTeX = () => {
         tableFormula = tableFormula.slice(2, -2)
       }
 
-      // Clear container and create beautiful HTML table
+      // Clear container and create HTML table
       mathContainer.value.innerHTML = ''
-      const table = createBeautifulHTMLTable(tableFormula)
+
+      // Check if table contains LaTeX formulas that need KaTeX rendering
+      const needsKaTeX = /\\(fbox|textrm|quad|qquad|mathbf|infty)/.test(tableFormula) || /\$[^$]+\$/.test(tableFormula)
+
+      let table
+      if (needsKaTeX) {
+        console.log('Table contains LaTeX formulas, using KaTeX table rendering')
+        table = createKaTeXTable(tableFormula)
+      } else {
+        console.log('Table contains simple text, using standard HTML table rendering')
+        table = createBeautifulHTMLTable(tableFormula)
+      }
+
       if (table) {
         mathContainer.value.appendChild(table)
-        console.log('Beautiful HTML table created successfully')
+        console.log('HTML table created successfully')
       } else {
         // Fallback: try KaTeX render if HTML table creation fails
         window.katex.render(cleanedFormula, mathContainer.value, {
@@ -382,6 +394,232 @@ const renderKaTeX = () => {
 }
 
 // Create beautiful HTML table from LaTeX array format with modern styling
+// Create HTML table with embedded KaTeX rendering for formulas
+const createKaTeXTable = (latexTable) => {
+  try {
+    console.log('createKaTeXTable input:', JSON.stringify(latexTable))
+
+    // Parse the LaTeX array/tabular structure
+    let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
+    if (!arrayMatch) {
+      arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
+    }
+
+    if (!arrayMatch) return null
+
+    const columnSpec = arrayMatch[1]
+    const content = arrayMatch[2]
+
+    // Parse table structure
+    const rows = content.split('\\\\').map(row => row.trim()).filter(row => row.length > 0)
+
+    // Create main table element with same styling as createBeautifulHTMLTable
+    const table = document.createElement('table')
+    table.className = 'truth-table-html'
+    table.style.cssText = `
+      border-collapse: collapse;
+      margin: 0 auto;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 14px;
+      border: 2px solid #4a5568;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background: white;
+    `
+
+    // Process each row
+    let actualRowIndex = 0
+    rows.forEach((rowContent) => {
+      // Skip rows that only contain \hline
+      if (rowContent.trim() === '\\hline') return
+
+      const row = document.createElement('tr')
+      row.style.cssText = actualRowIndex === 0 ?
+        `background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%); color: white;` :
+        actualRowIndex % 2 === 0 ?
+        `background-color: #edf2f7;` :
+        `background-color: #f8fafc;`
+
+      // Split row content by & to get individual cells
+      const cells = rowContent.split('&').map(cell => cell.trim())
+
+      // Process each cell in the row
+      cells.forEach((cellContent, cellIndex) => {
+        let cleanCellContent = cellContent.replace(/\\hline/g, '').trim()
+        if (cleanCellContent === '') return
+
+        const cell = actualRowIndex === 0 ? document.createElement('th') : document.createElement('td')
+
+        // Process cell content with KaTeX rendering
+        const processedCell = processCellContentWithKaTeX(cleanCellContent, actualRowIndex === 0)
+
+        cell.appendChild(processedCell)
+
+        // Apply styling
+        cell.style.cssText = actualRowIndex === 0 ?
+          `border: 1px solid #4a5568;
+           padding: 12px 16px;
+           text-align: center;
+           font-weight: 600;
+           font-size: 13px;
+           letter-spacing: 0.5px;` :
+          `border: 1px solid #e2e8f0;
+           padding: 10px 14px;
+           text-align: center;
+           color: #2d3748;
+           font-weight: 500;
+           transition: all 0.2s ease;`
+
+        // Add hover effect for data cells
+        if (actualRowIndex > 0) {
+          cell.addEventListener('mouseenter', () => {
+            cell.style.backgroundColor = '#e2e8f0'
+            cell.style.transform = 'scale(1.02)'
+          })
+          cell.addEventListener('mouseleave', () => {
+            cell.style.backgroundColor = actualRowIndex % 2 === 0 ? '#edf2f7' : '#f8fafc'
+            cell.style.transform = 'scale(1)'
+          })
+        }
+
+        row.appendChild(cell)
+      })
+
+      table.appendChild(row)
+      actualRowIndex++
+    })
+
+    return table
+  } catch (err) {
+    console.error('Failed to create KaTeX table:', err)
+    return null
+  }
+}
+
+// Process cell content and render LaTeX formulas with KaTeX
+const processCellContentWithKaTeX = (content, isHeader) => {
+  const container = document.createElement('div')
+  container.style.whiteSpace = 'nowrap'
+
+  // Process content by finding and rendering LaTeX formulas
+  let processedContent = content
+
+  // Replace \textrm commands
+  processedContent = processedContent.replace(/\\textrm\{([^}]+)\}/g, '$1')
+
+  // Replace \quad and \qquad with spaces
+  processedContent = processedContent.replace(/\\qquad/g, '  ')
+  processedContent = processedContent.replace(/\\quad/g, ' ')
+
+  // Replace \infty with infinity symbol
+  processedContent = processedContent.replace(/\\infty/g, '∞')
+
+  // Handle empty cell indicators
+  processedContent = processedContent.replace(/\\quad/g, ' ')
+
+  // Find all LaTeX formulas within $...$
+  const formulaMatches = processedContent.match(/\$([^\$]+)\$/g)
+  if (formulaMatches) {
+    let lastIndex = 0
+    formulaMatches.forEach(formula => {
+      const formulaText = formula.slice(1, -1) // Remove $ symbols
+
+      // Add text before the formula
+      const beforeText = processedContent.substring(lastIndex, processedContent.indexOf(formula))
+      if (beforeText) {
+        const textNode = document.createTextNode(beforeText)
+        container.appendChild(textNode)
+      }
+
+      // Render the formula with KaTeX
+      try {
+        const katexSpan = document.createElement('span')
+        katex.render(formulaText, katexSpan, {
+          displayMode: false,
+          throwOnError: false
+        })
+
+        // Apply additional styling for headers
+        if (isHeader) {
+          katexSpan.style.fontStyle = 'italic'
+          katexSpan.style.fontFamily = "'Times New Roman', serif"
+        }
+
+        container.appendChild(katexSpan)
+      } catch (err) {
+        console.warn('KaTeX rendering failed for formula:', formulaText, err)
+        const fallbackText = document.createTextNode(formulaText)
+        container.appendChild(fallbackText)
+      }
+
+      lastIndex = processedContent.indexOf(formula) + formula.length
+    })
+
+    // Add remaining text
+    const remainingText = processedContent.substring(lastIndex)
+    if (remainingText) {
+      container.appendChild(document.createTextNode(remainingText))
+    }
+  } else {
+    // No $...$ formulas found, check for \fbox commands
+    const fboxMatches = processedContent.match(/\\fbox\{([^}]+)\}/g)
+    if (fboxMatches) {
+      let lastIndex = 0
+      fboxMatches.forEach(fbox => {
+        const fboxContent = fbox.match(/\\fbox\{([^}]+)\}/)[1]
+
+        // Add text before the fbox
+        const beforeText = processedContent.substring(lastIndex, processedContent.indexOf(fbox))
+        if (beforeText) {
+          const textNode = document.createTextNode(beforeText)
+          container.appendChild(textNode)
+        }
+
+        // Create fbox styled span
+        const fboxSpan = document.createElement('span')
+        fboxSpan.style.cssText = `
+          border: 1px solid #374151;
+          padding: 2px 4px;
+          border-radius: 2px;
+          background-color: #f3f4f6;
+          font-weight: 500;
+          ${isHeader ? 'color: white; border-color: white; background-color: rgba(255,255,255,0.2);' : 'color: #374151;'}
+        `
+
+        // Check if the content itself contains math
+        if (fboxContent.includes('/') && fboxContent.match(/^[0-9.]+\//)) {
+          // This looks like a fraction, render with KaTeX
+          try {
+            katex.render(fboxContent, fboxSpan, {
+              displayMode: false,
+              throwOnError: false
+            })
+          } catch (err) {
+            fboxSpan.textContent = fboxContent
+          }
+        } else {
+          fboxSpan.textContent = fboxContent
+        }
+
+        container.appendChild(fboxSpan)
+        lastIndex = processedContent.indexOf(fbox) + fbox.length
+      })
+
+      // Add remaining text
+      const remainingText = processedContent.substring(lastIndex)
+      if (remainingText) {
+        container.appendChild(document.createTextNode(remainingText))
+      }
+    } else {
+      // No special formatting, just add the text
+      container.appendChild(document.createTextNode(processedContent))
+    }
+  }
+
+  return container
+}
+
 const createBeautifulHTMLTable = (latexTable) => {
   try {
     // Debug logging for troubleshooting LaTeX parsing

@@ -342,8 +342,89 @@
             </div>
           </div>
 
+          <!-- 显示最短路径计算结果 -->
+          <div v-else-if="result.type === 'shortest-path'" class="shortest-path-result">
+            <h5 class="result-title">带权图最短路径计算结果：</h5>
+
+            <!-- 起始节点信息 -->
+            <div v-if="result.startNode" class="start-node-info">
+              <h6>起始节点：</h6>
+              <math-renderer
+                :formula="result.startNode"
+                :type="'mathjax'"
+                :display-mode="false"
+                class="start-node-formula"
+              />
+            </div>
+
+            <!-- 带权邻接矩阵 -->
+            <div v-if="result.adjacencyMatrix" class="weight-matrix">
+              <h6>带权图的矩阵表示 D：</h6>
+              <math-renderer
+                :formula="result.adjacencyMatrix"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <!-- Dijkstra算法详细过程 -->
+            <div v-if="result.dijkstraDetails" class="dijkstra-details">
+              <h6>Dijkstra算法详细过程：</h6>
+              <div class="algorithm-content">
+                <math-renderer
+                  :formula="result.dijkstraDetails"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="algorithm-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 最短路径结果 -->
+            <div v-if="result.shortestPaths && result.shortestPaths.length > 0" class="shortest-paths">
+              <h6>得到的最短路径结果距离如下：</h6>
+              <div class="paths-grid">
+                <div v-for="path in result.shortestPaths" :key="path.target" class="path-item">
+                  <math-renderer
+                    :formula="path.formula"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="path-formula"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 原图可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h6>图位置图示：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="带权图的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+
+            <!-- 最短路径图可视化 -->
+            <div v-if="result.pathGraphImageUrl" class="path-graph-visualization">
+              <h6>最短路径图：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.pathGraphImageUrl"
+                  alt="最短路径图的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+          </div>
+
           <!-- 显示图遍历结果 -->
-          <div v-else-if="result.nodesString && result.edgesString" class="graph-travel-result">
+          <div v-else-if="result.type === 'graph-travel'" class="graph-travel-result">
             <h5 class="result-title">图遍历分析结果：</h5>
             <!-- 度数计算结果 -->
             <div v-if="result.nodeDegrees && result.nodeDegrees.length > 0" class="node-degrees">
@@ -547,7 +628,8 @@
               </div>
             </div>
           </div>
-        </div>
+
+          </div>
       </div>
     </div>
   </div>
@@ -1064,6 +1146,98 @@ const cleanFormulaForDisplay = (formula) => {
 
 .postorder-result {
   border-left: 4px solid #e6a23c;
+}
+
+/* 最短路径结果样式 */
+.shortest-path-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+.start-node-info {
+  margin: 1rem 0;
+  background: #fff3cd;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
+
+.start-node-formula {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 1.1rem;
+  color: #856404;
+}
+
+.weight-matrix {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  border-left: 4px solid #17a2b8;
+}
+
+.dijkstra-details {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  border-left: 4px solid #6f42c1;
+}
+
+.algorithm-content {
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.algorithm-formula {
+  font-size: 0.9em;
+}
+
+.shortest-paths {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  border-left: 4px solid #28a745;
+}
+
+.paths-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.path-item {
+  background: #d4edda;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #c3e6cb;
+  text-align: center;
+}
+
+.path-formula {
+  font-size: 1rem;
+  color: #155724;
+}
+
+.path-graph-visualization {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  border-left: 4px solid #fd7e14;
 }
 
 h6 {

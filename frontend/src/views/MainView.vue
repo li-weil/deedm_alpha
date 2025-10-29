@@ -521,9 +521,9 @@ const onTreeTravelResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '树遍历分析结果已添加到主界面')
 }
 
-const onShortestPathResult = (result) => {
-  console.log('最短路径计算结果:', result)
-  ElMessage.success('最短路径计算完成')
+const onShortestPathResult = ({ result, latexString }) => {
+  // 使用通用的结果处理函数（与其他结果处理函数格式一致）
+  handleResultWithLatex(result, latexString, '带权图最短路径计算结果已添加到主界面')
 }
 
 const onSpanningTreeResult = (result) => {
