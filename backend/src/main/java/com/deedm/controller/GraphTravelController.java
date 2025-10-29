@@ -4,9 +4,14 @@ import com.deedm.model.GraphTravelRequest;
 import com.deedm.model.GraphTravelResponse;
 import com.deedm.service.GraphTravelService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.util.Map;
 
 @RestController
@@ -39,10 +44,11 @@ public class GraphTravelController {
             String edgesString = input.get("edgesString");
             boolean directed = Boolean.parseBoolean(input.get("directed"));
 
-            boolean isValid = graphTravelService.validateGraphInput(nodesString, edgesString, directed);
+            String errorMessage = graphTravelService.validateGraphInput(nodesString, edgesString, directed);
+            boolean isValid = errorMessage == null;
             Map<String, Object> response = Map.of(
                 "valid", isValid,
-                "message", isValid ? "图的输入格式正确" : "图的输入格式不正确"
+                "message", isValid ? "图的输入格式正确" : errorMessage
             );
 
             return ResponseEntity.ok(response);
@@ -66,6 +72,35 @@ public class GraphTravelController {
                 "message", "Internal server error: " + e.getMessage()
             );
             return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    /**
+     * 提供图可视化图片的Web访问
+     */
+    @GetMapping("/graph-image/{filename}")
+    public ResponseEntity<Resource> getGraphImage(@PathVariable String filename) {
+        try {
+            // 安全检查：只允许特定的文件名格式
+            if (!filename.matches("GRAPH_[a-f0-9]+\\.png")) {
+                System.out.println("GraphTravelController: 文件名格式不匹配: " + filename);
+                return ResponseEntity.badRequest().build();
+            }
+
+            File imageFile = new File("./data/" + filename);
+            if (!imageFile.exists() || !imageFile.isFile()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = new FileSystemResource(imageFile);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

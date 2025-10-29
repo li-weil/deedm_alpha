@@ -261,5 +261,78 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理图遍历结果
+  if (result.nodesString && result.edgesString) {
+    latexCode += `\\begin{array}{c}\n\\text{图遍历分析结果:}\n\\end{array}\n\n`
+
+    // 显示图的基本信息
+    if (result.formula) {
+      latexCode += `\\begin{array}{c}\n\\text{图的基本信息:} ${result.formula}\n\\end{array}\n\n`
+    }
+
+    // 显示度数计算结果
+    if (result.nodeDegrees && result.nodeDegrees.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{顶点度数计算结果:}\n\\end{array}\n\n`
+      result.nodeDegrees.forEach(node => {
+        latexCode += `\\begin{array}{c}\nd(${node.nodeLabel}) = ${node.degree}\n\\end{array}\n\n`
+
+        if (result.directed) {
+          latexCode += `\\begin{array}{c}\nd^+(${node.nodeLabel}) = ${node.outDegree} \\quad\\quad d^-(${node.nodeLabel}) = ${node.inDegree}\n\\end{array}\n\n`
+        }
+      })
+    }
+
+    // 显示邻接矩阵
+    if (result.adjacencyMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{邻接矩阵 A:}\n\\end{array}\n\n`
+      latexCode += result.adjacencyMatrix + '\n\n'
+    }
+
+    // 显示关联矩阵
+    if (result.incidenceMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关联矩阵 I:}\n\\end{array}\n\n`
+      latexCode += result.incidenceMatrix + '\n\n'
+    }
+
+    // 显示路径矩阵
+    if (result.pathMatrices && result.pathMatrices.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{邻接矩阵的幂计算结果:}\n\\end{array}\n\n`
+      result.pathMatrices.forEach(matrix => {
+        latexCode += `\\begin{array}{c}\n${matrix}\n\\end{array}\n\n`
+      })
+    }
+
+    // 显示DFS遍历结果
+    if (result.dfsResult) {
+      latexCode += `\\begin{array}{c}\n\\text{深度优先遍历(DFS)结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n遍历顺序: ${result.dfsResult.traversalOrder}\n\\end{array}\n\n`
+
+      if (result.dfsResult.steps && result.dfsResult.steps.length > 0) {
+        latexCode += `\\begin{array}{c}\n\\text{DFS遍历详细步骤:}\n\\end{array}\n\n`
+        result.dfsResult.steps.forEach(step => {
+          latexCode += `\\begin{array}{c}\n\\quad步骤${step.step}: T = ${step.visitedNodes} \\quad S = ${step.auxNodes}\n\\end{array}\n\n`
+        })
+      }
+    }
+
+    // 显示BFS遍历结果
+    if (result.bfsResult) {
+      latexCode += `\\begin{array}{c}\n\\text{广度优先遍历(BFS)结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n遍历顺序: ${result.bfsResult.traversalOrder}\n\\end{array}\n\n`
+
+      if (result.bfsResult.steps && result.bfsResult.steps.length > 0) {
+        latexCode += `\\begin{array}{c}\n\\text{BFS遍历详细步骤:}\n\\end{array}\n\n`
+        result.bfsResult.steps.forEach(step => {
+          latexCode += `\\begin{array}{c}\n\\quad步骤${step.step}: T = ${step.visitedNodes} \\quad Q = ${step.auxNodes}\n\\end{array}\n\n`
+        })
+      }
+    }
+
+    // 显示图形可视化信息
+    if (result.graphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{图形可视化已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
+    }
+  }
+
   return latexCode
 }

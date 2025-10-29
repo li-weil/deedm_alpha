@@ -3,8 +3,11 @@ package com.deedm.service;
 import com.deedm.model.GraphTravelRequest;
 import com.deedm.model.GraphTravelResponse;
 import com.deedm.legacy.graph.*;
+import com.deedm.legacy.setrelfun.Matrix;
+import com.deedm.legacy.util.GraphvizUtil;
 import org.springframework.stereotype.Service;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 @Service
@@ -88,12 +91,16 @@ public class GraphTravelService {
         }
     }
 
-    public boolean validateGraphInput(String nodesString, String edgesString, boolean directed) {
+    public String validateGraphInput(String nodesString, String edgesString, boolean directed) {
         try {
             DefaultGraph graph = GraphUtil.createGraphUsingFormatedString("TestGraph", nodesString, edgesString, directed);
-            return graph != null;
+            if (graph != null) {
+                return null; // null表示验证通过
+            } else {
+                return GraphUtil.getErrorMessage();
+            }
         } catch (Exception e) {
-            return false;
+            return "输入格式错误: " + e.getMessage();
         }
     }
 
@@ -174,7 +181,7 @@ public class GraphTravelService {
         GraphTravelResponse.DFSResult dfsResult = new GraphTravelResponse.DFSResult();
 
         List<GraphNode> dfsOrder = graph.getDFSNodeList();
-        String traversalOrder = GraphUtil.createLaTeXStringForNodeList(dfsOrder);
+        String traversalOrder = createLaTeXStringForNodeList(dfsOrder);
         dfsResult.setTraversalOrder(traversalOrder);
 
         if (showDetails) {
@@ -184,8 +191,8 @@ public class GraphTravelService {
             for (DefaultGraph.TravelStepRecord record : records) {
                 GraphTravelResponse.TravelStep step = new GraphTravelResponse.TravelStep();
                 step.setStep(record.getStep());
-                step.setVisitedNodes(GraphUtil.createLaTeXStringForNodeList(record.getVisitedNodeList()));
-                step.setAuxNodes(GraphUtil.createLaTeXStringForNodeList(record.getAuxNodeList()));
+                step.setVisitedNodes(createLaTeXStringForNodeList(record.getVisitedNodeList()));
+                step.setAuxNodes(createLaTeXStringForNodeList(record.getAuxNodeList()));
                 steps.add(step);
             }
 
@@ -199,7 +206,7 @@ public class GraphTravelService {
         GraphTravelResponse.BFSResult bfsResult = new GraphTravelResponse.BFSResult();
 
         List<GraphNode> bfsOrder = graph.getBFSNodeList();
-        String traversalOrder = GraphUtil.createLaTeXStringForNodeList(bfsOrder);
+        String traversalOrder = createLaTeXStringForNodeList(bfsOrder);
         bfsResult.setTraversalOrder(traversalOrder);
 
         if (showDetails) {
@@ -209,8 +216,8 @@ public class GraphTravelService {
             for (DefaultGraph.TravelStepRecord record : records) {
                 GraphTravelResponse.TravelStep step = new GraphTravelResponse.TravelStep();
                 step.setStep(record.getStep());
-                step.setVisitedNodes(GraphUtil.createLaTeXStringForNodeList(record.getVisitedNodeList()));
-                step.setAuxNodes(GraphUtil.createLaTeXStringForNodeList(record.getAuxNodeList()));
+                step.setVisitedNodes(createLaTeXStringForNodeList(record.getVisitedNodeList()));
+                step.setAuxNodes(createLaTeXStringForNodeList(record.getAuxNodeList()));
                 steps.add(step);
             }
 
@@ -221,8 +228,116 @@ public class GraphTravelService {
     }
 
     private String generateGraphImage(DefaultGraph graph) {
-        // 这里应该实现图形生成逻辑，类似于legacy代码中的GraphViz部分
-        // 暂时返回null，后续可以实现
-        return null;
+        try {
+            // 检查Graphviz是否可用
+            if (!GraphvizUtil.isGraphvizAvailable()) {
+                System.err.println("Graphviz不可用，无法生成图形可视化");
+                return null;
+            }
+
+            // 生成唯一文件名
+            String uniqueId = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+            String dotFileName = "./data/GRAPH_" + uniqueId + ".dot";
+            String pngFileName = "./data/GRAPH_" + uniqueId + ".png";
+
+            // 写入DOT文件
+            try (PrintWriter writer = new PrintWriter(dotFileName)) {
+                writeGraphToDotFile(graph, writer);
+            }
+
+            // 生成PNG文件
+            boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
+
+            if (success && new java.io.File(pngFileName).exists()) {
+                // 删除DOT文件，保留PNG文件
+                new java.io.File(dotFileName).delete();
+                return "/api/graph-travel/graph-image/GRAPH_" + uniqueId + ".png";
+            } else {
+                // 清理失败的文件
+                new java.io.File(dotFileName).delete();
+                new java.io.File(pngFileName).delete();
+                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                return null;
+            }
+
+        } catch (Exception e) {
+            System.err.println("生成图形可视化失败: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 创建节点列表的LaTeX字符串表示，用于遍历结果显示
+     */
+    private String createLaTeXStringForNodeList(List<GraphNode> nodeList) {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("\\langle ");
+        boolean isFirst = true;
+        for (GraphNode node : nodeList) {
+            if (isFirst) {
+                buffer.append(node.getLabel());
+                isFirst = false;
+            } else buffer.append(", " + node.getLabel());
+        }
+        buffer.append("\\rangle ");
+
+        return buffer.toString();
+    }
+
+    /**
+     * 将图写入DOT文件格式
+     */
+    private void writeGraphToDotFile(DefaultGraph graph, PrintWriter writer) {
+        // 检查是否有有向边来决定图的类型
+        boolean hasDirectedEdges = graph.getEdges().stream().anyMatch(GraphEdge::isDirected);
+
+        if (hasDirectedEdges) {
+            writer.println("digraph G {");
+            writer.println("  rankdir=TB;");
+            writer.println("  node [shape=circle, style=filled, fillcolor=lightblue];");
+
+            // 写入节点
+            for (GraphNode node : graph.getNodes()) {
+                writer.println("  \"" + node.getId() + "\" [label=\"" + node.getLabel() + "\"];");
+            }
+
+            writer.println();
+
+            // 写入边
+            for (GraphEdge edge : graph.getEdges()) {
+                String startId = edge.getStartNode().getId();
+                String endId = edge.getEndNode().getId();
+
+                if (edge.isDirected()) {
+                    writer.println("  \"" + startId + "\" -> \"" + endId + "\";");
+                } else {
+                    // 在digraph中使用有向边表示无向边（双向）
+                    writer.println("  \"" + startId + "\" -> \"" + endId + "\" [dir=none];");
+                }
+            }
+
+            writer.println("}");
+        } else {
+            // 无向图使用graph模式
+            writer.println("graph G {");
+            writer.println("  rankdir=TB;");
+            writer.println("  node [shape=circle, style=filled, fillcolor=lightblue];");
+
+            // 写入节点
+            for (GraphNode node : graph.getNodes()) {
+                writer.println("  \"" + node.getId() + "\" [label=\"" + node.getLabel() + "\"];");
+            }
+
+            writer.println();
+
+            // 写入边
+            for (GraphEdge edge : graph.getEdges()) {
+                String startId = edge.getStartNode().getId();
+                String endId = edge.getEndNode().getId();
+                writer.println("  \"" + startId + "\" -- \"" + endId + "\";");
+            }
+
+            writer.println("}");
+        }
     }
 }

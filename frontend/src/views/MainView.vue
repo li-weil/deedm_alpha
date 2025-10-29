@@ -507,9 +507,11 @@ const onGenerateRepcombResult = (result) => {
 }
 
 // 图论结果处理函数
-const onGraphTravelResult = (result) => {
-  console.log('图遍历结果:', result)
-  ElMessage.success('图遍历完成')
+const onGraphTravelResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到图遍历结果', { result, latexString })
+
+  // 使用通用的结果处理函数
+  handleResultWithLatex(result, latexString, '图遍历分析结果已添加到主界面')
 }
 
 const onTreeTravelResult = (result) => {

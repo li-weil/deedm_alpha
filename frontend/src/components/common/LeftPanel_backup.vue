@@ -8,6 +8,15 @@
       </el-button>
     </div>
     <div class="panel-content" ref="content">
+      <div class="formula-display">
+        <math-renderer
+          :formula="cleanFormulaForDisplay(currentFormula)"
+          :type="'katex'"
+          :display-mode="true"
+          @rendered="onFormulaRendered"
+          @error="onFormulaError"
+        />
+      </div>
 
       <!-- 显示所有公式和真值表 -->
       <div v-if="formulaResults.length > 0" class="formula-results">
@@ -16,7 +25,7 @@
             <strong>公式 {{ index + 1 }}: </strong>
             <math-renderer
               :formula="cleanFormulaForDisplay(result.formula)"
-              :type="'mathjax'"
+              :type="'katex'"
               :display-mode="false"
             />
           </div>
@@ -341,128 +350,6 @@
               </div>
             </div>
           </div>
-
-          <!-- 显示图遍历结果 -->
-          <div v-else-if="result.nodesString && result.edgesString" class="graph-travel-result">
-            <h5 class="result-title">图遍历分析结果：</h5>
-            <!-- 度数计算结果 -->
-            <div v-if="result.nodeDegrees && result.nodeDegrees.length > 0" class="node-degrees">
-              <h6>顶点度数：</h6>
-              <div class="degrees-grid">
-                <div v-for="node in result.nodeDegrees" :key="node.nodeId" class="degree-item">
-                  <math-renderer
-                    :formula="`d(${node.nodeLabel}) = ${node.degree}`"
-                    :type="'mathjax'"
-                    :display-mode="false"
-                  />
-                  <div v-if="result.directed" class="directed-degrees">
-                    <math-renderer
-                      :formula="`d^+(${node.nodeLabel}) = ${node.outDegree}`"
-                      :type="'mathjax'"
-                      :display-mode="false"
-                      class="indegree"
-                    />
-                    <math-renderer
-                      :formula="`d^-(${node.nodeLabel}) = ${node.inDegree}`"
-                      :type="'mathjax'"
-                      :display-mode="false"
-                      class="outdegree"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 矩阵显示 -->
-            <div v-if="result.adjacencyMatrix || result.incidenceMatrix" class="matrices">
-              <div v-if="result.adjacencyMatrix" class="matrix-item">
-                <h6>邻接矩阵 A：</h6>
-                <math-renderer
-                  :formula="result.adjacencyMatrix"
-                  :type="'mathjax'"
-                  :display-mode="true"
-                  class="matrix-formula"
-                />
-              </div>
-              <div v-if="result.incidenceMatrix" class="matrix-item">
-                <h6>关联矩阵 I：</h6>
-                <math-renderer
-                  :formula="result.incidenceMatrix"
-                  :type="'mathjax'"
-                  :display-mode="true"
-                  class="matrix-formula"
-                />
-              </div>
-            </div>
-
-            <!-- 路径矩阵 -->
-            <div v-if="result.pathMatrices && result.pathMatrices.length > 0" class="path-matrices">
-              <h6>邻接矩阵的幂：</h6>
-              <div v-for="(matrix, idx) in result.pathMatrices" :key="idx" class="path-matrix">
-                <math-renderer
-                  :formula="matrix"
-                  :type="'mathjax'"
-                  :display-mode="true"
-                  class="path-matrix-formula"
-                />
-              </div>
-            </div>
-
-            <!-- DFS遍历结果 -->
-            <div v-if="result.dfsResult" class="dfs-result">
-              <h6>深度优先遍历(DFS)：</h6>
-              <math-renderer
-                :formula="result.dfsResult.traversalOrder"
-                :type="'mathjax'"
-                :display-mode="true"
-                class="traversal-result"
-              />
-              <div v-if="result.dfsResult.steps && result.dfsResult.steps.length > 0" class="travel-steps">
-                <div v-for="step in result.dfsResult.steps" :key="step.step" class="step-item">
-                  <math-renderer
-                    :formula="`步骤${step.step}: T = ${step.visitedNodes} \\quad S = ${step.auxNodes}`"
-                    :type="'mathjax'"
-                    :display-mode="true"
-                    class="step-formula"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- BFS遍历结果 -->
-            <div v-if="result.bfsResult" class="bfs-result">
-              <h6>广度优先遍历(BFS)：</h6>
-              <math-renderer
-                :formula="result.bfsResult.traversalOrder"
-                :type="'mathjax'"
-                :display-mode="true"
-                class="traversal-result"
-              />
-              <div v-if="result.bfsResult.steps && result.bfsResult.steps.length > 0" class="travel-steps">
-                <div v-for="step in result.bfsResult.steps" :key="step.step" class="step-item">
-                  <math-renderer
-                    :formula="`步骤${step.step}: T = ${step.visitedNodes} \\quad Q = ${step.auxNodes}`"
-                    :type="'mathjax'"
-                    :display-mode="true"
-                    class="step-formula"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- 图形可视化 -->
-            <div v-if="result.graphImageUrl" class="graph-visualization">
-              <h6>图形可视化：</h6>
-              <div class="graph-image-container">
-                <img
-                  :src="result.graphImageUrl"
-                  alt="图的可视化"
-                  class="graph-image"
-                  @error="handleGraphImageError"
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -548,12 +435,6 @@ const handleASTImageError = (event) => {
   ElMessage.error('抽象语法树图片加载失败')
 }
 
-// 图形可视化图片加载失败处理
-const handleGraphImageError = (event) => {
-  console.error('LeftPanel: 图形可视化加载失败:', event.target.src)
-  ElMessage.error('图形可视化加载失败')
-}
-
 // 获取公式类型标签样式
 const getFormulaTypeTag = (type) => {
   switch (type) {
@@ -632,7 +513,6 @@ const cleanFormulaForDisplay = (formula) => {
 }
 </script>
 
-
 <style scoped>
 .left-panel {
   width: 50%;
@@ -678,7 +558,6 @@ const cleanFormulaForDisplay = (formula) => {
   background: #fafafa;
   border-radius: 8px;
   border: 1px solid #e4e7ed;
-  margin-bottom: 2rem;
 }
 
 /* 滚动条样式 */
@@ -700,7 +579,11 @@ const cleanFormulaForDisplay = (formula) => {
   background: #a1a1a1;
 }
 
-/* 公式结果通用样式 */
+/* 公式结果样式 */
+.formula-results {
+  margin-top: 2rem;
+}
+
 .result-item {
   margin-bottom: 2rem;
   padding: 1.5rem;
@@ -714,49 +597,41 @@ const cleanFormulaForDisplay = (formula) => {
   margin-bottom: 1rem;
   font-size: 1.1rem;
   font-weight: 500;
+}
+
+.result-formula strong {
   color: #2c3e50;
-  overflow-x: auto;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
 }
 
-.result-formula :deep(.math-renderer) {
-  white-space: nowrap;
-  max-width: none;
-}
-
-.result-title {
-  margin: 0 0 1rem 0;
-  color: #2c3e50;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-/* 内容区域通用样式 */
-.syntax-content,
-.ast-content,
-.normal-form-results,
-.detailed-steps {
+.truth-table {
   margin: 1rem 0;
+  background: white;
   padding: 1rem;
-  background: #f8f9fa;
   border-radius: 4px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #dee2e6;
 }
 
-/* 特殊结果容器样式 */
-.expansion-steps,
-.calculus-steps {
-  margin: 1.5rem 0;
-  padding: 1.5rem;
-  background: #f0f8ff;
-  border-radius: 8px;
-  border: 2px solid #4a90e2;
+/* 新的LaTeX表格容器样式 */
+.truth-table-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* 真值表样式 */
+.truth-table-container .truth-table-content {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* 后备样式 */
+.truth-table-legacy,
+.truth-table-fallback {
+  width: 100%;
+}
+
+/* HTML表格样式 */
 .truth-table-html {
   width: 100%;
   border-collapse: collapse;
@@ -795,153 +670,508 @@ const cleanFormulaForDisplay = (formula) => {
   background: #e9ecef;
 }
 
-/* 图遍历结果样式 */
-.graph-travel-result {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-  margin-top: 1rem;
-}
-
-.graph-basic-info {
+/* 真值计算结果样式 */
+.truth-value-result {
   margin: 1rem 0;
-}
-
-.graph-formula {
-  font-size: 1.1rem;
+  padding: 1rem;
   background: white;
-  padding: 0.75rem;
   border-radius: 4px;
   border: 1px solid #dee2e6;
 }
 
-.node-degrees {
-  margin: 1rem 0;
-  background: white;
-  padding: 1rem;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.degrees-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.degree-item {
-  background: #f8f9fa;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-}
-
-.directed-degrees {
-  margin-top: 0.25rem;
+.truth-value-display {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9em;
-}
-
-.matrices {
-  margin: 1rem 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  align-items: center;
   gap: 1rem;
 }
 
-.matrix-item {
-  background: white;
-  padding: 0.75rem;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
+.truth-value-label {
+  font-weight: 600;
+  color: #2c3e50;
 }
 
-.matrix-formula {
-  overflow-x: auto;
-  font-size: 0.9em;
+.truth-value-tag {
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
-.path-matrices {
+/* 详细计算步骤样式 */
+.detailed-steps {
   margin: 1rem 0;
-  background: white;
-  padding: 0.75rem;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.path-matrix {
-  margin: 0.5rem 0;
-  overflow-x: auto;
-  font-size: 0.9em;
-}
-
-.dfs-result,
-.bfs-result {
-  margin: 1rem 0;
-  background: white;
-  padding: 0.75rem;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.traversal-result {
-  margin: 0.5rem 0;
-  font-size: 1.05em;
-}
-
-.travel-steps {
-  margin-top: 0.5rem;
-}
-
-.step-item {
-  margin: 0.5rem 0;
-  padding: 0.25rem 0.5rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-  border-left: 3px solid #409eff;
-  font-size: 0.9em;
-}
-
-.step-formula {
-  font-size: 0.9em;
-}
-
-.graph-visualization {
-  margin: 1rem 0;
-  background: white;
-  padding: 0.75rem;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.graph-image-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5rem;
+  padding: 1rem;
   background: #f8f9fa;
   border-radius: 4px;
   border: 1px solid #e9ecef;
-  min-height: 80px;
 }
 
-.graph-image {
+.steps-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.step-item {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.step-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.step-explanation {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.step-formula {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
+}
+
+.formula-type {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.type-tag {
+  margin-left: 0.5rem;
+}
+
+/* 严格形式公式结果样式 */
+.syntax-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.syntax-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* AST图片样式 */
+.ast-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.ast-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ast-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  min-height: 100px;
+}
+
+.ast-image {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   object-fit: contain;
 }
 
-h6 {
+.ast-error {
+  margin: 1rem 0;
+}
+
+.syntax-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.syntax-row:last-child {
+  margin-bottom: 0;
+}
+
+.syntax-label {
+  font-weight: 600;
   color: #374151;
-  margin: 0.5rem 0 0.25rem 0;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.syntax-formula {
+  flex: 1;
+  min-width: 0;
+}
+
+.syntax-type {
+  color: #059669;
+  font-weight: 500;
+  background: #f0fdf4;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #bbf7d0;
+}
+
+/* 范式计算结果样式 */
+.normal-form-results {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.normal-form-result {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  margin: 1rem 0;
+}
+
+.result-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
   font-size: 1rem;
   font-weight: 600;
+}
+
+.calculation-steps {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.calculation-step {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.calculation-step:last-child {
+  margin-bottom: 0;
+}
+
+.calculation-step .step-formula {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-comment {
+  font-size: 0.9em;
+  color: #666;
+  margin-left: 0.5rem;
+}
+
+.final-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #e8f5e8;
+  border-radius: 4px;
+  border: 1px solid #c3e6c3;
+}
+
+.expansion-steps {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+}
+
+.expansion-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.expansion-step-inline {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.expansion-step-inline:last-child {
+  margin-bottom: 0;
+}
+
+.step-description {
+  font-weight: 600;
+  font-size: 0.95em;
+  white-space: nowrap;
+}
+
+.step-formula-inline {
+  background: #f8f9ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+}
+
+.formula-code-inline {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  background: #f1f3f4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #5f6368;
+  border: 1px solid #dadce0;
+  white-space: nowrap;
+}
+
+.result-codes-inline {
+  background: #f8fff8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #c3e6c3;
+}
+
+.pnf-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
+
+.pnf-title {
+  margin: 0.5rem 0;
+  color: #856404;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* 范式扩展结果样式 */
+.normal-form-expansion-results {
+  margin: 1rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f6f9ff 0%, #e8f4fd 100%);
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+}
+
+.variable-info {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #d0e3ff;
+}
+
+/* 等值演算检查结果样式 */
+.equiv-calculus-results {
+  margin: 1rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff8f0 0%, #fef3e2 100%);
+  border-radius: 8px;
+  border: 2px solid #ff9800;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+}
+
+.calculus-steps {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+}
+
+.calculus-step {
+  margin-bottom: 0.75rem;
+  font-family: 'Times New Roman', serif;
+}
+
+.calculus-step:last-child {
+  margin-bottom: 0;
+}
+
+.step-first {
+  padding-left: 2rem;
+}
+
+.step-subsequent {
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+}
+
+.equiv-prefix {
+  margin-right: 1rem;
+  font-size: 18px;
+  font-weight: bold;
+  color: #409eff;
+}
+
+.calculus-step .step-formula {
+  background: #f8f9ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+  margin-right: 10px;
+}
+
+.calculus-step .step-comment {
+  font-style: italic;
+  color: #666;
+  font-size: 14px;
+}
+
+.check-result {
+  margin-top: 1.5rem;
+}
+
+.valid-result, .invalid-result {
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.counter-example {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+}
+
+.counter-title {
+  margin: 0 0 0.5rem 0;
+  color: #856404;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.checking-formula {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* 推理有效性论证检查结果样式 */
+.reason-argument-check-results {
+  margin: 1rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+}
+
+.reasoning-overview {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9ff;
+  border-radius: 8px;
+  border: 1px solid #4a90e2;
+}
+
+.reasoning-steps {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 2px solid #4a90e2;
+}
+
+.reasoning-step {
+  margin-bottom: 0.75rem;
+  font-family: 'Times New Roman', serif;
+}
+
+.reasoning-step:last-child {
+  margin-bottom: 0;
+}
+
+.step-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.step-number {
+  font-weight: bold;
+  color: #409eff;
+  min-width: 40px;
+}
+
+.reasoning-step .step-formula {
+  background: #f8f9ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d0e3ff;
+}
+
+.step-rule {
+  font-style: italic;
+  color: #666;
+  font-size: 14px;
+}
+
+.check-process {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #fff9e6;
+  border-radius: 8px;
+  border: 1px solid #ffc107;
+}
+
+.check-step {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 10px;
+}
+
+.check-text {
+  font-weight: bold;
+  color: #856404;
+}
+
+.check-step .check-formula {
+  background: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
 }
 
 /* 响应式设计 */
@@ -954,12 +1184,28 @@ h6 {
     border-bottom: 2px solid #dcdfe6;
   }
 
-  .degrees-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  .normal-form-result {
+    padding: 0.5rem;
   }
 
-  .matrices {
-    grid-template-columns: 1fr;
+  .calculation-step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .step-comment {
+    margin-left: 0;
+    margin-top: 0.25rem;
+  }
+
+  .expansion-step-inline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .step-description {
+    white-space: normal;
   }
 }
 

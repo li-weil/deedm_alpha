@@ -8,11 +8,10 @@
       :before-close="handleGraphTravelClose"
       class="graph-travel-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showGraphTravel = false">返回</el-button>
-        </el-empty>
-      </div>
+      <graph-travel-interface
+        @close="handleGraphTravelClose"
+        @graph-analyzed="onGraphTravelResult"
+      />
     </el-dialog>
 
     <!-- 树遍历界面模态框 -->
@@ -95,6 +94,8 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import GraphTravelInterface from '@/components/graph/GraphTravelInterface.vue'
+import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
 const props = defineProps({
@@ -159,6 +160,41 @@ const openSpecialGraph = () => {
 // 处理界面关闭
 const handleGraphTravelClose = () => {
   showGraphTravel.value = false
+}
+
+// 处理图遍历结果
+const onGraphTravelResult = (result) => {
+  console.log('GraphTheoryView: 接收到图遍历结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '图遍历分析',
+      nodesString: result.nodesString,
+      edgesString: result.edgesString,
+      directed: result.directed,
+      nodeDegrees: result.nodeDegrees,
+      adjacencyMatrix: result.adjacencyMatrix,
+      incidenceMatrix: result.incidenceMatrix,
+      pathMatrices: result.pathMatrices,
+      dfsResult: result.dfsResult,
+      bfsResult: result.bfsResult,
+      graphImageUrl: result.graphImageUrl,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    console.log('GraphTheoryView: 生成的LaTeX代码长度:', latexString?.length || 0)
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('graph-travel-result', { result: formattedResult, latexString })
+
+    ElMessage.success('图遍历分析结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '图遍历分析失败')
+  }
 }
 
 const handleTreeTravelClose = () => {

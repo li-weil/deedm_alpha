@@ -170,7 +170,6 @@
       <div class="results-content">
         <div v-for="(result, index) in astResults" :key="'ast-' + index" class="result-item">
           <div class="result-formula">
-            <strong>公式 {{ result.index }}: </strong>
             <math-renderer
               :formula="result.formula"
               :type="'katex'"
