@@ -43,7 +43,7 @@
       </el-row>
 
       <!-- 第二行按钮：示例公式 -->
-      <el-divider content-position="left">离散数学教材例题展示</el-divider>
+      <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
         <el-col :span="4">
           <el-button size="small" @click="loadExample('problem2_14_1')">例题2.14(1)</el-button>
@@ -100,9 +100,9 @@
           :rows="6"
           placeholder="请输入公式，每行一个公式，如：
 p
-¬q
-(q ∨ r)
-(¬r ∨ ¬q)"
+\neg q
+(q \vee r)
+(\neg r \vee \neg q)"
           class="formula-textarea"
           @keyup.enter.ctrl="addFormula"
         />
@@ -141,7 +141,7 @@ p
       <div class="results-content">
         <div class="result-item">
           <div class="result-formula">
-            <strong>1: </strong>
+
             <math-renderer
               :formula="expansionResult.originalFormula"
               :type="'katex'"
@@ -594,10 +594,10 @@ const closeInterface = () => {
 .variable-info {
   margin: 1rem 0;
   padding: 1rem;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
+  background: #ffffff;
+  border: 1px solid #d5d5d5;
   border-radius: 4px;
-  color: #856404;
+  color: #000000;
 }
 
 .expansion-steps {

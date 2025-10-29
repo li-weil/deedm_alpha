@@ -41,6 +41,7 @@ declare module 'vue' {
     NormalFormulaExpansionInterface: typeof import('./src/components/logic/NormalFormulaExpansionInterface.vue')['default']
     PrincipalNormalFormInterface: typeof import('./src/components/logic/PrincipalNormalFormInterface.vue')['default']
     ReasonArgumentCheckInterface: typeof import('./src/components/logic/ReasonArgumentCheckInterface.vue')['default']
+    ResultDisplayComponents: typeof import('./src/components/common/ResultDisplayComponents.vue')['default']
     RightPanel: typeof import('./src/components/common/RightPanel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

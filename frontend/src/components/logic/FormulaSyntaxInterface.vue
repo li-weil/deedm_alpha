@@ -129,7 +129,6 @@
       <div class="results-content">
         <div v-for="(result, index) in syntaxResults" :key="'syntax-' + index" class="result-item">
           <div class="result-formula">
-            <strong>公式 {{ result.index }}: </strong>
             <math-renderer
               :formula="result.formula"
               :type="'katex'"
@@ -226,7 +225,7 @@ import MathRenderer from '@/components/common/MathRenderer.vue'
 // 响应式数据
 const formulaInput = ref('')
 const showStrictForm = ref(true)
-const showAST = ref(false)
+const showAST = ref(true)
 const feedback = ref([])
 const syntaxResults = ref([])
 const astResults = ref([])
@@ -349,9 +348,13 @@ const analyzeFormula = async () => {
     // 如果生成了AST图片，添加到结果中
     if (showAST.value && astResults.value.length > 0) {
       completeResult.astData = astResults.value[astResults.value.length - 1].astData
+      console.log('FormulaSyntaxInterface: 添加AST数据到结果中:', completeResult.astData)
+    } else {
+      console.log('FormulaSyntaxInterface: AST数据未添加 - showAST:', showAST.value, 'astResults.length:', astResults.value.length)
     }
 
     // 一次性发送完整结果到主界面
+    console.log('FormulaSyntaxInterface: 发送完整结果到主界面:', completeResult)
     emit('formula-calculated', completeResult)
 
     counter.value++

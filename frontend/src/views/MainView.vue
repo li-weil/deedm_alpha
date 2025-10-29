@@ -122,7 +122,6 @@
       :formula-results="formulaResults"
       :current-formula="currentFormula"
       :latex-code="latexCode"
-      :right-panel-ref="rightPanelRef"
       @formula-calculated="onFormulaCalculated"
       @equiv-calculus-result="onEquivCalculusResult"
       @reason-argument-check-result="onReasonArgumentCheckResult"
@@ -131,6 +130,10 @@
       @update-latex-code="updateLatexCode"
       ref="propositionalLogicModalRef"
     />
+    <!-- :formula-results="formulaResults" -将父组件的formulaResults变量传递给子组件的formulaResults prop -->
+    <!-- @formula-calculated="onFormulaCalculated" - 监听子组件触发的formula-calculated事件，调用父组件的onFormulaCalculated方法 -->
+    <!-- ref创建对组件实例的引用，可以在父组件 -->
+    <!-- 中通过propositionalLogicModalRef.value访问子组件的方法和属性 -->
 
     <!-- 其他学科的模态框组件 -->
     <SetRelationFunctionView
@@ -221,11 +224,10 @@ import AlgebraStructureView from '@/views/AlgebraStructureView.vue'
 // 响应式数据
 const activeMenu = ref('')
 const currentFormula = ref('\\forall x \\in S, P(x) \\rightarrow Q(x)')
-const latexCode = ref('\\forall x \\in S, P(x) \\rightarrow Q(x)')
+const latexCode = ref('')
 const formulaResults = ref([])
 
 // 组件引用
-const rightPanelRef = ref(null)
 const propositionalLogicModalRef = ref(null)
 const setRelationFunctionModalRef = ref(null)
 const combinatoricsModalRef = ref(null)
@@ -386,6 +388,11 @@ const handleMenuSelect = (index) => {
 // 处理公式计算完成事件
 const onFormulaCalculated = (data) => {
   const { result, latexString } = data
+  console.log('MainView: 收到公式计算结果:', result)
+  console.log('MainView: AST数据:', result.astData)
+  console.log('MainView: 接收到的latexString:', latexString)
+  console.log('MainView: latexString长度:', latexString?.length || 0)
+
   handleResultWithLatex(result, latexString, '公式分析结果已添加到主界面')
 }
 
@@ -562,11 +569,15 @@ const updateCurrentFormula = (formula) => {
 }
 
 const updateLatexCode = (code) => {
-  if (latexCode.value) {
+  if (!code) return
+
+  if (latexCode.value && latexCode.value.trim()) {
     latexCode.value += '\n\n' + code
   } else {
     latexCode.value = code
   }
+
+  console.log('MainView: LaTeX代码已更新:', latexCode.value)
 }
 
 // 通用的结果处理函数
@@ -598,6 +609,7 @@ const clearFormulaContent = async () => {
 // 清空LaTeX代码
 const clearLatexCode = () => {
   latexCode.value = ''
+  console.log('MainView: LaTeX代码已清空')
   ElMessage.success('LaTeX代码已清空')
 }
 

@@ -43,7 +43,7 @@
       </el-row>
 
       <!-- 第二行按钮：示例公式 -->
-      <el-divider content-position="left">离散数学教材例题展示</el-divider>
+      <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
         <el-col :span="3">
           <el-button size="small" @click="loadExample('problem2_21')">例题2.21</el-button>

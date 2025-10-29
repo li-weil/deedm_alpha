@@ -122,7 +122,6 @@
       <div class="results-content">
         <div v-for="(result, index) in results" :key="index" class="result-item">
           <div class="result-formula">
-            <strong>{{ result.index }}: </strong>
             <math-renderer
               :formula="result.formula"
               :type="'katex'"
@@ -130,53 +129,19 @@
             />
           </div>
 
-          <div class="truth-table">
+
             <!-- 直接显示来自legacy的LaTeX表格 -->
-            <div v-if="result.tableData && result.tableData.latexTable" class="truth-table-wrapper">
-              <math-renderer
-                :key="'table-' + result.index + '-' + Date.now()"
-                :formula="result.tableData.latexTable"
-                :type="'katex'"
-                :display-mode="true"
-                class="truth-table-content"
-              />
-            </div>
-            <!-- 保持原有的HTML表格作为后备 -->
-            <div v-else-if="result.tableData && result.tableData.headers" class="truth-table-vue">
-              <table class="truth-table-html">
-                <thead>
-                  <tr>
-                    <th v-for="(header, index) in result.tableData.headers" :key="index" class="header-cell">
-                      <math-renderer
-                        :formula="header"
-                        :type="'katex'"
-                        :display-mode="false"
-                      />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, rowIndex) in result.tableData.rows" :key="rowIndex">
-                    <td v-for="(cell, cellIndex) in [...row.variableValues, row.resultValue]" :key="cellIndex" class="data-cell">
-                      <math-renderer
-                        :formula="cell"
-                        :type="'katex'"
-                        :display-mode="false"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <!-- 最终后备：原有LaTeX字符串 -->
+          <div v-if="result.tableData && result.tableData.latexTable" class="truth-table-wrapper">
             <math-renderer
-              v-else
-              :formula="result.truthTable"
+              :key="'table-' + result.index + '-' + Date.now()"
+              :formula="result.tableData.latexTable"
               :type="'katex'"
               :display-mode="true"
               class="truth-table-content"
             />
           </div>
+            
+
 
           <div v-if="checkFormulaType && result.tableData && result.tableData.formulaType" class="formula-type">
             <math-renderer

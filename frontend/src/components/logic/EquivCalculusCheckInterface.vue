@@ -37,7 +37,7 @@
       </el-row>
 
       <!-- 第二行按钮：示例公式 -->
-      <el-divider content-position="left">离散数学教材例题展示</el-divider>
+      <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
         <el-col :span="4">
           <el-button size="small" @click="loadExample('problem2_12_1')">例题2.12(1)</el-button>
@@ -87,24 +87,7 @@
       </div>
     </div>
 
-    <!-- 实时预览区域 -->
-    <div v-if="previewSteps.length > 0" class="preview-section">
-      <el-divider content-position="left">输入预览</el-divider>
-      <div class="preview-container">
-        <div v-for="(step, index) in previewSteps" :key="index" class="preview-step">
-          <div class="step-formula">
-            <math-renderer
-              :formula="step.formula"
-              :type="'katex'"
-              :display-mode="true"
-              class="formula-renderer"
-            />
-            <span v-if="step.comment" class="step-comment">{{ step.comment }}</span>
-          </div>
-          <div v-if="index < previewSteps.length - 1" class="equiv-symbol">≡</div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- 结果显示区域 -->
     <div v-if="calculusResult" class="results-section">
@@ -112,7 +95,6 @@
       <div class="results-content">
         <div class="result-item">
           <div class="result-title">
-            <strong>检查演算步骤</strong>
           </div>
 
           <!-- 演算步骤显示 -->

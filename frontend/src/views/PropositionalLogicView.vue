@@ -102,6 +102,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 导入所有子组件
 import FormulaSyntaxInterface from '@/components/logic/FormulaSyntaxInterface.vue'
@@ -125,10 +126,6 @@ const props = defineProps({
   latexCode: {
     type: String,
     default: ''
-  },
-  rightPanelRef: {
-    type: Object,
-    default: null
   }
 })
 
@@ -214,11 +211,19 @@ const onFormulaCalculated = (result) => {
     result.index = props.formulaResults.length + 1
   }
 
-  // 使用右侧面板的 LaTeX 生成函数
-  let latexString = ''
-  if (props.rightPanelRef && props.rightPanelRef.value) {
-    latexString = props.rightPanelRef.value.generateLaTeXCode(result)
+  // 确保语法数据和AST数据被正确保留
+  if (result.syntaxData || result.astData) {
+    result.type = 'formula-syntax'
   }
+
+  // 使用工具函数生成LaTeX代码
+  console.log('PropositionalLogicView: 调用generateLaTeXCode函数，结果对象:', result)
+  const latexString = generateLaTeXCode(result)
+  console.log('PropositionalLogicView: generateLaTeXCode返回的latexString:', latexString)
+  console.log('PropositionalLogicView: latexString长度:', latexString?.length || 0)
+
+  console.log('PropositionalLogicView: 处理公式计算结果:', result)
+  console.log('PropositionalLogicView: AST数据:', result.astData)
 
   // 发送结果给父组件，包含LaTeX代码
   emit('formula-calculated', { result, latexString })
@@ -241,11 +246,8 @@ const onEquivCalculusResult = (result) => {
       message: result.data.message
     }
 
-    // 使用右侧面板的 LaTeX 生成函数
-    let latexString = ''
-    if (props.rightPanelRef && props.rightPanelRef.value) {
-      latexString = props.rightPanelRef.value.generateLaTeXCode(formattedResult)
-    }
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
 
     // 发送结果给父组件，包含LaTeX代码
     emit('equiv-calculus-result', { result: formattedResult, latexString })
@@ -272,11 +274,8 @@ const onReasonArgumentCheckResult = (result) => {
       consequent: result.data.consequent
     }
 
-    // 使用右侧面板的 LaTeX 生成函数
-    let latexString = ''
-    if (props.rightPanelRef && props.rightPanelRef.value) {
-      latexString = props.rightPanelRef.value.generateLaTeXCode(formattedResult)
-    }
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
 
     // 发送结果给父组件，包含LaTeX代码
     emit('reason-argument-check-result', { result: formattedResult, latexString })
@@ -300,11 +299,8 @@ const onNormalFormulaExpansionResult = (result) => {
       message: result.data.message
     }
 
-    // 使用右侧面板的 LaTeX 生成函数
-    let latexString = ''
-    if (props.rightPanelRef && props.rightPanelRef.value) {
-      latexString = props.rightPanelRef.value.generateLaTeXCode(formattedResult)
-    }
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
 
     // 发送结果给父组件，包含LaTeX代码
     emit('normal-form-expansion-result', { result: formattedResult, latexString })

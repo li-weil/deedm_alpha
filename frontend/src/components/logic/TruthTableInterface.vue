@@ -43,7 +43,7 @@
       </el-row>
 
       <!-- 第二行按钮：示例公式 -->
-      <el-divider content-position="left">离散数学教材例题展示</el-divider>
+      <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
         <el-col :span="4">
           <el-button size="small" @click="loadExample('example2_4')">例题2.4</el-button>
@@ -139,7 +139,6 @@
       <div class="results-content">
         <div v-for="(result, index) in results" :key="index" class="result-item">
           <div class="result-formula">
-            <strong>{{ result.index }}: </strong>
             <math-renderer
               :formula="result.formula"
               :type="'katex'"
@@ -158,41 +157,6 @@
                 class="truth-table-content"
               />
             </div>
-            <!-- 保持原有的HTML表格作为后备 -->
-            <div v-else-if="result.tableData && result.tableData.headers" class="truth-table-vue">
-              <table class="truth-table-html">
-                <thead>
-                  <tr>
-                    <th v-for="(header, index) in result.tableData.headers" :key="index" class="header-cell">
-                      <math-renderer
-                        :formula="header"
-                        :type="'katex'"
-                        :display-mode="false"
-                      />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, rowIndex) in result.tableData.rows" :key="rowIndex">
-                    <td v-for="(cell, cellIndex) in [...row.variableValues, row.resultValue]" :key="cellIndex" class="data-cell">
-                      <math-renderer
-                        :formula="cell"
-                        :type="'katex'"
-                        :display-mode="false"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <!-- 最终后备：原有LaTeX字符串 -->
-            <math-renderer
-              v-else
-              :formula="result.truthTable"
-              :type="'katex'"
-              :display-mode="true"
-              class="truth-table-content"
-            />
           </div>
 
           <div v-if="checkFormulaType && result.tableData && result.tableData.formulaType" class="formula-type">

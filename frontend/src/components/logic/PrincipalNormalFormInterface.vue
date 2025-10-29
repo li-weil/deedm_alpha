@@ -43,7 +43,7 @@
       </el-row>
 
       <!-- 第二行按钮：示例公式 -->
-      <el-divider content-position="left">离散数学教材例题展示</el-divider>
+      <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
         <el-col :span="4">
           <el-button size="small" @click="loadExample('problem2_14_1')">例题2.14(1)</el-button>
@@ -145,7 +145,6 @@
       <div class="results-content">
         <div v-for="(result, index) in results" :key="index" class="result-item">
           <div class="result-formula">
-            <strong>{{ result.index }}: </strong>
             <math-renderer
               :formula="result.formula"
               :type="'katex'"

@@ -46,7 +46,7 @@
       </el-row>
 
       <!-- 第二行按钮：示例公式 -->
-      <el-divider content-position="left">离散数学教材例题展示</el-divider>
+      <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
         <el-col :span="4">
           <el-button size="small" @click="loadExample('example2_4')">例题2.4</el-button>
@@ -154,7 +154,6 @@
       <div class="results-content">
         <div v-for="(result, index) in results" :key="index" class="result-item">
           <div class="result-formula">
-            <strong>公式: </strong>
             <math-renderer
               :formula="result.formula"
               :type="'katex'"
@@ -177,22 +176,17 @@
           </div>
 
           <!-- 详细计算过程 -->
-          <div v-if="showDetailedProcess && result.detailedSteps" class="detailed-steps">
-            <div class="steps-content">
-              <div v-for="(step, stepIndex) in result.detailedSteps" :key="stepIndex" class="step-item">
-                <div v-if="step.explanation" class="step-explanation">
-                  {{ step.explanation }}
-                </div>
-                <div class="step-formula">
-                  <math-renderer
-                    :formula="step.formula"
-                    :type="'katex'"
-                    :display-mode="false"
-                  />
-                </div>
-              </div>
+
+          <div v-for="(step, stepIndex) in result.detailedSteps" :key="stepIndex" class="step-item">
+            <div class="step-formula">
+              <math-renderer
+                :formula="step.formula"
+                :type="'katex'"
+                :display-mode="false"
+              />
             </div>
           </div>
+
 
 
         </div>

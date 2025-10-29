@@ -30,203 +30,95 @@
             />
           </div>
 
-          <!-- 范式扩展结果 -->
-          <div v-if="result.type === 'normal-form-expansion'" class="normal-form-expansion-results">
-            <!-- 变量集信息 -->
-            <div class="variable-info">
-              <h4 class="result-title">扩展变量集：</h4>
-              <span>{{ result.variableSet }}</span>
-            </div>
+          <!-- 范式扩展结果  -->
+          <div v-if="result.type === 'normal-form-expansion'" class="normal-form-expansion-result">
+            <h4 class="result-title">扩展变量集：{{ result.variableSet }}</h4>
 
-            <!-- 扩展步骤 -->
             <div v-if="result.expansionSteps && result.expansionSteps.length > 0" class="expansion-steps">
-              <h4 class="expansion-title">{{ result.targetType }}扩展步骤：</h4>
-              <div v-for="(step, stepIndex) in result.expansionSteps" :key="'expansion-step-' + stepIndex" class="expansion-step-inline">
-                <el-text type="primary" class="step-description">{{ step.description }}</el-text>
-                <math-renderer
-                  :formula="step.formula"
-                  :type="'katex'"
-                  :display-mode="false"
-                  class="step-formula-inline"
-                />
-                <span v-if="step.binaryCode" class="formula-code-inline">[{{ step.binaryCode }}]</span>
-                <el-text type="success" class="step-description">得到</el-text>
-                <math-renderer
-                  :formula="step.resultCodes"
-                  :type="'mathjax'"
-                  :display-mode="false"
-                  class="result-codes-inline"
-                />
+              <h5 class="expansion-title">{{ result.targetType }}扩展步骤：</h5>
+              <div v-for="(step, stepIndex) in result.expansionSteps" :key="'expansion-step-' + stepIndex" class="expansion-step">
+                <span class="step-description">{{ step.description }}</span>
+                <math-renderer :formula="step.formula" :type="'katex'" :display-mode="false" />
+                <span v-if="step.binaryCode" class="formula-code">[{{ step.binaryCode }}]</span>
+                <span class="step-result">得到</span>
+                <math-renderer :formula="step.resultCodes" :type="'mathjax'" :display-mode="false" />
               </div>
             </div>
 
-            <!-- 最终结果 -->
-            <div class="pnf-result">
-              <div v-if="result.pdnfResult">
-                <h5 class="pnf-title">最终的主析取范式(PDNF)是：</h5>
-                <math-renderer
-                  :formula="result.pdnfResult"
-                  :type="'mathjax'"
-                  :display-mode="false"
-                />
-              </div>
-              <div v-if="result.pcnfResult">
-                <h5 class="pnf-title">相应的主合取范式(PCNF)是：</h5>
-                <math-renderer
-                  :formula="result.pcnfResult"
-                  :type="'mathjax'"
-                  :display-mode="false"
-                />
-              </div>
+            <div v-if="result.pdnfResult" class="pnf-result">
+              <h5>最终的主析取范式(PDNF)是：</h5>
+              <math-renderer :formula="result.pdnfResult" :type="'mathjax'" :display-mode="false" />
+            </div>
+
+            <div v-if="result.pcnfResult" class="pcnf-result">
+              <h5>相应的主合取范式(PCNF)是：</h5>
+              <math-renderer :formula="result.pcnfResult" :type="'mathjax'" :display-mode="false" />
             </div>
           </div>
 
           <!-- 等值演算检查结果 -->
-          <div v-if="result.type === 'equiv-calculus-check'" class="equiv-calculus-results">
-            <div class="result-title">
-              <strong>检查演算步骤</strong>
-            </div>
+          <div v-else-if="result.type === 'equiv-calculus-check'" class="equiv-calculus-result">
+            <h4 class="result-title">检查演算步骤</h4>
 
-            <!-- 演算步骤显示 -->
-            <div class="calculus-steps">
-              <div v-for="(step, index) in result.steps" :key="index" class="calculus-step">
-                <div v-if="index === 0" class="step-first">
-                  <math-renderer
-                    :formula="step.formula"
-                    :type="'katex'"
-                    :display-mode="false"
-                    class="step-formula"
-                  />
-                  <span v-if="step.comment" class="step-comment"> // {{ step.comment }}</span>
-                </div>
-                <div v-else class="step-subsequent">
-                  <span class="equiv-prefix">≡</span>
-                  <math-renderer
-                    :formula="step.formula"
-                    :type="'katex'"
-                    :display-mode="false"
-                    class="step-formula"
-                  />
-                  <span v-if="step.comment" class="step-comment"> // {{ step.comment }}</span>
-                </div>
+            <div v-for="(step, index) in result.steps" :key="index" class="calculus-step">
+              <div v-if="index === 0" class="step-first">
+                <math-renderer :formula="step.formula" :type="'katex'" :display-mode="false" />
+                <span v-if="step.comment" class="step-comment">// {{ step.comment }}</span>
+              </div>
+              <div v-else class="step-subsequent">
+                <span class="equiv-prefix">≡</span>
+                <math-renderer :formula="step.formula" :type="'katex'" :display-mode="false" />
+                <span v-if="step.comment" class="step-comment">// {{ step.comment }}</span>
               </div>
             </div>
 
-            <!-- 检查结果 -->
             <div class="check-result">
-              <div v-if="result.valid" class="valid-result">
-                <el-alert
-                  title="✓ 检查通过"
-                  type="success"
-                  description="通过真值表检验，上述等值演算过程没有错误。"
-                  :closable="false"
-                  show-icon
-                />
-              </div>
+              <el-alert v-if="result.valid" title="✓ 检查通过" type="success" description="通过真值表检验，上述等值演算过程没有错误。" :closable="false" show-icon />
               <div v-else class="invalid-result">
-                <el-alert
-                  title="✗ 检查失败"
-                  type="error"
-                  :description="result.errorMessage"
-                  :closable="false"
-                  show-icon
-                />
-
-                <!-- 反例信息 -->
+                <el-alert title="✗ 检查失败" type="error" :description="result.errorMessage" :closable="false" show-icon />
                 <div v-if="result.counterExample" class="counter-example">
-                  <h4 class="counter-title">反例：</h4>
+                  <h5>反例：</h5>
                   <p>在真值赋值 {{ result.counterExample }} 下，以下公式不是重言式：</p>
                   <div class="checking-formula">
-                    <math-renderer
-                      :formula="result.checkingFormula"
-                      :type="'katex'"
-                      :display-mode="true"
-                    />
+                    <math-renderer :formula="result.checkingFormula" :type="'katex'" :display-mode="true" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 显示推理有效性论证检查结果 -->
-          <div v-if="result.type === 'reason-argument-check'" class="reason-argument-check-results">
-            <div class="result-title">
-              <strong>检查推理步骤</strong>
-            </div>
+          <!-- 推理有效性论证检查结果  -->
+          <div v-else-if="result.type === 'reason-argument-check'" class="reason-argument-result">
+            <h4 class="result-title">检查推理步骤</h4>
 
-            <!-- 推理关系显示 -->
             <div v-if="result.latexString" class="reasoning-overview">
-              <h4>推理关系：</h4>
-              <div class="reasoning-formula">
-                <math-renderer
-                  :formula="result.latexString"
-                  :type="'katex'"
-                  :display-mode="true"
-                  class="formula-renderer"
-                />
-              </div>
+              <h5>推理关系：</h5>
+              <math-renderer :formula="result.latexString" :type="'katex'" :display-mode="true" />
             </div>
 
-            <!-- 推理步骤显示 -->
-            <div class="reasoning-steps">
-              <div v-for="(step, index) in result.steps" :key="index" class="reasoning-step">
-                <div class="step-content">
-                  <span class="step-number">({{ step.serialNo }})</span>
-                  <math-renderer
-                    :formula="step.formula"
-                    :type="'katex'"
-                    :display-mode="false"
-                    class="step-formula"
-                  />
-                  <span v-if="step.ruleName" class="step-rule"> // {{ step.prevSN }}{{ step.ruleName }}</span>
-                </div>
-              </div>
+            <div v-for="(step, index) in result.steps" :key="index" class="reasoning-step">
+              <span class="step-number">({{ step.serialNo }})</span>
+              <math-renderer :formula="step.formula" :type="'katex'" :display-mode="false" />
+              <span v-if="step.ruleName" class="step-rule">// {{ step.prevSN }}{{ step.ruleName }}</span>
             </div>
 
-            <!-- 检查过程显示 -->
             <div v-if="result.checkSteps && result.checkSteps.length > 0" class="check-process">
-              <h4>检查过程：</h4>
+              <h5>检查过程：</h5>
               <div v-for="(step, index) in result.checkSteps" :key="index" class="check-step">
                 <span class="check-text">检验步骤({{ step.serialNo }}){{ step.checkType }}</span>
-                <math-renderer
-                  :formula="step.formula"
-                  :type="'katex'"
-                  :display-mode="false"
-                  class="check-formula"
-                />
+                <math-renderer :formula="step.formula" :type="'katex'" :display-mode="false" />
               </div>
             </div>
 
-            <!-- 检查结果 -->
             <div class="check-result">
-              <div v-if="result.valid" class="valid-result">
-                <el-alert
-                  title="✓ 检查通过"
-                  type="success"
-                  description="通过真值表检验，上述推理证明过程没有错误。"
-                  :closable="false"
-                  show-icon
-                />
-              </div>
+              <el-alert v-if="result.valid" title="✓ 检查通过" type="success" description="通过真值表检验，上述推理证明过程没有错误。" :closable="false" show-icon />
               <div v-else class="invalid-result">
-                <el-alert
-                  title="✗ 检查失败"
-                  type="error"
-                  :description="result.errorMessage"
-                  :closable="false"
-                  show-icon
-                />
-
-                <!-- 反例信息 -->
+                <el-alert title="✗ 检查失败" type="error" :description="result.errorMessage" :closable="false" show-icon />
                 <div v-if="result.counterExample" class="counter-example">
-                  <h4 class="counter-title">反例：</h4>
+                  <h5>反例：</h5>
                   <p>在真值赋值 {{ result.counterExample }} 下，以下公式不是重言式：</p>
                   <div class="checking-formula">
-                    <math-renderer
-                      :formula="result.checkingFormula"
-                      :type="'katex'"
-                      :display-mode="true"
-                    />
+                    <math-renderer :formula="result.checkingFormula" :type="'katex'" :display-mode="true" />
                   </div>
                 </div>
               </div>
