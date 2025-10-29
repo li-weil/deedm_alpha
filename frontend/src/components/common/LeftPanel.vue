@@ -463,6 +463,90 @@
               </div>
             </div>
           </div>
+
+          <!-- 显示树遍历结果 -->
+          <div v-else-if="result.rootNode" class="tree-traversal-result">
+            <h5 class="result-title">树遍历分析结果：</h5>
+
+            <!-- 根节点信息 -->
+            <div v-if="result.rootNode" class="root-info">
+              <h6>根节点：</h6>
+              <math-renderer
+                :formula="result.rootNode"
+                :type="'mathjax'"
+                :display-mode="false"
+                class="root-formula"
+              />
+            </div>
+
+            <!-- 矩阵显示 -->
+            <div v-if="result.adjacencyMatrix || result.incidenceMatrix" class="matrices">
+              <div v-if="result.adjacencyMatrix" class="matrix-item">
+                <h6>邻接矩阵 A：</h6>
+                <math-renderer
+                  :formula="result.adjacencyMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="matrix-formula"
+                />
+              </div>
+              <div v-if="result.incidenceMatrix" class="matrix-item">
+                <h6>关联矩阵 I：</h6>
+                <math-renderer
+                  :formula="result.incidenceMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="matrix-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 前序遍历结果 -->
+            <div v-if="result.preorderResult" class="preorder-result">
+              <h6>前序遍历 (Preorder)：</h6>
+              <math-renderer
+                :formula="result.preorderResult.traversalOrder"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="traversal-result"
+              />
+            </div>
+
+            <!-- 中序遍历结果 -->
+            <div v-if="result.inorderResult" class="inorder-result">
+              <h6>中序遍历 (Inorder)：</h6>
+              <math-renderer
+                :formula="result.inorderResult.traversalOrder"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="traversal-result"
+              />
+            </div>
+
+            <!-- 后序遍历结果 -->
+            <div v-if="result.postorderResult" class="postorder-result">
+              <h6>后序遍历 (Postorder)：</h6>
+              <math-renderer
+                :formula="result.postorderResult.traversalOrder"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="traversal-result"
+              />
+            </div>
+
+            <!-- 树形可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h6>树形可视化：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="树的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -935,6 +1019,51 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   object-fit: contain;
+}
+
+/* 树遍历结果样式 */
+.tree-traversal-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+.root-info {
+  margin: 1rem 0;
+  background: #e8f5e8;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #c3e6cb;
+}
+
+.root-formula {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.preorder-result,
+.inorder-result,
+.postorder-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.preorder-result {
+  border-left: 4px solid #409eff;
+}
+
+.inorder-result {
+  border-left: 4px solid #67c23a;
+}
+
+.postorder-result {
+  border-left: 4px solid #e6a23c;
 }
 
 h6 {

@@ -82,48 +82,63 @@ public class RootedTree {
 	public void simplyWriteToDotFile(PrintWriter output, boolean directed, boolean labelEdge) throws IOException {
 		List<GraphNode> nodes = new ArrayList<GraphNode>();
 		List<GraphEdge> edges = new ArrayList<GraphEdge>();
-		
+
 		nodes.add(root);
 		convertToDefaultGraph(root, nodes, edges, directed, labelEdge);
 
-		String id = getLegalToken(getId());
-		if (directed) output.println("digraph " + id + " {");
-		else output.println("graph " + id + " {");
+		String graphId = getLegalToken(getId());
+		if (directed) {
+			output.println("digraph " + graphId + " {");
+		} else {
+			output.println("graph " + graphId + " {");
+		}
+
+		output.println("  rankdir=TB;");
+		output.println("  node [shape=circle, style=filled, fillcolor=lightblue];");
+
+		// 写入节点
 		for (GraphNode node : nodes) {
-			boolean isChild = false;
+			boolean isLeaf = false;
 			if (node instanceof RootedTreeNode) {
 				RootedTreeNode treeNode = (RootedTreeNode)node;
-				if (treeNode.childList == null) isChild = true;
-				else if (treeNode.childList.size() == 0) isChild = true;
+				if (treeNode.childList == null || treeNode.childList.size() == 0) {
+					isLeaf = true;
+				}
 			}
+
 			String label = node.getImageFileName();
-			if (label == null || label.trim().equals("")) label = node.getLabel();
-			id = "node" + getLegalToken(node.getId());
-			if (isChild) output.println("    " + id + "[label = \"" + label + "\", shape = box]");
-			else output.println("    " + id + "[label = \"" + label + "\"]");
+			if (label == null || label.trim().equals("")) {
+				label = node.getLabel();
+			}
+
+			String nodeId = "node" + getLegalToken(node.getId());
+			// 转义标签中的特殊字符
+			String escapedLabel = label.replace("\"", "\\\"").replace("\n", "\\n");
+
+			if (isLeaf) {
+				output.println("  \"" + nodeId + "\" [label=\"" + escapedLabel + "\", shape=box, style=filled, fillcolor=lightgreen];");
+			} else {
+				output.println("  \"" + nodeId + "\" [label=\"" + escapedLabel + "\"];");
+			}
 		}
-		
+
+		// 写入边
 		if (edges != null) {
 			for (GraphEdge edge : edges) {
-				String label = edge.getLabel();
 				GraphNode start = edge.getStartNode();
 				GraphNode end = edge.getEndNode();
 				String startNodeId = "node" + getLegalToken(start.getId());
 				String endNodeId = "node" + getLegalToken(end.getId());
-				
-				String edgeSharp = "--";
-				if (edge.isDirected()) edgeSharp = "->";
-				if (label != null) {
-					output.println("    " + startNodeId + edgeSharp + endNodeId + "[label = \"" + label + "\"]");
+
+				if (directed) {
+					output.println("  \"" + startNodeId + "\" -> \"" + endNodeId + "\";");
 				} else {
-					output.println("    " + startNodeId + edgeSharp + endNodeId);
+					output.println("  \"" + startNodeId + "\" -- \"" + endNodeId + "\";");
 				}
 			}
 		}
 
-		output.println("};");
-		output.println();
-		output.flush();
+		output.println("}");
 	}
 	
 	/**

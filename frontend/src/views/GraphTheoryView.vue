@@ -22,11 +22,10 @@
       :before-close="handleTreeTravelClose"
       class="tree-travel-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showTreeTravel = false">返回</el-button>
-        </el-empty>
-      </div>
+      <tree-traversal-interface
+        @close="handleTreeTravelClose"
+        @tree-traversed="onTreeTraversalResult"
+      />
     </el-dialog>
 
     <!-- 最短路径计算界面模态框 -->
@@ -95,6 +94,7 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import GraphTravelInterface from '@/components/graph/GraphTravelInterface.vue'
+import TreeTraversalInterface from '@/components/graph/TreeTraversalInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -199,6 +199,38 @@ const onGraphTravelResult = (result) => {
 
 const handleTreeTravelClose = () => {
   showTreeTravel.value = false
+}
+
+// 处理树遍历结果
+const onTreeTraversalResult = (result) => {
+  console.log('GraphTheoryView: 接收到树遍历结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '树遍历分析',
+      rootNode: result.rootNode,
+      adjacencyMatrix: result.adjacencyMatrix,
+      incidenceMatrix: result.incidenceMatrix,
+      preorderResult: result.preorderResult,
+      inorderResult: result.inorderResult,
+      postorderResult: result.postorderResult,
+      graphImageUrl: result.graphImageUrl,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    console.log('GraphTheoryView: 生成的LaTeX代码长度:', latexString?.length || 0)
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('tree-travel-result', { result: formattedResult, latexString })
+
+    ElMessage.success('树遍历分析结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '树遍历分析失败')
+  }
 }
 
 const handleShortestPathClose = () => {

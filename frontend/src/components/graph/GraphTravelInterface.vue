@@ -109,7 +109,7 @@
       <el-row :gutter="20" style="margin-top: 1rem;">
         <el-col :span="6">
           <el-checkbox v-model="options.showDetails" size="large">
-            显示详细步骤
+            显示遍历计算
           </el-checkbox>
         </el-col>
         <el-col :span="6">

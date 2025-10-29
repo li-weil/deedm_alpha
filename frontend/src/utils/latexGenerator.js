@@ -334,5 +334,55 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理树遍历结果
+  if (result.rootNode) {
+    latexCode += `\\begin{array}{c}\n\\text{树遍历分析结果:}\n\\end{array}\n\n`
+
+    // 显示树的基本信息
+    if (result.formula) {
+      latexCode += `\\begin{array}{c}\n\\text{树的基本信息:} ${result.formula}\n\\end{array}\n\n`
+    }
+
+    // 显示根节点信息
+    if (result.rootNode) {
+      latexCode += `\\begin{array}{c}\n\\text{根节点:} ${result.rootNode}\n\\end{array}\n\n`
+    }
+
+    // 显示邻接矩阵
+    if (result.adjacencyMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{邻接矩阵 A:}\n\\end{array}\n\n`
+      latexCode += result.adjacencyMatrix + '\n\n'
+    }
+
+    // 显示关联矩阵
+    if (result.incidenceMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关联矩阵 I:}\n\\end{array}\n\n`
+      latexCode += result.incidenceMatrix + '\n\n'
+    }
+
+    // 显示前序遍历结果
+    if (result.preorderResult) {
+      latexCode += `\\begin{array}{c}\n\\text{前序遍历 (Preorder) 结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n遍历顺序: ${result.preorderResult.traversalOrder}\n\\end{array}\n\n`
+    }
+
+    // 显示中序遍历结果
+    if (result.inorderResult) {
+      latexCode += `\\begin{array}{c}\n\\text{中序遍历 (Inorder) 结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n遍历顺序: ${result.inorderResult.traversalOrder}\n\\end{array}\n\n`
+    }
+
+    // 显示后序遍历结果
+    if (result.postorderResult) {
+      latexCode += `\\begin{array}{c}\n\\text{后序遍历 (Postorder) 结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n遍历顺序: ${result.postorderResult.traversalOrder}\n\\end{array}\n\n`
+    }
+
+    // 显示树形可视化信息
+    if (result.graphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{树形可视化已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
+    }
+  }
+
   return latexCode
 }

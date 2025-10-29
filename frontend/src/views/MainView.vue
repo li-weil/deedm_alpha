@@ -514,9 +514,11 @@ const onGraphTravelResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '图遍历分析结果已添加到主界面')
 }
 
-const onTreeTravelResult = (result) => {
-  console.log('树遍历结果:', result)
-  ElMessage.success('树遍历完成')
+const onTreeTravelResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到树遍历结果', { result, latexString })
+
+  // 使用通用的结果处理函数
+  handleResultWithLatex(result, latexString, '树遍历分析结果已添加到主界面')
 }
 
 const onShortestPathResult = (result) => {
