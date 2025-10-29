@@ -234,7 +234,7 @@ const onEquivCalculusResult = (result) => {
   if (result && result.data) {
     const formattedResult = {
       index: props.formulaResults.length + 1,
-      formula: `等值演算检查步骤${result.data.stepNumber}`,
+      formula: `等值演算检查步骤`,
       type: 'equiv-calculus-check',
       stepNumber: result.data.stepNumber,
       steps: result.data.steps,
@@ -259,7 +259,7 @@ const onReasonArgumentCheckResult = (result) => {
   if (result && result.data) {
     const formattedResult = {
       index: props.formulaResults.length + 1,
-      formula: `推理有效性论证检查步骤${result.data.stepNumber || props.formulaResults.length + 1}`,
+      formula: `推理有效性论证检查步骤`,
       type: 'reason-argument-check',
       stepNumber: result.data.stepNumber || props.formulaResults.length + 1,
       steps: result.data.steps,
