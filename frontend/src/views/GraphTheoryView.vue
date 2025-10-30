@@ -50,11 +50,10 @@
       :before-close="handleSpanningTreeClose"
       class="spanning-tree-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showSpanningTree = false">返回</el-button>
-        </el-empty>
-      </div>
+      <spanning-tree-interface
+        @close="handleSpanningTreeClose"
+        @spanning-tree-calculated="onSpanningTreeResult"
+      />
     </el-dialog>
 
     <!-- 哈夫曼树构造界面模态框 -->
@@ -95,6 +94,7 @@ import { ElMessage } from 'element-plus'
 import GraphTravelInterface from '@/components/graph/GraphTravelInterface.vue'
 import TreeTraversalInterface from '@/components/graph/TreeTraversalInterface.vue'
 import ShortestPathInterface from '@/components/graph/ShortestPathInterface.vue'
+import SpanningTreeInterface from '@/components/graph/SpanningTreeInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -267,6 +267,39 @@ const onShortestPathResult = (result) => {
     ElMessage.success('带权图最短路径计算结果已添加到主界面')
   } else {
     ElMessage.error(result?.errorMessage || '带权图最短路径计算失败')
+  }
+}
+
+// 处理最小生成树计算结果
+const onSpanningTreeResult = (result) => {
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '带权图最小生成树计算',
+      type: result.type || 'spanning-tree',
+      nodesString: result.nodesString,
+      edgesString: result.edgesString,
+      directed: result.directed,
+      weightMatrix: result.weightMatrix,
+      kruskalResult: result.kruskalResult,
+      primResult: result.primResult,
+      graphImageUrl: result.graphImageUrl,
+      kruskalTreeImageUrl: result.kruskalTreeImageUrl,
+      primTreeImageUrl: result.primTreeImageUrl,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    console.log('GraphTheoryView: 生成的LaTeX代码长度:', latexString?.length || 0)
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('spanning-tree-result', { result: formattedResult, latexString })
+
+    ElMessage.success('带权图最小生成树计算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '带权图最小生成树计算失败')
   }
 }
 

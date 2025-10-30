@@ -194,15 +194,6 @@
         <el-divider content-position="left">图遍历分析结果</el-divider>
         <div class="results-content">
           <div v-for="(result, index) in results" :key="index" class="result-item">
-            <!-- 基本信息 -->
-            <div class="result-basic">
-              <math-renderer
-                :formula="result.formula"
-                :type="'mathjax'"
-                :display-mode="true"
-                class="result-formula"
-              />
-            </div>
 
             <!-- 度数计算结果 -->
             <div v-if="result.nodeDegrees && result.nodeDegrees.length > 0" class="node-degrees">
@@ -687,7 +678,7 @@ const callBackendApi = async (endpoint, options = {}) => {
 /* 内容显示区域 */
 .content-display-area {
   padding: 1rem;
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .feedback-section,

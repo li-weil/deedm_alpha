@@ -509,26 +509,22 @@ const onGenerateRepcombResult = (result) => {
 // 图论结果处理函数
 const onGraphTravelResult = ({ result, latexString }) => {
   console.log('MainView: 接收到图遍历结果', { result, latexString })
-
-  // 使用通用的结果处理函数
   handleResultWithLatex(result, latexString, '图遍历分析结果已添加到主界面')
 }
 
 const onTreeTravelResult = ({ result, latexString }) => {
   console.log('MainView: 接收到树遍历结果', { result, latexString })
-
-  // 使用通用的结果处理函数
   handleResultWithLatex(result, latexString, '树遍历分析结果已添加到主界面')
 }
 
 const onShortestPathResult = ({ result, latexString }) => {
-  // 使用通用的结果处理函数（与其他结果处理函数格式一致）
+  console.log('MainView: 接收最短路计算结果', { result, latexString })
   handleResultWithLatex(result, latexString, '带权图最短路径计算结果已添加到主界面')
 }
 
-const onSpanningTreeResult = (result) => {
-  console.log('最小生成树计算结果:', result)
-  ElMessage.success('最小生成树计算完成')
+const onSpanningTreeResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到最小生成树计算结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '带权图最小生成树计算结果已添加到主界面')
 }
 
 const onHuffmanTreeResult = (result) => {

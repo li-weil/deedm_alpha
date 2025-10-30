@@ -204,6 +204,12 @@ public class SpanningTreeService {
     }
 
     private String generateGraphImage(DefaultGraph graph, String prefix) throws Exception {
+        // 确保data目录存在
+        java.io.File dataDir = new java.io.File("./data");
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
+
         // 使用现有的GraphvizUtil生成图片
         String timestamp = String.valueOf(System.currentTimeMillis());
         String dotFileName = "./data/" + prefix + "_" + timestamp + ".dot";
@@ -216,7 +222,7 @@ public class SpanningTreeService {
 
         boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
         if (!success) {
-            throw new RuntimeException("无法生成图片文件");
+            throw new RuntimeException("无法生成图片文件: " + GraphvizUtil.errorMessage);
         }
 
         return "/api/spanning-tree/tree-image/" + prefix + "_" + timestamp + ".png";

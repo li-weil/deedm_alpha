@@ -5,9 +5,14 @@ import com.deedm.model.graph.ShortestPathResponse;
 import com.deedm.service.graph.ShortestPathService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.util.Map;
 
 @RestController
@@ -73,4 +78,33 @@ public class ShortestPathController {
         }
     }
 
+    /**
+     * 提供最短路径图片的Web访问
+     */
+    @GetMapping("/graph-image/{filename}")
+    public ResponseEntity<Resource> getShortestPathImage(@PathVariable String filename) {
+        try {
+            // 安全检查：允许GraphVisualization_和ShortestPath_开头的文件
+            if (!filename.matches("(GraphVisualization|ShortestPath)_[0-9]+\\.png")) {
+                System.out.println("ShortestPathController: 文件名格式不匹配: " + filename);
+                return ResponseEntity.badRequest().build();
+            }
+
+            File imageFile = new File("./data/" + filename);
+            if (!imageFile.exists() || !imageFile.isFile()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = new FileSystemResource(imageFile);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
+
+}

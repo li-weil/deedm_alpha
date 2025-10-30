@@ -563,7 +563,7 @@ const callBackendApi = async (endpoint, options = {}) => {
 /* 内容显示区域 */
 .content-display-area {
   padding: 1rem;
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .feedback-section,

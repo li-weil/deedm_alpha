@@ -1,79 +1,66 @@
 <template>
-  <!-- Main container with conditional inline styling -->
+  <!-- 公式渲染器 -->
   <div class="math-renderer" :class="{ 'inline': inline }">
-    <!-- Loading state: Shows spinner and loading message -->
+    <!-- 加载中 -->
     <div v-if="loading" class="loading">
       <el-icon class="loading-icon"><Loading /></el-icon>
-      <span>公式加载中...</span>
+      <span>加载中...</span>
     </div>
-    <!-- Error state: Shows warning icon and error message -->
+    <!-- 错误提示 -->
     <div v-else-if="error" class="error">
       <el-icon><WarningFilled /></el-icon>
-      <span>公式渲染失败: {{ error }}</span>
+      <span>渲染失败: {{ error }}</span>
     </div>
-    <!-- Main content container: Always exists for rendering math content -->
-    <!-- ref="mathContainer" -Vue的ref属性，用于在JavaScript中直接引用这个DOM元素 -->
-    <!-- :data-formula="formula" - Vue的动态属性绑定：- : 是 v-bind: 的简写 -->
-    <!-- - 将JavaScript变量 formula 的值绑定到HTML5 data属性data-formula 上 -->
-    <!-- :style="{ display: loading || error ? 'none' : 'block' }"- 动态样式绑定： -->
-    <!-- - 使用JavaScript表达式决定CSS display 属性 -->
-    <!-- - 如果 loading 或 error 为true，显示 none（隐藏元素） -->
-    <!-- - 否则显示 block（正常显示） -->
-    <div class="math-content" ref="mathContainer" :data-formula="formula" :style="{ display: loading || error ? 'none' : 'block' }">
-      <!-- Math content will be rendered here by JavaScript -->
+    <!-- 公式内容 -->
+    <div
+      class="math-content"
+      ref="mathContainer"
+      :data-formula="formula"
+      :style="{ display: loading || error ? 'none' : 'block' }"
+    >
     </div>
   </div>
 </template>
 
 <script setup>
-// Vue 3 Composition API imports for reactivity and lifecycle management
+// 导入依赖
 import { ref, onMounted, watch, nextTick } from 'vue'
-// Element Plus icon imports for loading and error states
 import { Loading, WarningFilled } from '@element-plus/icons-vue'
 
-// Component props(property) configuration
+// 组件属性
 const props = defineProps({
-  formula: {
-    type: String,
-    required: true
-  },
+  formula: { type: String, required: true },
   type: {
     type: String,
     default: 'katex',
     validator: (value) => ['latex', 'mathjax', 'katex'].includes(value)
   },
-  inline: {
-    type: Boolean,
-    default: false
-  },
-  displayMode: {
-    type: Boolean,
-    default: false
-  }
+  inline: { type: Boolean, default: false },
+  displayMode: { type: Boolean, default: false }
 })
 
-// Event emissions for parent component communication
+// 事件
 const emit = defineEmits(['rendered', 'error'])
 
-// Reactive state references
-const mathContainer = ref(null)      // DOM container reference for math rendering
-const loading = ref(false)            // Loading state flag
-const error = ref(null)              // Error state storage
-const katexLoaded = ref(false)        // KaTeX library loaded status
+// 响应式状态，状态更新会重新加载DOM组件
+const mathContainer = ref(null)      // DOM容器
+const loading = ref(false)            // 加载状态
+const error = ref(null)              // 错误状态
+const katexLoaded = ref(false)        // 库加载状态
 
-// Load MathJax library dynamically as alternative to KaTeX
+// 动态加载 MathJax 库
 const loadMathJax = async () => {
-  // Check if MathJax is already loaded globally and ready
+  // 检查 MathJax 是否已加载并就绪
   if (window.MathJax && window.MathJax.typesetPromise) {
     katexLoaded.value = true
-    console.log('MathJax already loaded and ready')
+    console.log('MathJax 已加载并就绪')
     return
   }
 
   try {
-    console.log('Loading MathJax...')
+    console.log('正在加载 MathJax...')
 
-    // Load MathJax configuration - 使用更简单的配置
+    // 配置 MathJax
     window.MathJax = {
       tex: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
@@ -85,118 +72,110 @@ const loadMathJax = async () => {
       }
     }
 
-    // Load MathJax script with better timing control - 使用多个CDN源和版本
+    // 多个 CDN 源配置
     const mathjaxSources = [
-      'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js',  // 指定版本
-      'https://unpkg.com/mathjax@3.2.2/es5/tex-mml-chtml.js',              // 指定版本
+      'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js',
+      'https://unpkg.com/mathjax@3.2.2/es5/tex-mml-chtml.js',
       'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js',
-      'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',  // 回退到最新版
-      'https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js',              // 回退到最新版
+      'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
+      'https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js',
     ]
 
     let loadSuccess = false
     let lastError = null
 
+    // 尝试从各个 CDN 加载
     for (let i = 0; i < mathjaxSources.length; i++) {
       try {
-        console.log(`尝试从源 ${i + 1}/${mathjaxSources.length} 加载MathJax: ${mathjaxSources[i]}`)
+        console.log(`尝试从 CDN ${i + 1}/${mathjaxSources.length} 加载`)
 
         await new Promise((resolve, reject) => {
           const script = document.createElement('script')
           script.src = mathjaxSources[i]
-          script.async = false // 改为同步加载以确保顺序
-          script.timeout = 10000 // 10秒超时
+          script.async = false
+          script.timeout = 10000
 
           script.onload = () => {
-            console.log(`MathJax script loaded from source ${i + 1}, checking readiness...`)
-
-            // 等待MathJax完全初始化
+            // 等待 MathJax 初始化完成
             let attempts = 0
-            const maxAttempts = 100 // 减少尝试次数，避免等待太长
+            const maxAttempts = 100
 
             const checkReady = () => {
               attempts++
               if (window.MathJax && window.MathJax.typesetPromise) {
-                console.log(`MathJax ready after ${attempts} attempts`)
-                if (window.MathJax.version) {
-                  console.log('MathJax version:', window.MathJax.version)
-                }
+                console.log(`MathJax 初始化成功，尝试次数: ${attempts}`)
                 loadSuccess = true
                 katexLoaded.value = true
                 resolve()
               } else if (attempts < maxAttempts) {
-                setTimeout(checkReady, 100) // 增加间隔时间
+                setTimeout(checkReady, 100)
               } else {
-                console.error('MathJax failed to initialize after maximum attempts')
-                reject(new Error('MathJax initialization timeout'))
+                reject(new Error('MathJax 初始化超时'))
               }
             }
 
-            // 开始检查MathJax是否就绪
-            setTimeout(checkReady, 500) // 给MathJax更多初始化时间
+            setTimeout(checkReady, 500)
           }
 
           script.onerror = () => {
-            console.error(`Failed to load MathJax from source ${i + 1}`)
-            lastError = new Error(`Failed to load MathJax from source ${i + 1}`)
+            console.error(`CDN ${i + 1} 加载失败`)
+            lastError = new Error(`CDN ${i + 1} 加载失败`)
             reject(lastError)
           }
 
           script.ontimeout = () => {
-            console.error(`MathJax loading timeout from source ${i + 1}`)
-            lastError = new Error(`MathJax loading timeout from source ${i + 1}`)
+            console.error(`CDN ${i + 1} 加载超时`)
+            lastError = new Error(`CDN ${i + 1} 加载超时`)
             reject(lastError)
           }
 
           document.head.appendChild(script)
         })
 
-        if (loadSuccess) {
-          break // 成功加载，退出循环
-        }
+        if (loadSuccess) break
       } catch (error) {
-        console.warn(`Source ${i + 1} failed, trying next...`)
+        console.warn(`CDN ${i + 1} 失败，尝试下一个`)
         lastError = error
         continue
       }
     }
 
     if (!loadSuccess) {
-      throw new Error(`All MathJax sources failed. Last error: ${lastError?.message}`)
+      throw new Error(`所有 CDN 都加载失败: ${lastError?.message}`)
     }
 
-    console.log('MathJax library loaded and configured successfully')
+    console.log('MathJax 加载并配置成功')
 
   } catch (error) {
-    console.error('Failed to load MathJax:', error)
+    console.error('MathJax 加载失败:', error)
     throw error
   }
 }
 
-// Load KaTeX library dynamically from CDN
+// 动态加载 KaTeX 库
 const loadKaTeX = async () => {
-  // Check if KaTeX is already loaded globally
+  // 检查 KaTeX 是否已加载
   if (window.katex) {
     katexLoaded.value = true
     return
   }
 
   try {
-    // 中国境内CDN镜像配置 - 优先使用国内CDN提高加载速度
+    // CDN 源配置，优先使用国内 CDN
     const cdnOptions = [
-      // 首选：七牛云CDN（国内）
+      // 七牛云 CDN
       {
         css: 'https://cdn.staticfile.org/KaTeX/0.16.9/katex.min.css',
         js: 'https://cdn.staticfile.org/KaTeX/0.16.9/katex.min.js',
         autoRender: 'https://cdn.staticfile.org/KaTeX/0.16.9/contrib/auto-render.min.js'
       },
-      // 备选1：BootCDN（国内）
+      // BootCDN
       {
         css: 'https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.css',
         js: 'https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.js',
         autoRender: 'https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js'
       },
-      // 备选2：jsdelivr（国外，作为最后备用）
+      // jsdelivr CDN
       {
         css: 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css',
         js: 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js',
@@ -207,49 +186,49 @@ const loadKaTeX = async () => {
     let loadSuccess = false
     let lastError = null
 
-    // 尝试从不同的CDN加载KaTeX资源
+    // 尝试从各个 CDN 加载
     for (let i = 0; i < cdnOptions.length; i++) {
       const cdn = cdnOptions[i]
       try {
-        console.log(`尝试从CDN ${i + 1}/${cdnOptions.length} 加载KaTeX...`)
+        console.log(`尝试从 CDN ${i + 1}/${cdnOptions.length} 加载 KaTeX`)
 
-        // Load KaTeX CSS styles for mathematical formatting
+        // 加载 CSS 样式
         const cssLink = document.createElement('link')
         cssLink.rel = 'stylesheet'
         cssLink.href = cdn.css
         document.head.appendChild(cssLink)
 
-        // Load main KaTeX JavaScript library
+        // 加载主要 KaTeX 库
         await new Promise((resolve, reject) => {
           const script = document.createElement('script')
           script.src = cdn.js
           script.async = true
-          script.timeout = 10000 // 10秒超时
+          script.timeout = 10000
           script.onload = resolve
           script.onerror = reject
           script.ontimeout = reject
           document.head.appendChild(script)
         })
 
-        // Load KaTeX auto-render extension for enhanced LaTeX support
+        // 加载自动渲染扩展
         await new Promise((resolve, reject) => {
           const script = document.createElement('script')
           script.src = cdn.autoRender
           script.async = true
-          script.timeout = 10000 // 10秒超时
+          script.timeout = 10000
           script.onload = resolve
           script.onerror = reject
           script.ontimeout = reject
           document.head.appendChild(script)
         })
 
-        console.log(`CDN ${i + 1} 加载成功！`)
+        console.log(`CDN ${i + 1} 加载成功`)
         loadSuccess = true
         break
       } catch (err) {
         console.warn(`CDN ${i + 1} 加载失败:`, err)
         lastError = err
-        // 清理已添加的标签
+        // 清理已加载的资源
         const links = document.querySelectorAll('link[href*="katex"]')
         const scripts = document.querySelectorAll('script[src*="katex"]')
         links.forEach(link => link.remove())
@@ -259,122 +238,102 @@ const loadKaTeX = async () => {
     }
 
     if (!loadSuccess) {
-      throw new Error(`所有CDN都无法加载KaTeX。最后错误: ${lastError?.message || '未知错误'}`)
+      throw new Error(`所有 CDN 都加载失败: ${lastError?.message || '未知错误'}`)
     }
 
     katexLoaded.value = true
-    console.log('KaTeX lib loaded successfully')
+    console.log('KaTeX 加载成功')
   } catch (err) {
-    console.error('Failed to load KaTeX lib:', err)
+    console.error('KaTeX 加载失败:', err)
     throw err
   }
 }
 
-// Clean and prepare formula for rendering by normalizing LaTeX format
+// 清理和标准化公式格式
 const cleanFormula = (formula) => {
   if (!formula) return ''
 
   let cleaned = formula
 
-  // Convert all double backslashes to single backslashes for standard LaTeX format
-  // This handles backend output that uses double backslashes for LaTeX commands
+  // 双反斜杠转单反斜杠
   cleaned = cleaned.replace(/\\\\([a-zA-Z]+)/g, '\\$1')
 
-  // Special handling for LaTeX array/table environment
+  // 处理表格环境
   if (cleaned.includes('\\begin{array}') || cleaned.includes('\\begin{tabular}')) {
-    // Remove the \[ and \] delimiters if present (display math mode delimiters)
     if (cleaned.startsWith('\\[') && cleaned.endsWith('\\]')) {
       cleaned = cleaned.slice(2, -2)
     }
     return cleaned.trim()
   }
 
-  // Remove LaTeX math mode delimiters for regular formulas ($formula$)
+  // 移除数学模式分隔符
   if (cleaned.startsWith('$') && cleaned.endsWith('$')) {
     cleaned = cleaned.slice(1, -1)
   }
 
-  // Remove extra whitespace for cleaner rendering
-  cleaned = cleaned.trim()
-
-  return cleaned
+  return cleaned.trim()
 }
 
-// Render formula using KaTeX with special handling for array/table structures
+// 使用 KaTeX 渲染公式和表格
 const renderKaTeX = () => {
-  console.log('renderKaTeX called, mathContainer:', mathContainer.value)
-  console.log('katexLoaded:', katexLoaded.value, 'window.katex:', !!window.katex)
+  console.log('开始 KaTeX 渲染，容器:', mathContainer.value)
 
-  // Validate KaTeX library is loaded
+  // 检查 KaTeX 库
   if (!katexLoaded.value || !window.katex) {
-    throw new Error('KaTeX not loaded')
+    throw new Error('KaTeX 未加载')
   }
 
-  // Validate DOM container is available
+  // 检查容器
   if (!mathContainer.value) {
-    console.error('Math container not available, current state:', {
+    console.error('数学容器不可用:', {
       loading: loading.value,
       error: error.value,
       formula: props.formula
     })
-    throw new Error('Math container not available')
+    throw new Error('数学容器不可用')
   }
 
-  // Clean and validate formula input
+  // 清理公式
   const cleanedFormula = cleanFormula(props.formula)
   if (!cleanedFormula) {
-    throw new Error('Katex Rendering: Formula is empty after cleaning')
+    throw new Error('公式清理后为空')
   }
 
-  // Determine display mode based on props
+  // 显示模式
   const displayMode = props.displayMode || !props.inline
 
   try {
-    // Check if formula contains LaTeX array/table environment (both array and tabular)
-    //Katex不支持渲染tabular样式的表格，且Katex表格渲染样式不美观
+    // 检查是否为表格（KaTeX 不支持 tabular，且样式不美观）
     if (cleanedFormula.includes('\\begin{array}') || cleanedFormula.includes('\\begin{tabular}')) {
-      console.log("Rendering as HTML table:", cleanedFormula)
+      console.log('渲染为 HTML 表格:', cleanedFormula)
 
-      // Remove display math delimiters if present
       let tableFormula = cleanedFormula
       if (tableFormula.startsWith('\\[') && tableFormula.endsWith('\\]')) {
         tableFormula = tableFormula.slice(2, -2)
       }
 
-      // Clear container and create HTML table
       mathContainer.value.innerHTML = ''
 
-      // Check if table contains LaTeX formulas that need KaTeX rendering
-      const needsKaTeX = /\\(fbox|textrm|quad|qquad|mathbf|infty)/.test(tableFormula) || /\$[^$]+\$/.test(tableFormula)
+      // 检查 表格内部是否需要 KaTeX 渲染
+      const needsKaTeX = /\\(fbox|textrm|quad|qquad|mathbf|infty|times|checkmark)/.test(tableFormula) || /\$[^$]+\$/.test(tableFormula)
 
       let table
       if (needsKaTeX) {
-        console.log('Table contains LaTeX formulas, using KaTeX table rendering')
+        console.log('使用 KaTeX 表格内部渲染')
         table = createKaTeXTable(tableFormula)
       } else {
-        console.log('Table contains simple text, using standard HTML table rendering')
+        console.log('使用标准 HTML 表格渲染')
         table = createBeautifulHTMLTable(tableFormula)
       }
 
       if (table) {
         mathContainer.value.appendChild(table)
-        console.log('HTML table created successfully')
+        console.log('表格创建成功')
       } else {
-        // Fallback: try KaTeX render if HTML table creation fails
-        window.katex.render(cleanedFormula, mathContainer.value, {
-          displayMode: displayMode,
-          throwOnError: false,
-          trust: true,
-          strict: false,
-          output: 'html',
-          macros: {
-            "\\mathbf": "\\textbf"
-          }
-        })
-        console.log('KaTeX fallback rendering for table')
+        console.log('表格渲染失败')
       }
     } else {
-      // For regular formulas, use standard KaTeX rendering
+      // 常规公式使用标准 KaTeX 渲染
       window.katex.render(cleanedFormula, mathContainer.value, {
         displayMode: displayMode,
         throwOnError: false,
@@ -385,21 +344,19 @@ const renderKaTeX = () => {
           "\\mathbf": "\\textbf"
         }
       })
-      console.log('KaTeX rendering successful:', cleanedFormula)
+      console.log('KaTeX 公式渲染成功:', cleanedFormula)
     }
   } catch (err) {
-    console.warn('Rendering failed:', err)
+    console.warn('渲染失败:', err)
     throw err
   }
 }
 
-// Create beautiful HTML table from LaTeX array format with modern styling
-// Create HTML table with embedded KaTeX rendering for formulas
+// 创建带 KaTeX 渲染的 HTML 表格
 const createKaTeXTable = (latexTable) => {
   try {
-    console.log('createKaTeXTable input:', JSON.stringify(latexTable))
 
-    // Parse the LaTeX array/tabular structure
+    // 解析 LaTeX 表格结构
     let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
     if (!arrayMatch) {
       arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
@@ -407,13 +364,12 @@ const createKaTeXTable = (latexTable) => {
 
     if (!arrayMatch) return null
 
-    const columnSpec = arrayMatch[1]
     const content = arrayMatch[2]
 
-    // Parse table structure
+    // 解析表格行
     const rows = content.split('\\\\').map(row => row.trim()).filter(row => row.length > 0)
 
-    // Create main table element with same styling as createBeautifulHTMLTable
+    // 创建表格元素
     const table = document.createElement('table')
     table.className = 'truth-table-html'
     table.style.cssText = `
@@ -428,10 +384,10 @@ const createKaTeXTable = (latexTable) => {
       background: white;
     `
 
-    // Process each row
+    // 处理表格行
     let actualRowIndex = 0
     rows.forEach((rowContent) => {
-      // Skip rows that only contain \hline
+      // 跳过只包含\hline的行
       if (rowContent.trim() === '\\hline') return
 
       const row = document.createElement('tr')
@@ -441,22 +397,22 @@ const createKaTeXTable = (latexTable) => {
         `background-color: #edf2f7;` :
         `background-color: #f8fafc;`
 
-      // Split row content by & to get individual cells
+      // 分割单元格内容
       const cells = rowContent.split('&').map(cell => cell.trim())
 
-      // Process each cell in the row
+      // 处理每个单元格
       cells.forEach((cellContent, cellIndex) => {
         let cleanCellContent = cellContent.replace(/\\hline/g, '').trim()
         if (cleanCellContent === '') return
 
         const cell = actualRowIndex === 0 ? document.createElement('th') : document.createElement('td')
 
-        // Process cell content with KaTeX rendering
+        // 使用KaTeX处理单元格内容
         const processedCell = processCellContentWithKaTeX(cleanCellContent, actualRowIndex === 0)
 
         cell.appendChild(processedCell)
 
-        // Apply styling
+        // 应用样式
         cell.style.cssText = actualRowIndex === 0 ?
           `border: 1px solid #4a5568;
            padding: 12px 16px;
@@ -471,7 +427,7 @@ const createKaTeXTable = (latexTable) => {
            font-weight: 500;
            transition: all 0.2s ease;`
 
-        // Add hover effect for data cells
+        // 添加悬停效果
         if (actualRowIndex > 0) {
           cell.addEventListener('mouseenter', () => {
             cell.style.backgroundColor = '#e2e8f0'
@@ -492,47 +448,49 @@ const createKaTeXTable = (latexTable) => {
 
     return table
   } catch (err) {
-    console.error('Failed to create KaTeX table:', err)
+    console.error('创建KaTeX表格失败:', err)
     return null
   }
 }
 
-// Process cell content and render LaTeX formulas with KaTeX
+// 使用KaTeX处理单元格内容
 const processCellContentWithKaTeX = (content, isHeader) => {
   const container = document.createElement('div')
   container.style.whiteSpace = 'nowrap'
 
-  // Process content by finding and rendering LaTeX formulas
+  // 处理LaTeX命令
   let processedContent = content
 
-  // Replace \textrm commands
+  // 替换文本样式命令
   processedContent = processedContent.replace(/\\textrm\{([^}]+)\}/g, '$1')
 
-  // Replace \quad and \qquad with spaces
+  // 替换间距命令
   processedContent = processedContent.replace(/\\qquad/g, '  ')
   processedContent = processedContent.replace(/\\quad/g, ' ')
 
-  // Replace \infty with infinity symbol
+  // 替换符号命令
   processedContent = processedContent.replace(/\\infty/g, '∞')
+  processedContent = processedContent.replace(/\\times/g, '×')
+  processedContent = processedContent.replace(/\\checkmark/g, '✓')
 
-  // Handle empty cell indicators
+  // 处理空单元格指示符
   processedContent = processedContent.replace(/\\quad/g, ' ')
 
-  // Find all LaTeX formulas within $...$
+  // 查找$...$公式
   const formulaMatches = processedContent.match(/\$([^\$]+)\$/g)
   if (formulaMatches) {
     let lastIndex = 0
     formulaMatches.forEach(formula => {
-      const formulaText = formula.slice(1, -1) // Remove $ symbols
+      const formulaText = formula.slice(1, -1) // 移除$符号
 
-      // Add text before the formula
+      // 添加公式前的文本
       const beforeText = processedContent.substring(lastIndex, processedContent.indexOf(formula))
       if (beforeText) {
         const textNode = document.createTextNode(beforeText)
         container.appendChild(textNode)
       }
 
-      // Render the formula with KaTeX
+      // 渲染公式
       try {
         const katexSpan = document.createElement('span')
         katex.render(formulaText, katexSpan, {
@@ -540,7 +498,7 @@ const processCellContentWithKaTeX = (content, isHeader) => {
           throwOnError: false
         })
 
-        // Apply additional styling for headers
+        // 标题样式
         if (isHeader) {
           katexSpan.style.fontStyle = 'italic'
           katexSpan.style.fontFamily = "'Times New Roman', serif"
@@ -548,7 +506,7 @@ const processCellContentWithKaTeX = (content, isHeader) => {
 
         container.appendChild(katexSpan)
       } catch (err) {
-        console.warn('KaTeX rendering failed for formula:', formulaText, err)
+        console.warn('KaTeX渲染失败:', formulaText, err)
         const fallbackText = document.createTextNode(formulaText)
         container.appendChild(fallbackText)
       }
@@ -556,27 +514,27 @@ const processCellContentWithKaTeX = (content, isHeader) => {
       lastIndex = processedContent.indexOf(formula) + formula.length
     })
 
-    // Add remaining text
+    // 添加剩余文本
     const remainingText = processedContent.substring(lastIndex)
     if (remainingText) {
       container.appendChild(document.createTextNode(remainingText))
     }
   } else {
-    // No $...$ formulas found, check for \fbox commands
+    // 检查\fbox命令
     const fboxMatches = processedContent.match(/\\fbox\{([^}]+)\}/g)
     if (fboxMatches) {
       let lastIndex = 0
       fboxMatches.forEach(fbox => {
         const fboxContent = fbox.match(/\\fbox\{([^}]+)\}/)[1]
 
-        // Add text before the fbox
+        // 添加fbox前的文本
         const beforeText = processedContent.substring(lastIndex, processedContent.indexOf(fbox))
         if (beforeText) {
           const textNode = document.createTextNode(beforeText)
           container.appendChild(textNode)
         }
 
-        // Create fbox styled span
+        // 创建fbox样式
         const fboxSpan = document.createElement('span')
         fboxSpan.style.cssText = `
           border: 1px solid #374151;
@@ -587,9 +545,9 @@ const processCellContentWithKaTeX = (content, isHeader) => {
           ${isHeader ? 'color: white; border-color: white; background-color: rgba(255,255,255,0.2);' : 'color: #374151;'}
         `
 
-        // Check if the content itself contains math
+        // 检查是否包含数学内容
         if (fboxContent.includes('/') && fboxContent.match(/^[0-9.]+\//)) {
-          // This looks like a fraction, render with KaTeX
+          // 分数渲染
           try {
             katex.render(fboxContent, fboxSpan, {
               displayMode: false,
@@ -606,14 +564,36 @@ const processCellContentWithKaTeX = (content, isHeader) => {
         lastIndex = processedContent.indexOf(fbox) + fbox.length
       })
 
-      // Add remaining text
+      // 添加剩余文本
       const remainingText = processedContent.substring(lastIndex)
       if (remainingText) {
         container.appendChild(document.createTextNode(remainingText))
       }
     } else {
-      // No special formatting, just add the text
-      container.appendChild(document.createTextNode(processedContent))
+      // 检查特殊符号
+      const checkmarkMatch = processedContent.match(/✓/)
+      const timesMatch = processedContent.match(/×/)
+
+      if (checkmarkMatch || timesMatch) {
+        // 特殊符号样式
+        const textNode = document.createTextNode(processedContent)
+        container.appendChild(textNode)
+
+        // 应用符号样式
+        if (checkmarkMatch) {
+          container.style.color = '#22c55e'
+          container.style.fontWeight = 'bold'
+          container.style.fontSize = '16px'
+        }
+        if (timesMatch) {
+          container.style.color = '#ef4444'
+          container.style.fontWeight = 'bold'
+          container.style.fontSize = '16px'
+        }
+      } else {
+        // 普通文本
+        container.appendChild(document.createTextNode(processedContent))
+      }
     }
   }
 
@@ -622,38 +602,33 @@ const processCellContentWithKaTeX = (content, isHeader) => {
 
 const createBeautifulHTMLTable = (latexTable) => {
   try {
-    // Debug logging for troubleshooting LaTeX parsing
-    console.log('createBeautifulHTMLTable input:', JSON.stringify(latexTable))
-    // console.log('Input length:', latexTable.length)
-    // console.log('Contains \\begin{array}:', latexTable.includes('\\begin{array}'))
-    // console.log('Contains \\end{array}:', latexTable.includes('\\end{array}'))
+    // 调试信息
+    console.log('创建HTML表格输入:', JSON.stringify(latexTable))
 
-    // Parse the LaTeX array/tabular structure using regex to extract column spec and content
+    // 解析LaTeX表格结构
     let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
-    // console.log('Array regex match result:', arrayMatch)
 
-    // If not array, try tabular format
+    // 尝试tabular格式
     if (!arrayMatch) {
       arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
-      // console.log('Tabular regex match result:', arrayMatch)
     }
 
-    // Fallback pattern matching if primary pattern fails
+    // 备用匹配模式
     if (!arrayMatch) {
-      console.log('Trying alternative regex patterns...')
+      console.log('尝试备用正则模式...')
       const pattern1 = latexTable.match(/\\begin\{(?:array|tabular)\}\{([^}]*)\}([\\s\\S]*?)\\end\{(?:array|tabular)\}/)
-      console.log('Alternative pattern result:', pattern1)
+      console.log('备用模式结果:', pattern1)
       return pattern1 || null
     }
     if (!arrayMatch) return null
 
-    const columnSpec = arrayMatch[1] // column specification like {ccccc}
+    const columnSpec = arrayMatch[1] // 列规格
     const content = arrayMatch[2]
 
-    // Parse table structure: split content by \\ (rows) and then by & (cells)
+    // 解析表格结构：按行分割，再按单元格分割
     const rows = content.split('\\\\').map(row => row.trim()).filter(row => row.length > 0)
 
-    // Create main table element with modern styling
+    // 创建表格元素
     const table = document.createElement('table')
     table.className = 'truth-table-html'
     table.style.cssText = `
@@ -668,55 +643,55 @@ const createBeautifulHTMLTable = (latexTable) => {
       background: white;
     `
 
-    // Process each row from LaTeX content
+    // 处理每一行
     let actualRowIndex = 0
     rows.forEach((rowContent) => {
-      // Skip rows that only contain \hline
+      // 跳过只包含\hline的行
       if (rowContent.trim() === '\\hline') return
 
       const row = document.createElement('tr')
-      // Apply different styling for header row vs data rows with enhanced contrast
+      // 应用不同的行样式
       row.style.cssText = actualRowIndex === 0 ?
         `background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%); color: white;` :
         actualRowIndex % 2 === 0 ?
         `background-color: #edf2f7;` :
         `background-color: #f8fafc;`
 
-      // Split row content by & to get individual cells
+      // 分割单元格
       const cells = rowContent.split('&').map(cell => cell.trim())
 
-      // Process each cell in the row
+      // 处理每个单元格
       cells.forEach((cellContent, cellIndex) => {
-        // Remove \hline from cell content if present
+        // 清理单元格内容
         let cleanCellContent = cellContent.replace(/\\hline/g, '').trim()
 
-        // Skip empty cells
+        // 跳过空单元格
         if (cleanCellContent === '') return
 
-        // Create header cell for first row, data cell for others
+        // 创建单元格
         const cell = actualRowIndex === 0 ? document.createElement('th') : document.createElement('td')
 
-        // Process cell content: Convert LaTeX commands to HTML and logic symbols
+        // 处理单元格内容：转换LaTeX命令到HTML和逻辑符号
         let processedContent = cleanCellContent
-          .replace(/\$([^\$]+)\$/g, '$1') // Remove $ delimiters
+          .replace(/\$([^\$]+)\$/g, '$1') // 移除$分隔符
           .replace(/\\mathbf\{([^}]+)\}/g, '<strong style="color: #2d3748;">$1</strong>')
           .replace(/\\leftrightarrow/g, '↔')
           .replace(/\\rightarrow/g, '→')
           .replace(/\\wedge/g, '∧')
           .replace(/\\vee/g, '∨')
           .replace(/\\neg/g, '¬')
-          // Remove curly braces around formulas that don't contain LaTeX commands
+          // 移除不包含LaTeX命令的花括号
           .replace(/\{([^{}\\]+)\}/g, (match, content) => {
-            // Only remove braces if content doesn't contain LaTeX commands
+            // 只有内容不包含LaTeX命令时才移除花括号
             return content.includes('\\') ? match : content;
           })
 
-        // Convert header formulas to italic for mathematical conventions
+        // 标题行使用斜体
         if (actualRowIndex === 0) {
           processedContent = `<em style="font-style: italic; font-family: 'Times New Roman', serif;">${processedContent}</em>`
         }
 
-        // Apply different styling for header cells vs data cells
+        // 应用单元格样式
         cell.style.cssText = actualRowIndex === 0 ?
           `border: 1px solid #4a5568;
            padding: 12px 16px;
@@ -731,7 +706,7 @@ const createBeautifulHTMLTable = (latexTable) => {
            font-weight: 500;
            transition: all 0.2s ease;`
 
-        // Add interactive hover effect for data cells (not header)
+        // 添加悬停效果
         if (actualRowIndex > 0) {
           cell.addEventListener('mouseenter', () => {
             cell.style.backgroundColor = '#e2e8f0'
@@ -743,178 +718,178 @@ const createBeautifulHTMLTable = (latexTable) => {
           })
         }
 
-        // Set the processed content and add cell to row
+        // 设置内容并添加到行
         cell.innerHTML = processedContent
         row.appendChild(cell)
       })
 
-      // Add completed row to table
+      // 添加行到表格
       table.appendChild(row)
       actualRowIndex++
     })
 
     return table
   } catch (err) {
-    console.error('Failed to create beautiful HTML table:', err)
+    console.error('创建HTML表格失败:', err)
     return null
   }
 }
 
-// Render formula using MathJax
+// 使用MathJax渲染公式
 const renderMathJax = async () => {
-  console.log('renderMathJax called, mathContainer:', mathContainer.value)
+  console.log('调用MathJax渲染，容器:', mathContainer.value)
 
-  // Validate MathJax library is loaded
+  // 验证MathJax库
   if (!katexLoaded.value || !window.MathJax || !window.MathJax.typesetPromise) {
-    throw new Error('MathJax not loaded or not ready')
+    throw new Error('MathJax未加载或未就绪')
   }
 
-  // Validate DOM container is available
+  // 验证DOM容器
   if (!mathContainer.value) {
-    throw new Error('Math container not available')
+    throw new Error('数学容器不可用')
   }
 
-  // Clean and validate formula input
+  // 清理和验证公式
   const cleanedFormula = cleanFormula(props.formula)
   if (!cleanedFormula) {
-    throw new Error('MathJax Rendering: Formula is empty after cleaning')
+    throw new Error('MathJax渲染：公式清理后为空')
   }
 
   try {
-    // Clear previous content
+    // 清除之前的内容
     mathContainer.value.innerHTML = ''
 
-    // Determine display mode and prepare formula
+    // 确定显示模式并准备公式
     const displayMode = props.displayMode || !props.inline
     let mathJaxFormula = cleanedFormula
 
-    // For display mode, use display math delimiters
+    // 设置数学模式分隔符
     if (displayMode) {
       mathJaxFormula = `\\[${mathJaxFormula}\\]`
     } else {
       mathJaxFormula = `\\(${mathJaxFormula}\\)`
     }
 
-    // Create a temporary container for MathJax rendering
+    // 创建临时容器
     const tempContainer = document.createElement('div')
     tempContainer.innerHTML = mathJaxFormula
     tempContainer.style.display = displayMode ? 'block' : 'inline'
     mathContainer.value.appendChild(tempContainer)
 
-    // Wait for MathJax to finish typesetting
+    // 等待MathJax排版完成
     await window.MathJax.typesetPromise([tempContainer])
-    console.log('MathJax rendering successful:', cleanedFormula)
+    console.log('MathJax渲染成功:', cleanedFormula)
 
   } catch (err) {
-    console.warn('MathJax rendering failed:', err)
+    console.warn('MathJax渲染失败:', err)
     throw err
   }
 }
 
-// Main rendering function that orchestrates the entire rendering process
+// 主渲染函数
 const renderFormula = async () => {
-  console.log('renderFormula called with formula:', props.formula)
+  console.log('渲染公式:', props.formula)
   if (!props.formula) return
 
-  // Set loading state and clear any previous errors
+  // 设置加载状态
   loading.value = true
   error.value = null
 
   try {
-    // Wait for Vue to update DOM and ensure container is available
+    // 等待Vue更新DOM
     await nextTick()
-    console.log('After nextTick, mathContainer:', mathContainer.value)
+    console.log('DOM更新后，容器:', mathContainer.value)
 
-    // Choose rendering method based on prop configuration
+    // 根据配置选择渲染方法
     if (props.type === 'katex') {
       try {
-        // Load KaTeX library if not already loaded
+        // 加载KaTeX
         if (!katexLoaded.value) {
-          console.log('Loading KaTeX...')
+          console.log('加载KaTeX...')
           await loadKaTeX()
         }
         await nextTick()
-        console.log('Before renderKaTeX, mathContainer:', mathContainer.value)
+        console.log('KaTeX渲染前，容器:', mathContainer.value)
         renderKaTeX()
       } catch (katexError) {
-        // Fallback to simple LaTeX rendering if KaTeX fails
-        console.warn('KaTeX failed, using fallback:', katexError)
+        // KaTeX失败时的回退
+        console.warn('KaTeX失败，使用回退方案:', katexError)
       }
     } else if (props.type === 'mathjax') {
       try {
-        // Load MathJax library if not already loaded
+        // 加载MathJax
         if (!katexLoaded.value) {
-          console.log('Loading MathJax...')
+          console.log('加载MathJax...')
           await loadMathJax()
         } else {
-          // 即使标记为已加载，也要再次确认MathJax完全就绪
+          // 确认MathJax完全就绪
           if (!window.MathJax || !window.MathJax.typesetPromise) {
-            console.log('MathJax marked as loaded but not ready, reloading...')
+            console.log('MathJax标记已加载但未就绪，重新加载...')
             katexLoaded.value = false
             await loadMathJax()
           }
         }
 
         await nextTick()
-        console.log('Before renderMathJax, mathContainer:', mathContainer.value)
+        console.log('MathJax渲染前，容器:', mathContainer.value)
 
-        // 确保MathJax完全就绪后再渲染
+        // 确保MathJax完全就绪后渲染
         let retries = 0
         const maxRetries = 10
         while (retries < maxRetries) {
           try {
             await renderMathJax()
-            break // 成功渲染，退出重试循环
+            break // 成功渲染，退出重试
           } catch (renderError) {
             retries++
-            console.warn(`MathJax render attempt ${retries} failed:`, renderError)
+            console.warn(`MathJax渲染尝试 ${retries} 失败:`, renderError)
             if (retries >= maxRetries) {
               throw renderError
             }
-            // 等待一段时间后重试
+            // 等待后重试
             await new Promise(resolve => setTimeout(resolve, 200))
           }
         }
 
-        console.log('MathJax rendering completed successfully')
+        console.log('MathJax渲染完成')
       } catch (mathjaxError) {
-        console.warn('MathJax failed after multiple attempts:', mathjaxError)
+        console.warn('MathJax多次尝试后失败:', mathjaxError)
         error.value = `MathJax渲染失败: ${mathjaxError.message}`
 
-        // 如果MathJax失败，尝试使用KaTeX作为后备
+        // MathJax失败时尝试KaTeX作为后备
         try {
-          console.log('Attempting KaTeX fallback...')
+          console.log('尝试KaTeX后备方案...')
           await loadKaTeX()
           renderKaTeX()
         } catch (fallbackError) {
-          console.error('Both MathJax and KaTeX failed:', fallbackError)
+          console.error('MathJax和KaTeX都失败:', fallbackError)
         }
       }
     } else {
-      // Use simple LaTeX rendering for other types
+      // 其他类型使用简单LaTeX渲染
     }
 
-    // Emit success event to parent component
+    // 发送成功事件
     emit('rendered')
   } catch (err) {
-    // Handle rendering errors and emit error event
-    console.error('Formula rendering failed:', err)
+    // 处理渲染错误
+    console.error('公式渲染失败:', err)
     error.value = `公式渲染失败: ${err.message}`
     emit('error', err)
   } finally {
-    // Always reset loading state when done
+    // 重置加载状态
     loading.value = false
   }
 }
 
-// Watch for formula changes and trigger re-rendering when formula is updated
+// 监听公式变化
 watch(() => props.formula, (newFormula) => {
   if (newFormula) {
     renderFormula()
   }
 })
 
-// Component lifecycle hook: Render formula when component is mounted
+// 组件挂载时渲染
 onMounted(() => {
   if (props.formula) {
     renderFormula()

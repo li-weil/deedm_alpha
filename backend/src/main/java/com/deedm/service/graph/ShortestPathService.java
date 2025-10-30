@@ -81,7 +81,7 @@ public class ShortestPathService {
 
                 String graphImageName = generateGraphImage(graphForVisualization, "GraphVisualization");
                 if (graphImageName != null) {
-                    response.setGraphImageUrl("/api/graph-travel/graph-image/" + graphImageName);
+                    response.setGraphImageUrl("/api/shortest-path/graph-image/" + graphImageName);
                 }
             }
 
@@ -118,7 +118,7 @@ public class ShortestPathService {
                     WeightedGraph pathGraph = createPathGraph(nodeList, pathList);
                     String pathImageName = generateGraphImage(pathGraph, "ShortestPath");
                     if (pathImageName != null) {
-                        response.setPathGraphImageUrl("/api/graph-travel/graph-image/" + pathImageName);
+                        response.setPathGraphImageUrl("/api/shortest-path/graph-image/" + pathImageName);
                     }
                 }
             }
@@ -132,7 +132,7 @@ public class ShortestPathService {
                     WeightedGraph pathGraph = createPathGraph(nodeList, pathList);
                     String pathImageName = generateGraphImage(pathGraph, "ShortestPath");
                     if (pathImageName != null) {
-                        response.setPathGraphImageUrl("/api/graph-travel/graph-image/" + pathImageName);
+                        response.setPathGraphImageUrl("/api/shortest-path/graph-image/" + pathImageName);
                         response.setShortestPaths(new ArrayList<>()); // 确保有shortestPaths字段
                     }
                 }
@@ -205,45 +205,50 @@ public class ShortestPathService {
         return result;
     }
 
-    private String generateGraphImage(WeightedGraph graph, String prefix) {
+  private String generateGraphImage(WeightedGraph graph, String prefix) {
         try {
-            String timestamp = String.valueOf(System.currentTimeMillis());
-            String fileName = prefix + "_" + timestamp + ".png";
-            String dotFileName = "./data/" + prefix + "_" + timestamp + ".dot";
-            String pngFileName = "./data/" + fileName;
-
             // 确保data目录存在
             File dataDir = new File("./data");
             if (!dataDir.exists()) {
                 dataDir.mkdirs();
             }
 
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String fileName = prefix + "_" + timestamp + ".png";
+            String dotFileName = "./data/" + prefix + "_" + timestamp + ".dot";
+            String pngFileName = "./data/" + fileName;
+
+            // 检查Graphviz可用性
+            if (!com.deedm.legacy.util.GraphvizUtil.isGraphvizAvailable()) {
+                System.err.println("Graphviz不可用，无法生成最短路径图片");
+                return null;
+            }
+
+            // 写入DOT文件
             PrintWriter writer = new PrintWriter(dotFileName);
             graph.simplyWriteToDotFile(writer);
             writer.close();
 
-            // 修复DOT文件语法错误：移除结束大括号后的空行
-            try {
-                List<String> lines = Files.readAllLines(Paths.get(dotFileName));
-                // 移除最后的空行
-                while (lines.size() > 0 && lines.get(lines.size() - 1).trim().isEmpty()) {
-                    lines.remove(lines.size() - 1);
-                }
-                Files.write(Paths.get(dotFileName), lines);
-            } catch (Exception e) {
-                System.err.println("修复DOT文件时出错: " + e.getMessage());
+            // 调用Graphviz生成PNG
+            boolean success = com.deedm.legacy.util.GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
+            if (!success) {
+                System.err.println("Graphviz生成失败: " + com.deedm.legacy.util.GraphvizUtil.errorMessage);
+                return null;
             }
 
-            // 检查文件是否实际生成，即使退出码不是0（GraphViz可能返回警告）
+            // 验证PNG文件
             File imageFile = new File(pngFileName);
             if (imageFile.exists() && imageFile.length() > 0) {
                 return fileName;
+            } else {
+                System.err.println("PNG文件生成失败或文件为空");
+                return null;
             }
+
         } catch (Exception e) {
-            System.err.println("生成图可视化失败: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("生成最短路径图片失败: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
     private WeightedGraph createPathGraph(List<GraphNode> nodes, List<WeightedGraphPath> paths) {

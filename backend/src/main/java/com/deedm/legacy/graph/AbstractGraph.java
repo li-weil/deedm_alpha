@@ -241,7 +241,7 @@ public abstract class AbstractGraph {
 	 */
 	public void simplyWriteToDotFile(PrintWriter output) throws IOException {
 		if (nodes == null) return;
-		
+
 		String id = getLegalToken(getId());
 		if (isDirectedGraph()) output.println("digraph " + id + " {");
 		else output.println("graph " + id + " {");
@@ -249,9 +249,9 @@ public abstract class AbstractGraph {
 			String label = node.getImageFileName();
 			if (label == null || label.trim().equals("")) label = node.getLabel();
 			id = "node" + getLegalToken(node.getId());
-			output.println("    " + id + "[label = \"" + label + "\"]");
+			output.println("    " + id + "[label = \"" + label + "\"];");
 		}
-		
+
 		if (edges != null) {
 			for (GraphEdge edge : edges) {
 				String label = edge.getLabel();
@@ -259,18 +259,18 @@ public abstract class AbstractGraph {
 				GraphNode end = edge.getEndNode();
 				String startNodeId = "node" + getLegalToken(start.getId());
 				String endNodeId = "node" + getLegalToken(end.getId());
-				
+
 				String edgeSharp = "--";
 				if (edge.isDirected()) edgeSharp = "->";
 				if (label != null) {
-					output.println("    " + startNodeId + edgeSharp + endNodeId + "[label = \"" + label + "\"]");
+					output.println("    " + startNodeId + edgeSharp + endNodeId + "[label = \"" + label + "\"];");
 				} else {
-					output.println("    " + startNodeId + edgeSharp + endNodeId);
+					output.println("    " + startNodeId + edgeSharp + endNodeId + ";");
 				}
 			}
 		}
 
-		output.println("};");
+		output.println("}");
 		output.println();
 		output.flush();
 	}
