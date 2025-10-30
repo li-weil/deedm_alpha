@@ -531,9 +531,9 @@ const onHuffmanTreeResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '哈夫曼树构造结果已添加到主界面')
 }
 
-const onSpecialGraphResult = (result) => {
-  console.log('特殊图展示结果:', result)
-  ElMessage.success('特殊图展示完成')
+const onSpecialGraphResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到特殊图展示结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '特殊图展示结果已添加到主界面')
 }
 
 // 代数结构结果处理函数

@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ElAlert: typeof import('element-plus/es')['ElAlert']
-    ElAside: typeof import('element-plus/es')['ElAside']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElCheckboxGroup: typeof import('element-plus/es')['ElCheckboxGroup']
@@ -30,8 +29,6 @@ declare module 'vue' {
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
-    ElTabPane: typeof import('element-plus/es')['ElTabPane']
-    ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElText: typeof import('element-plus/es')['ElText']
     EquivCalculusCheckInterface: typeof import('./src/components/logic/EquivCalculusCheckInterface.vue')['default']
@@ -50,6 +47,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     ShortestPathInterface: typeof import('./src/components/graph/ShortestPathInterface.vue')['default']
     SpanningTreeInterface: typeof import('./src/components/graph/SpanningTreeInterface.vue')['default']
+    SpecialGraphInterface: typeof import('./src/components/graph/SpecialGraphInterface.vue')['default']
     TreeTraversalInterface: typeof import('./src/components/graph/TreeTraversalInterface.vue')['default']
     TruthTableConstructor: typeof import('./src/components/logic/TruthTableConstructor.vue')['default']
     TruthTableInterface: typeof import('./src/components/logic/TruthTableInterface.vue')['default']

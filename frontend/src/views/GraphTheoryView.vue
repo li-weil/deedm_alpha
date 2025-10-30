@@ -78,11 +78,10 @@
       :before-close="handleSpecialGraphClose"
       class="special-graph-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showSpecialGraph = false">返回</el-button>
-        </el-empty>
-      </div>
+      <special-graph-interface
+        @close="handleSpecialGraphClose"
+        @special-graph-displayed="onSpecialGraphResult"
+      />
     </el-dialog>
   </div>
 </template>
@@ -95,6 +94,7 @@ import TreeTraversalInterface from '@/components/graph/TreeTraversalInterface.vu
 import ShortestPathInterface from '@/components/graph/ShortestPathInterface.vue'
 import SpanningTreeInterface from '@/components/graph/SpanningTreeInterface.vue'
 import HuffmanTreeInterface from '@/components/graph/HuffmanTreeInterface.vue'
+import SpecialGraphInterface from '@/components/graph/SpecialGraphInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -338,6 +338,37 @@ const onHuffmanTreeResult = (result) => {
     ElMessage.success('哈夫曼树构造结果已添加到主界面，您可以继续查看详细结果或手动关闭此界面')
   } else {
     ElMessage.error(result?.errorMessage || '哈夫曼树构造失败')
+  }
+}
+
+const onSpecialGraphResult = (result) => {
+  console.log('GraphTheoryView: 接收到特殊图展示结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: `特殊图展示 (n=${result.n}, m=${result.m})`,
+      type: result.type || 'special-graph',
+      n: result.n,
+      m: result.m,
+      graphResults: result.graphResults,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+
+    // 发送结果到主界面
+    emit('special-graph-result', {
+      result: formattedResult,
+      latexString
+    })
+
+    // 不自动关闭模态框，让用户继续查看详细结果
+    ElMessage.success('特殊图展示结果已添加到主界面，您可以继续查看详细结果或手动关闭此界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '特殊图展示失败')
   }
 }
 

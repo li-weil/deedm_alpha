@@ -331,6 +331,26 @@ export const generateLaTeXCode = (result) => {
 
   }
 
+  // 处理特殊图展示结果
+  if (result.type === 'special-graph') {
+    latexCode += `\\begin{array}{c}\n\\text{特殊图展示结果:}\n\\end{array}\n\n`
+
+
+    // 显示各个特殊图的结果
+    if (result.graphResults && result.graphResults.length > 0) {
+      result.graphResults.forEach(graph => {
+        latexCode += `\\begin{array}{c}\n\\text{${graph.description}:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${graph.name}\n\\end{array}\n\n`
+
+        if (graph.generated && graph.imageUrl) {
+          latexCode += `\\begin{array}{c}\n\\text{图形可视化已生成 (图片路径: ${graph.imageUrl})}\n\\end{array}\n\n`
+        } else {
+          latexCode += `\\begin{array}{c}\n\\text{${graph.description}：无法生成}\n\\end{array}\n\n`
+        }
+      })
+    }
+  }
+
   // 处理树遍历结果
   if (result.type === 'tree-travel') {
     latexCode += `\\begin{array}{c}\n\\text{树遍历分析结果:}\n\\end{array}\n\n`

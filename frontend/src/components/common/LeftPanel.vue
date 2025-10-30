@@ -150,6 +150,50 @@
             </div>
           </div>
 
+          <!-- 显示特殊图结果 -->
+          <div v-else-if="result.type === 'special-graph'" class="special-graph-result">
+            <h5 class="result-title">特殊图展示结果：</h5>
+
+            <!-- 图形展示网格 -->
+            <div v-if="result.graphResults && result.graphResults.length > 0" class="graphs-grid">
+              <div v-for="graph in result.graphResults" :key="graph.graphType" class="graph-item">
+                <div class="graph-header">
+                  <h6>{{ graph.description }}：</h6>
+                  <math-renderer
+                    :formula="graph.name"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="graph-name"
+                  />
+                </div>
+
+                <div class="graph-content">
+                  <!-- 图形可视化 -->
+                  <div v-if="graph.generated && graph.imageUrl" class="graph-visualization">
+                    <div class="graph-image-container">
+                      <img
+                        :src="graph.imageUrl"
+                        :alt="graph.description"
+                        class="graph-image"
+                        @error="handleGraphImageError"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- 生成失败提示 -->
+                  <div v-else class="graph-error">
+                    <el-alert
+                      :title="`${graph.description}：无法生成`"
+                      type="error"
+                      :closable="false"
+                      show-icon
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- 显示公式类型 -->
           <div v-if="result.formulaType" class="formula-type">
             <el-tag :type="getFormulaTypeTag(result.formulaType)" class="type-tag">
@@ -1757,6 +1801,62 @@ const cleanFormulaForDisplay = (formula) => {
   object-fit: contain;
 }
 
+/* 特殊图结果样式 */
+.special-graph-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+.params-info {
+  margin: 1rem 0;
+}
+
+.params-formula {
+  font-size: 1.1rem;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.graphs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.graph-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.graph-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.graph-name {
+  font-size: 1.1rem;
+  color: #409eff;
+}
+
+.graph-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+}
+
+.graph-error {
+  width: 100%;
+}
+
 /* 树遍历结果样式 */
 .tree-traversal-result {
   background: #f8f9fa;
@@ -1836,6 +1936,7 @@ const cleanFormulaForDisplay = (formula) => {
   padding: 1rem;
   border-radius: 4px;
   border: 1px solid #dee2e6;
+  overflow-x: auto;
 }
 
 .huffman-tree-result .weight-formula {
