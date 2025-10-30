@@ -34,6 +34,7 @@ declare module 'vue' {
     EquivCalculusCheckInterface: typeof import('./src/components/logic/EquivCalculusCheckInterface.vue')['default']
     FormulaSyntaxInterface: typeof import('./src/components/logic/FormulaSyntaxInterface.vue')['default']
     GraphTravelInterface: typeof import('./src/components/graph/GraphTravelInterface.vue')['default']
+    GraphTravelInterfaceNew: typeof import('./src/components/graph/GraphTravelInterface-new.vue')['default']
     HuffmanTreeInterface: typeof import('./src/components/graph/HuffmanTreeInterface.vue')['default']
     LeftPanel: typeof import('./src/components/common/LeftPanel.vue')['default']
     LeftPanel_backup: typeof import('./src/components/common/LeftPanel_backup.vue')['default']

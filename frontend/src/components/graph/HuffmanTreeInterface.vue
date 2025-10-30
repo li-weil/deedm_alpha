@@ -60,7 +60,7 @@
         </el-col>
         <el-col :span="8">
           <el-checkbox v-model="options.showAlgorithmDetails" size="large">
-            显示算法过程
+            显示构造过程
           </el-checkbox>
         </el-col>
         <el-col :span="8">
@@ -454,6 +454,34 @@ const callBackendApi = async (endpoint, options = {}) => {
 .huffman-tree-interface {
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+/* 在大屏幕上完全自适应，无最大宽度限制 */
+@media (min-width: 1200px) {
+  .huffman-tree-interface {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* 在中等屏幕上设置合理的最大宽度 */
+@media (max-width: 1199px) and (min-width: 900px) {
+  .huffman-tree-interface {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* 在小屏幕上固定宽度，支持水平滚动 */
+@media (max-width: 899px) {
+  .huffman-tree-interface {
+    width: 900px;
+    min-width: 900px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
 }
 
 .button-section {
