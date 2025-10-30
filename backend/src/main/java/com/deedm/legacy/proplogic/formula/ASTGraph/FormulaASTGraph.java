@@ -69,7 +69,7 @@ public class FormulaASTGraph extends AbstractGraph {
 			}
 		}
 
-		output.println("};");
+		output.println("}");
 		output.flush();
 	}
 

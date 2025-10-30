@@ -141,12 +141,12 @@ public class FormulaSyntaxService {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
                 result.put("success", false);
-                result.put("error", "Graphviz is not available on this system");
+                result.put("error", "Graphviz is not available on this system: " + GraphvizUtil.errorMessage);
                 return result;
             }
 
-            // 生成唯一的文件名
-            String uniqueId = UUID.randomUUID().toString();
+            // 使用与GraphTravelService相同的文件命名方式
+            String uniqueId = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
             String dotFileName = "./data/AST_" + uniqueId + ".dot";
             String pngFileName = "./data/AST_" + uniqueId + ".png";
 
@@ -158,36 +158,45 @@ public class FormulaSyntaxService {
 
             // 创建AST图
             FormulaASTGraph ast = FormulaASTGraph.createASTGraph(formula, "AST_" + uniqueId);
-
-            // 写入DOT文件
-            try (PrintWriter writer = new PrintWriter(dotFileName)) {
-                ast.simplyWriteToDotFile(writer);
+            if (ast == null) {
+                result.put("success", false);
+                result.put("error", "Failed to create AST graph object");
+                return result;
             }
 
+            // 写入DOT文件
+            File dotFile = new File(dotFileName);
+            try (PrintWriter writer = new PrintWriter(dotFile, "UTF-8")) {
+                ast.simplyWriteToDotFile(writer);
+                writer.flush();
+            }
 
-            // 检查PNG文件是否实际生成，即使Graphviz报告错误
+            // 调用Graphviz生成PNG
+            GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
+
+            // 检查PNG文件是否实际生成（以文件存在为准）
             File pngFile = new File(pngFileName);
-            if (pngFile.exists() && pngFile.isFile()) {
+            if (pngFile.exists() && pngFile.length() > 0) {
+                // 删除DOT文件，保留PNG文件
+                new File(dotFileName).delete();
+
                 result.put("success", true);
                 result.put("astInfo", "AST graph generated successfully");
                 result.put("formula", latexFormula);
-                result.put("dotFile", dotFileName);
                 result.put("pngFile", pngFileName);
                 result.put("webPath", "/api/formula-syntax/ast-image/AST_" + uniqueId + ".png");
-
-                System.out.println("FormulaSyntaxService: AST图片生成成功: " + pngFileName);
             } else {
                 result.put("success", false);
                 result.put("error", "Failed to generate AST image: " + GraphvizUtil.errorMessage);
 
                 // 清理失败的文件
                 new File(dotFileName).delete();
+                new File(pngFileName).delete();
             }
 
         } catch (Exception e) {
             result.put("success", false);
             result.put("error", "Error generating AST: " + e.getMessage());
-            e.printStackTrace();
         }
 
         return result;

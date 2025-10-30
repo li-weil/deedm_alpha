@@ -225,25 +225,12 @@ public class TreeTraversalService {
                 tree.simplyWriteToDotFile(writer, false, false);
             }
 
-            // 调试：打印DOT文件内容
-            System.out.println("Generated DOT file: " + dotFileName);
-            try (java.util.Scanner scanner = new java.util.Scanner(new java.io.File(dotFileName), "UTF-8")) {
-                System.out.println("DOT file content:");
-                int lineNum = 1;
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    System.out.println(lineNum + ": " + line);
-                    lineNum++;
-                }
-            }
-
             // 生成PNG文件
             boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
 
             if (success && new java.io.File(pngFileName).exists()) {
                 // 删除DOT文件，保留PNG文件
                 new java.io.File(dotFileName).delete();
-                System.out.println("Tree image generated successfully: " + pngFileName);
                 return "/api/tree-traversal/tree-image/TREE_" + uniqueId + ".png";
             } else {
                 // 清理失败的文件
