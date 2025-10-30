@@ -63,6 +63,7 @@ LeftPanel显示结果 + RightPanel显示LaTeX
 ### 步骤1：后端接口实现
 - **Controller层**: `/backend/src/main/java/com/deedm/controller/`对应的子目录板块中
 - **Service层**: `/backend/src/main/java/com/deedm/service/`对应的子目录板块中
+- **Respose**要返回retule.type参数，用来在`/home/admin-unix/Deedm/frontend/src/utils/latexGenerator.js`中判断是哪一个子界面，进而完成latex代码生成逻辑
 - 我已经手动完成了legacy代码迁移到`/home/admin-unix/Deedm/backend/src/main/java/com/deedm/legacy`
 
 ### 步骤2：前端子界面组件开发

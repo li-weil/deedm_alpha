@@ -773,6 +773,74 @@
 
           </div>
 
+          <!-- 显示Huffman树构造结果 -->
+          <div v-else-if="result.type === 'huffmanTree'" class="huffman-tree-result">
+            <h5 class="result-title">哈夫曼树构造结果：</h5>
+
+
+            <!-- 算法步骤显示 -->
+            <div v-if="result.steps && result.steps.length > 0" class="algorithm-steps">
+              <h6>算法构造步骤：</h6>
+              <div v-for="step in result.steps" :key="step.step" class="huffman-step-item">
+                <h6>{{ step.prompt }}</h6>
+                <math-renderer
+                  :formula="`步骤${step.step}: ${step.forestLaTeX}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="step-formula"
+                />
+                <div v-if="step.forestImageUrl" class="step-image">
+                  <img
+                    :src="step.forestImageUrl"
+                    :alt="`步骤${step.step}的森林图`"
+                    class="forest-image"
+                    @error="handleGraphImageError"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 最终Huffman树显示 -->
+            <div v-if="result.treeImageUrl" class="final-tree">
+              <h6>最终构造结果：</h6>
+              <div class="tree-image-container">
+                <img
+                  :src="result.treeImageUrl"
+                  alt="最终Huffman树"
+                  class="tree-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+
+            <!-- 总权值计算 -->
+            <div v-if="result.totalWeightLaTeX" class="weight-calculation">
+              <h6>总权值计算：</h6>
+              <math-renderer
+                :formula="result.totalWeightLaTeX + ' = ' + result.totalWeight"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="weight-formula"
+              />
+              <p class="weight-result">构造得到的Huffman树总权值是：{{ result.totalWeight }}</p>
+            </div>
+
+            <!-- 叶节点编码显示 -->
+            <div v-if="result.leafCodes && Object.keys(result.leafCodes).length > 0" class="leaf-codes">
+              <h6>带权叶节点的编码如下：</h6>
+              <div class="codes-grid">
+                <div v-for="(code, label) in result.leafCodes" :key="label" class="code-item">
+                  <math-renderer
+                    :formula="`${label} : ${code}`"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="code-formula"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
       </div>
     </div>
@@ -1696,6 +1764,122 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
+}
+
+/* Huffman树结果样式 */
+.huffman-tree-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #ffffff;
+}
+
+.huffman-tree-result .leaf-set-display {
+  margin: 1rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.huffman-tree-result .leaf-set-formula {
+  overflow-x: auto;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.huffman-tree-result .algorithm-steps {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.huffman-tree-result .huffman-step-item {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #28a745;
+  overflow-x: auto;
+}
+
+.huffman-tree-result .step-image {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.huffman-tree-result .forest-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.huffman-tree-result .final-tree {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.huffman-tree-result .weight-calculation {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.huffman-tree-result .weight-formula {
+  margin: 1rem 0;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.huffman-tree-result .weight-result {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.huffman-tree-result .leaf-codes {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.huffman-tree-result .codes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.huffman-tree-result .code-item {
+  background: #d4edda;
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #c3e6cb;
+  text-align: center;
+}
+
+.huffman-tree-result .code-formula {
+  font-size: 0.9rem;
 }
 
 .root-info {

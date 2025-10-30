@@ -527,9 +527,8 @@ const onSpanningTreeResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '带权图最小生成树计算结果已添加到主界面')
 }
 
-const onHuffmanTreeResult = (result) => {
-  console.log('哈夫曼树构造结果:', result)
-  ElMessage.success('哈夫曼树构造完成')
+const onHuffmanTreeResult = ({ result, latexString }) => {
+  handleResultWithLatex(result, latexString, '哈夫曼树构造结果已添加到主界面')
 }
 
 const onSpecialGraphResult = (result) => {

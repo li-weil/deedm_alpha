@@ -64,11 +64,10 @@
       :before-close="handleHuffmanTreeClose"
       class="huffman-tree-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showHuffmanTree = false">返回</el-button>
-        </el-empty>
-      </div>
+      <huffman-tree-interface
+        @close="handleHuffmanTreeClose"
+        @huffman-tree-constructed="onHuffmanTreeResult"
+      />
     </el-dialog>
 
     <!-- 特殊图展示界面模态框 -->
@@ -95,6 +94,7 @@ import GraphTravelInterface from '@/components/graph/GraphTravelInterface.vue'
 import TreeTraversalInterface from '@/components/graph/TreeTraversalInterface.vue'
 import ShortestPathInterface from '@/components/graph/ShortestPathInterface.vue'
 import SpanningTreeInterface from '@/components/graph/SpanningTreeInterface.vue'
+import HuffmanTreeInterface from '@/components/graph/HuffmanTreeInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -306,6 +306,39 @@ const onSpanningTreeResult = (result) => {
 
 const handleSpanningTreeClose = () => {
   showSpanningTree.value = false
+}
+
+// 处理Huffman树构造结果
+const onHuffmanTreeResult = (result) => {
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '哈夫曼树构造',
+      type: result.type || 'huffmanTree',
+      leafSetLaTeX: result.leafSetLaTeX,
+      steps: result.steps,
+      treeImageUrl: result.treeImageUrl,
+      totalWeightLaTeX: result.totalWeightLaTeX,
+      totalWeight: result.totalWeight,
+      leafCodes: result.leafCodes,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+
+    // 发送结果到主界面
+    emit('huffman-tree-result', {
+      result: formattedResult,
+      latexString
+    })
+
+    // 不自动关闭模态框，让用户继续查看详细结果
+    ElMessage.success('哈夫曼树构造结果已添加到主界面，您可以继续查看详细结果或手动关闭此界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '哈夫曼树构造失败')
+  }
 }
 
 const handleHuffmanTreeClose = () => {

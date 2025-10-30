@@ -424,6 +424,11 @@ export const generateLaTeXCode = (result) => {
   if (result.type === 'spanning-tree') {
     latexCode += `\\begin{array}{c}\n\\text{带权图最小生成树计算结果:}\n\\end{array}\n\n`
 
+    //显示原图图像
+    if (result.graphImageUrl) {
+        latexCode += `\\begin{array}{c}\n\\text{原图图像已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
+    }
+
     // 显示带权图的距离矩阵
     if (result.weightMatrix) {
       latexCode += `\\begin{array}{c}\n\\text{带权图的距离矩阵:}\n\\end{array}\n\n`
@@ -470,6 +475,60 @@ export const generateLaTeXCode = (result) => {
       }
     }
 
+  }
+
+  // 处理Huffman树构造结果
+  if (result.type === 'huffmanTree') {
+    latexCode += `\\begin{array}{c}\n\\text{哈夫曼树构造结果:}\n\\end{array}\n\n`
+
+    // 显示算法步骤
+    if (result.steps && result.steps.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{算法构造步骤:}\n\\end{array}\n\n`
+
+      result.steps.forEach(step => {
+        latexCode += `\\begin{array}{c}\n\\text{${step.prompt}}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n\\text{步骤${step.step}:} ${step.forestLaTeX}\n\\end{array}\n\n`
+
+        if (step.forestImageUrl) {
+          latexCode += `\\begin{array}{c}\n\\text{步骤${step.step}森林图已生成 (图片路径: ${step.forestImageUrl})}\n\\end{array}\n\n`
+        }
+      })
+    }
+
+    // 显示最终Huffman树
+    if (result.treeImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{最终构造结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{最终Huffman树图已生成 (图片路径: ${result.treeImageUrl})}\n\\end{array}\n\n`
+    }
+
+    // 显示总权值计算
+    if (result.totalWeightLaTeX) {
+      latexCode += `\\begin{array}{c}\n\\text{总权值计算:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.totalWeightLaTeX} = ${result.totalWeight}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{构造得到的Huffman树总权值是: ${result.totalWeight}}\n\\end{array}\n\n`
+    }
+
+    // 显示叶节点编码
+    if (result.leafCodes && Object.keys(result.leafCodes).length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{带权叶节点的编码如下:}\n\\end{array}\n\n`
+
+      Object.entries(result.leafCodes).forEach(([label, code], index) => {
+        if (index % 4 === 0) {
+          if (index > 0) {
+            latexCode += `\\\\\n`
+          }
+          latexCode += `\\begin{array}{cccc}\n`
+        }
+
+        latexCode += `${label} : ${code}`
+
+        if (index % 4 === 3 || index === Object.keys(result.leafCodes).length - 1) {
+          latexCode += `\n\\end{array}\n\n`
+        } else {
+          latexCode += ` & `
+        }
+      })
+    }
   }
 
   return latexCode

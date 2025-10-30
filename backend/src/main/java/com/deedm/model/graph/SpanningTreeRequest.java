@@ -9,7 +9,6 @@ public class SpanningTreeRequest {
     private boolean showDetails;
     private boolean showMatrix;
     private boolean showGraph;
-    private boolean showSpanningTreeGraph;
 
     // Getters and Setters
     public String getNodesString() {
