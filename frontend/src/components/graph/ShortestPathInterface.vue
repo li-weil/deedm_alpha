@@ -42,6 +42,7 @@
         </el-col>
       </el-row>
 
+  
       <!-- 第二行按钮：示例图 -->
       <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
@@ -91,12 +92,12 @@
       <el-row :gutter="20" style="margin-top: 1rem;">
         <el-col :span="6">
           <el-checkbox v-model="options.showMatrix" size="large">
-            显示带权图的矩阵表示
+            显示带权图的距离矩阵
           </el-checkbox>
         </el-col>
         <el-col :span="6">
           <el-checkbox v-model="options.showGraphVisualization" size="large">
-            显示图位置图示
+            给出图形化表示
           </el-checkbox>
         </el-col>
       </el-row>
@@ -104,7 +105,7 @@
 
     <!-- 图输入区域 -->
     <div class="graph-input-section">
-      <el-divider content-position="left">带权图的节点集和边集格式，其中节点集的格式说明是：{节点id(节点label), ..., 节点id(节点label)}；边集的格式说明是：{边label[权] = (节点id, , 节点id), ..., 边label[权] = (节点id, 节点id)}</el-divider>
+      <el-divider content-position="left">带权图的节点集和边集</el-divider>
       <el-row :gutter="20">
         <el-col :span="8">
           <div class="input-group">
@@ -175,19 +176,11 @@
         <el-divider content-position="left">带权图最短路径计算结果</el-divider>
         <div class="results-content">
           <div v-for="(result, index) in results" :key="index" class="result-item">
-            <!-- 基本信息 -->
-            <div class="result-basic">
-              <math-renderer
-                :formula="result.formula"
-                :type="'mathjax'"
-                :display-mode="true"
-                class="result-formula"
-              />
-            </div>
+
 
             <!-- 邻接矩阵 -->
             <div v-if="result.adjacencyMatrix" class="adjacency-matrix">
-              <h4>带权图的矩阵表示：</h4>
+              <h4>带权图的距离矩阵表示：</h4>
               <math-renderer
                 :formula="result.adjacencyMatrix"
                 :type="'mathjax'"
@@ -211,7 +204,7 @@
 
             <!-- 最短路径结果 -->
             <div v-if="result.shortestPaths && result.shortestPaths.length > 0" class="shortest-paths">
-              <h4>得到的最短路径结果距离如下：</h4>
+              <h4>得到的最短路径与最短距离如下：</h4>
               <div class="paths-grid">
                 <div v-for="path in result.shortestPaths" :key="path.target" class="path-item">
                   <math-renderer
@@ -336,6 +329,9 @@ const startExecution = async () => {
     }
 
     console.log('ShortestPathInterface: 开始计算最短路径', request)
+    console.log('ShortestPathInterface: 选项参数', options.value)
+    console.log('ShortestPathInterface: showGraphVisualization =', request.showGraphVisualization)
+    console.log('ShortestPathInterface: showPathGraph =', request.showPathGraph)
 
     const response = await callBackendApi('/shortest-path/calculate', {
       method: 'POST',
@@ -343,7 +339,6 @@ const startExecution = async () => {
     })
 
     console.log('ShortestPathInterface: 收到计算结果', response)
-
     if (response.success) {
       const result = {
         ...response,
@@ -383,13 +378,9 @@ const startExecution = async () => {
 
 const generateRandomGraph = async () => {
   try {
-    console.log('ShortestPathInterface: 开始生成随机带权图')
-
     const response = await callBackendApi('/shortest-path/generate', {
       method: 'GET'
     })
-
-    console.log('ShortestPathInterface: 随机带权图生成结果', response)
 
     if (response.success) {
       nodesInput.value = response.nodesString
@@ -492,8 +483,7 @@ const loadExample = (exampleKey) => {
     // 设置选项
     Object.assign(options.value, example.options)
 
-    console.log('ShortestPathInterface: 加载示例', exampleKey, example)
-    ElMessage.info(`已加载示例：${exampleKey}`)
+        ElMessage.info(`已加载示例：${exampleKey}`)
   }
 }
 

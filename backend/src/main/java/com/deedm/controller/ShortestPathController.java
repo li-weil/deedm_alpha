@@ -71,4 +71,5 @@ public class ShortestPathController {
             return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
-}
+
+    }

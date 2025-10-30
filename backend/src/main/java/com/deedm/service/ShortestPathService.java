@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Service
@@ -71,9 +73,13 @@ public class ShortestPathService {
                 response.setAdjacencyMatrix(matrix.toLaTeXString());
             }
 
-            // 生成原图可视化
+            // 生成原图可视化（独立于Dijkstra算法）
             if (request.isShowGraphVisualization()) {
-                String graphImageName = generateGraphImage(graph, "WeightedGraph");
+                WeightedGraph graphForVisualization = new WeightedGraph("GraphVisualization");
+                graphForVisualization.setNodes(nodeList);
+                graphForVisualization.setEdges(edgeList);
+
+                String graphImageName = generateGraphImage(graphForVisualization, "GraphVisualization");
                 if (graphImageName != null) {
                     response.setGraphImageUrl("/api/graph-travel/graph-image/" + graphImageName);
                 }
@@ -107,12 +113,27 @@ public class ShortestPathService {
                     response.setShortestPaths(paths);
                 }
 
-                // 生成路径图可视化
-                if (request.isShowPathGraph()) {
+                // 生成路径图可视化（需要先有最短路径结果）
+                if (request.isShowPathGraph() && pathList != null && !pathList.isEmpty()) {
                     WeightedGraph pathGraph = createPathGraph(nodeList, pathList);
                     String pathImageName = generateGraphImage(pathGraph, "ShortestPath");
                     if (pathImageName != null) {
                         response.setPathGraphImageUrl("/api/graph-travel/graph-image/" + pathImageName);
+                    }
+                }
+            }
+
+            // 如果没有执行Dijkstra算法但用户选择了显示最短路径图，需要单独执行
+            if (!request.isExecuteDijkstra() && request.isShowPathGraph()) {
+                // 执行Dijkstra算法获取最短路径
+                List<WeightedGraphPath> pathList = graph.dijkstra(startNode, null);
+
+                if (pathList != null && !pathList.isEmpty()) {
+                    WeightedGraph pathGraph = createPathGraph(nodeList, pathList);
+                    String pathImageName = generateGraphImage(pathGraph, "ShortestPath");
+                    if (pathImageName != null) {
+                        response.setPathGraphImageUrl("/api/graph-travel/graph-image/" + pathImageName);
+                        response.setShortestPaths(new ArrayList<>()); // 确保有shortestPaths字段
                     }
                 }
             }
@@ -186,31 +207,58 @@ public class ShortestPathService {
 
     private String generateGraphImage(WeightedGraph graph, String prefix) {
         try {
+            System.out.println("ShortestPathService: 开始生成图片 - prefix: " + prefix);
+
             String timestamp = String.valueOf(System.currentTimeMillis());
             String fileName = prefix + "_" + timestamp + ".png";
             String dotFileName = "./data/" + prefix + "_" + timestamp + ".dot";
             String pngFileName = "./data/" + fileName;
 
+            System.out.println("ShortestPathService: 创建文件 - dot: " + dotFileName + ", png: " + pngFileName);
+
             // 确保data目录存在
             File dataDir = new File("./data");
             if (!dataDir.exists()) {
+                System.out.println("ShortestPathService: 创建data目录");
                 dataDir.mkdirs();
             }
 
             PrintWriter writer = new PrintWriter(dotFileName);
             graph.simplyWriteToDotFile(writer);
             writer.close();
+            System.out.println("ShortestPathService: DOT文件写入完成");
+
+            // 修复DOT文件语法错误：移除结束大括号后的空行
+            try {
+                List<String> lines = Files.readAllLines(Paths.get(dotFileName));
+                // 移除最后的空行
+                while (lines.size() > 0 && lines.get(lines.size() - 1).trim().isEmpty()) {
+                    lines.remove(lines.size() - 1);
+                }
+                Files.write(Paths.get(dotFileName), lines);
+                System.out.println("ShortestPathService: DOT文件语法修复完成");
+            } catch (Exception e) {
+                System.err.println("ShortestPathService: 修复DOT文件时出错: " + e.getMessage());
+            }
 
             // 使用GraphViz生成图片
             ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", dotFileName, "-o", pngFileName);
             Process process = pb.start();
             int exitCode = process.waitFor();
 
-            if (exitCode == 0) {
+            System.out.println("ShortestPathService: GraphViz执行完成，退出码: " + exitCode);
+
+            // 检查文件是否实际生成，即使退出码不是0（GraphViz可能返回警告）
+            File imageFile = new File(pngFileName);
+            if (imageFile.exists() && imageFile.length() > 0) {
+                System.out.println("ShortestPathService: 图片生成成功: " + fileName + " (大小: " + imageFile.length() + " 字节, 退出码: " + exitCode + ")");
                 return fileName;
+            } else {
+                System.out.println("ShortestPathService: GraphViz执行失败，退出码: " + exitCode + ", 文件未生成");
             }
         } catch (Exception e) {
             System.err.println("生成图可视化失败: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }

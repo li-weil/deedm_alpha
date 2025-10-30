@@ -81,8 +81,9 @@ public class GraphTravelController {
     @GetMapping("/graph-image/{filename}")
     public ResponseEntity<Resource> getGraphImage(@PathVariable String filename) {
         try {
-            // 安全检查：只允许特定的文件名格式
-            if (!filename.matches("GRAPH_[a-f0-9]+\\.png")) {
+            // 安全检查：允许GRAPH_开头的图遍历文件和ShortestPath_、GraphVisualization_开头的最短路径文件
+            if (!filename.matches("GRAPH_[a-f0-9]+\\.png") &&
+                !filename.matches("(ShortestPath|GraphVisualization)_[0-9]+\\.png")) {
                 System.out.println("GraphTravelController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }

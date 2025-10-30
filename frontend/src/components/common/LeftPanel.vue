@@ -342,6 +342,72 @@
             </div>
           </div>
 
+          <!-- 显示原图可视化结果 -->
+          <div v-else-if="result.type === 'graph-visualization'" class="graph-visualization-result">
+            <h5 class="result-title">带权图图形化表示：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>图的基本信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 原图可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h6>原图可视化：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="带权图的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- 显示最短路径图结果 -->
+          <div v-else-if="result.type === 'path-visualization'" class="path-visualization-result">
+            <h5 class="result-title">最短路径图可视化：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>最短路径图信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div v-if="result.startNode" class="start-node-info">
+                <math-renderer
+                  :formula="`起始节点: ${result.startNode}`"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="start-node-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 最短路径图可视化 -->
+            <div v-if="result.pathGraphImageUrl" class="path-graph-visualization">
+              <h6>最短路径图：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.pathGraphImageUrl"
+                  alt="最短路径图的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+          </div>
+
           <!-- 显示最短路径计算结果 -->
           <div v-else-if="result.type === 'shortest-path'" class="shortest-path-result">
             <h5 class="result-title">带权图最短路径计算结果：</h5>
@@ -1238,6 +1304,33 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   border: 1px solid #dee2e6;
   border-left: 4px solid #fd7e14;
+}
+
+/* 原图可视化结果样式 */
+.graph-visualization-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #17a2b8;
+}
+
+/* 最短路径图可视化结果样式 */
+.path-visualization-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #6f42c1;
+}
+
+.visualization-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 h6 {
