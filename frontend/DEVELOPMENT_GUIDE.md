@@ -61,8 +61,8 @@ LeftPanel显示结果 + RightPanel显示LaTeX
 ## 🚀 新功能开发标准流程
 
 ### 步骤1：后端接口实现
-- **Controller层**: `/backend/src/main/java/com/deedm/controller/`
-- **Service层**: `/backend/src/main/java/com/deedm/service/`
+- **Controller层**: `/backend/src/main/java/com/deedm/controller/`对应的子目录板块中
+- **Service层**: `/backend/src/main/java/com/deedm/service/`对应的子目录板块中
 - 我已经手动完成了legacy代码迁移到`/home/admin-unix/Deedm/backend/src/main/java/com/deedm/legacy`
 
 ### 步骤2：前端子界面组件开发
@@ -72,7 +72,7 @@ LeftPanel显示结果 + RightPanel显示LaTeX
 **位置**: `/home/admin-unix/Deedm/frontend/src/components/common/LeftPanel.vue`
 - 在 `<div v-for="(result, index) in formulaResults">` 代码块下添加结果显示
 - 添加失败处理函数
-- 在 `<style scoped>` 添加简明样式
+- 在 `<style scoped>` 添加简明样式，样式和子界面保持一致
 
 ### 步骤4：更新latexGenerator.js
 **位置**: `/home/admin-unix/Deedm/frontend/src/utils/latexGenerator.js`
