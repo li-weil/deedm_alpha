@@ -207,26 +207,20 @@ public class ShortestPathService {
 
     private String generateGraphImage(WeightedGraph graph, String prefix) {
         try {
-            System.out.println("ShortestPathService: 开始生成图片 - prefix: " + prefix);
-
             String timestamp = String.valueOf(System.currentTimeMillis());
             String fileName = prefix + "_" + timestamp + ".png";
             String dotFileName = "./data/" + prefix + "_" + timestamp + ".dot";
             String pngFileName = "./data/" + fileName;
 
-            System.out.println("ShortestPathService: 创建文件 - dot: " + dotFileName + ", png: " + pngFileName);
-
             // 确保data目录存在
             File dataDir = new File("./data");
             if (!dataDir.exists()) {
-                System.out.println("ShortestPathService: 创建data目录");
                 dataDir.mkdirs();
             }
 
             PrintWriter writer = new PrintWriter(dotFileName);
             graph.simplyWriteToDotFile(writer);
             writer.close();
-            System.out.println("ShortestPathService: DOT文件写入完成");
 
             // 修复DOT文件语法错误：移除结束大括号后的空行
             try {
@@ -236,9 +230,8 @@ public class ShortestPathService {
                     lines.remove(lines.size() - 1);
                 }
                 Files.write(Paths.get(dotFileName), lines);
-                System.out.println("ShortestPathService: DOT文件语法修复完成");
             } catch (Exception e) {
-                System.err.println("ShortestPathService: 修复DOT文件时出错: " + e.getMessage());
+                System.err.println("修复DOT文件时出错: " + e.getMessage());
             }
 
             // 使用GraphViz生成图片
@@ -246,15 +239,10 @@ public class ShortestPathService {
             Process process = pb.start();
             int exitCode = process.waitFor();
 
-            System.out.println("ShortestPathService: GraphViz执行完成，退出码: " + exitCode);
-
             // 检查文件是否实际生成，即使退出码不是0（GraphViz可能返回警告）
             File imageFile = new File(pngFileName);
             if (imageFile.exists() && imageFile.length() > 0) {
-                System.out.println("ShortestPathService: 图片生成成功: " + fileName + " (大小: " + imageFile.length() + " 字节, 退出码: " + exitCode + ")");
                 return fileName;
-            } else {
-                System.out.println("ShortestPathService: GraphViz执行失败，退出码: " + exitCode + ", 文件未生成");
             }
         } catch (Exception e) {
             System.err.println("生成图可视化失败: " + e.getMessage());

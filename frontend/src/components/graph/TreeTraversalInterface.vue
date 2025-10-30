@@ -174,6 +174,19 @@
           <div v-for="(result, index) in results" :key="index" class="result-item">
             <!-- 基本信息 -->
 
+            <!-- 树形可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h4>树形可视化：</h4>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="树的可视化"
+                  class="graph-image"
+                  @error="handleImageError"
+                />
+              </div>
+            </div>
+            
             <!-- 矩阵显示 -->
             <div v-if="result.adjacencyMatrix || result.incidenceMatrix" class="matrices">
               <div v-if="result.adjacencyMatrix" class="matrix-item">
@@ -229,18 +242,7 @@
               />
             </div>
 
-            <!-- 树形可视化 -->
-            <div v-if="result.graphImageUrl" class="graph-visualization">
-              <h4>树形可视化：</h4>
-              <div class="graph-image-container">
-                <img
-                  :src="result.graphImageUrl"
-                  alt="树的可视化"
-                  class="graph-image"
-                  @error="handleImageError"
-                />
-              </div>
-            </div>
+
           </div>
         </div>
       </div>

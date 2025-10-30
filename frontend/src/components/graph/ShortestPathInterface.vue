@@ -66,7 +66,7 @@
       </el-row>
 
       <!-- 选项设置 -->
-      <el-divider content-position="left">选择进行的边图图计算</el-divider>
+      <el-divider content-position="left">选择展示的内容</el-divider>
       <el-row :gutter="20">
         <el-col :span="6">
           <el-checkbox v-model="options.executeDijkstra" size="large">
@@ -176,7 +176,18 @@
         <el-divider content-position="left">带权图最短路径计算结果</el-divider>
         <div class="results-content">
           <div v-for="(result, index) in results" :key="index" class="result-item">
-
+            <!-- 图形可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h4>图形化表示：</h4>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="带权图的可视化"
+                  class="graph-image"
+                  @error="handleImageError"
+                />
+              </div>
+            </div>
 
             <!-- 邻接矩阵 -->
             <div v-if="result.adjacencyMatrix" class="adjacency-matrix">
@@ -217,18 +228,7 @@
               </div>
             </div>
 
-            <!-- 图形可视化 -->
-            <div v-if="result.graphImageUrl" class="graph-visualization">
-              <h4>图位置图示：</h4>
-              <div class="graph-image-container">
-                <img
-                  :src="result.graphImageUrl"
-                  alt="带权图的可视化"
-                  class="graph-image"
-                  @error="handleImageError"
-                />
-              </div>
-            </div>
+
 
             <!-- 最短路径图 -->
             <div v-if="result.pathGraphImageUrl" class="path-graph-visualization">
@@ -328,17 +328,10 @@ const startExecution = async () => {
       ...options.value
     }
 
-    console.log('ShortestPathInterface: 开始计算最短路径', request)
-    console.log('ShortestPathInterface: 选项参数', options.value)
-    console.log('ShortestPathInterface: showGraphVisualization =', request.showGraphVisualization)
-    console.log('ShortestPathInterface: showPathGraph =', request.showPathGraph)
-
-    const response = await callBackendApi('/shortest-path/calculate', {
+  const response = await callBackendApi('/shortest-path/calculate', {
       method: 'POST',
       body: JSON.stringify(request)
     })
-
-    console.log('ShortestPathInterface: 收到计算结果', response)
     if (response.success) {
       const result = {
         ...response,

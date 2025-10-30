@@ -118,6 +118,7 @@
 
           <!-- 显示真值表 - 优先使用新的LaTeX表格格式 -->
           <div class="truth-table">
+            
             <!-- 如果有latexTable，使用MathRenderer渲染 -->
             <div v-if="result.tableData && result.tableData.latexTable" class="truth-table-container">
               <math-renderer
@@ -128,56 +129,7 @@
                 class="truth-table-content"
               />
             </div>
-            <!-- 保持原有的HTML表格作为后备 -->
-            <div v-else-if="result.tableData && result.tableData.headers" class="truth-table-legacy">
-              <table class="truth-table-html">
-                <thead>
-                  <tr>
-                    <th v-for="(header, headerIndex) in result.tableData.headers" :key="headerIndex" class="header-cell">
-                      <math-renderer
-                        :formula="cleanFormulaForDisplay(header)"
-                        :type="'katex'"
-                        :display-mode="false"
-                      />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, rowIndex) in result.tableData.rows" :key="rowIndex">
-                    <td v-for="(cell, cellIndex) in [...row.variableValues, row.resultValue]" :key="cellIndex" class="data-cell">
-                      <math-renderer
-                        :formula="cleanFormulaForDisplay(cell)"
-                        :type="'katex'"
-                        :display-mode="false"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <!-- 最终后备：显示原始truthTable字符串 -->
-            <div v-else-if="result.truthTable" class="truth-table-fallback">
-              <math-renderer
-                :formula="result.truthTable"
-                :type="'katex'"
-                :display-mode="true"
-                class="truth-table-content"
-              />
-            </div>
 
-            <!-- 显示真值计算结果 -->
-            <div v-else-if="result.truthValue !== undefined" class="truth-value-result">
-              <div class="truth-value-display">
-                <span class="truth-value-label">公式真值 = </span>
-                <el-tag
-                  :type="result.truthValue ? 'success' : 'danger'"
-                  size="large"
-                  class="truth-value-tag"
-                >
-                  {{ result.truthValue ? '1' : '0' }}
-                </el-tag>
-              </div>
-            </div>
           </div>
 
           <!-- 显示详细计算过程 -->
@@ -423,6 +375,19 @@
               />
             </div>
 
+            <!-- 原图可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h6>图形化表示：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="带权图的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+            
             <!-- 带权邻接矩阵 -->
             <div v-if="result.adjacencyMatrix" class="weight-matrix">
               <h6>带权图的矩阵表示 D：</h6>
@@ -462,18 +427,7 @@
               </div>
             </div>
 
-            <!-- 原图可视化 -->
-            <div v-if="result.graphImageUrl" class="graph-visualization">
-              <h6>图位置图示：</h6>
-              <div class="graph-image-container">
-                <img
-                  :src="result.graphImageUrl"
-                  alt="带权图的可视化"
-                  class="graph-image"
-                  @error="handleGraphImageError"
-                />
-              </div>
-            </div>
+
 
             <!-- 最短路径图可视化 -->
             <div v-if="result.pathGraphImageUrl" class="path-graph-visualization">
@@ -626,6 +580,19 @@
               />
             </div>
 
+            <!-- 树形可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h6>树形可视化：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="树的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+
             <!-- 矩阵显示 -->
             <div v-if="result.adjacencyMatrix || result.incidenceMatrix" class="matrices">
               <div v-if="result.adjacencyMatrix" class="matrix-item">
@@ -681,18 +648,6 @@
               />
             </div>
 
-            <!-- 树形可视化 -->
-            <div v-if="result.graphImageUrl" class="graph-visualization">
-              <h6>树形可视化：</h6>
-              <div class="graph-image-container">
-                <img
-                  :src="result.graphImageUrl"
-                  alt="树的可视化"
-                  class="graph-image"
-                  @error="handleGraphImageError"
-                />
-              </div>
-            </div>
           </div>
 
           </div>
@@ -969,13 +924,144 @@ const cleanFormulaForDisplay = (formula) => {
 /* 内容区域通用样式 */
 .syntax-content,
 .ast-content,
-.normal-form-results,
 .detailed-steps {
   margin: 1rem 0;
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 4px;
   border: 1px solid #e9ecef;
+}
+
+/* 范式结果容器样式 */
+.normal-form-results {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.normal-form-result {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.normal-form-result:hover {
+  background: #f5f7fa;
+  border-color: #d4d7dc;
+}
+
+.normal-form-result:last-child {
+  margin-bottom: 0;
+}
+
+.calculation-steps {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+}
+
+.calculation-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #6c757d;
+  transition: all 0.2s ease;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.calculation-step::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.calculation-step::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.calculation-step::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.calculation-step::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.calculation-step:hover {
+  background: #f1f3f4;
+  border-left-color: #495057;
+}
+
+.step-formula {
+  flex: 1;
+  font-size: 1rem;
+}
+
+.step-comment {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-style: italic;
+  background: #e9ecef;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.final-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  font-weight: 500;
+}
+
+.final-result strong {
+  color: #495057;
+  font-size: 1.05rem;
+}
+
+.pnf-result {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+.pcnf-result {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.pnf-title {
+  margin: 0 0 1rem 0;
+  color: #495057;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.pnf-result .math-renderer {
+  background: #ffffff;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
 }
 
 /* 特殊结果容器样式 */
@@ -989,6 +1075,46 @@ const cleanFormulaForDisplay = (formula) => {
 }
 
 /* 真值表样式 */
+.truth-table-title {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.truth-table-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1rem 0;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #fafafa;
+  margin: 1rem 0;
+}
+
+.truth-table-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.truth-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.truth-table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.truth-table-container::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.truth-table-content {
+  min-width: max-content;
+}
+
 .truth-table-html {
   width: 100%;
   border-collapse: collapse;
@@ -1136,10 +1262,193 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   border-left: 3px solid #409eff;
   font-size: 0.9em;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
 .step-formula {
   font-size: 0.9em;
+}
+
+/* 推理论证检查结果样式 */
+.reason-argument-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+.reasoning-overview {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.reasoning-overview::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.reasoning-overview::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.reasoning-overview::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.reasoning-overview::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.reasoning-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: #ffffff;
+  border-radius: 4px;
+  border-left: 3px solid #dddada;
+  transition: all 0.2s ease;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.reasoning-step::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.reasoning-step::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.reasoning-step::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.reasoning-step::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.reasoning-step:hover {
+  background: #f1f3f4;
+  border-left-color: #495057;
+}
+
+.step-number {
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-width: 30px;
+}
+
+.step-rule {
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-style: italic;
+  background: #e9ecef;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.check-process {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.check-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #6c757d;
+  transition: all 0.2s ease;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.check-step::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.check-step::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.check-step::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.check-step::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.check-step:hover {
+  background: #f1f3f4;
+  border-left-color: #495057;
+}
+
+.check-text {
+  color: #495057;
+  font-weight: 500;
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.check-result {
+  margin: 1.5rem 0;
+}
+
+.invalid-result {
+  margin-top: 1rem;
+}
+
+.counter-example {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.counter-example h5 {
+  margin: 0 0 0.5rem 0;
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.counter-example p {
+  margin: 0 0 0.75rem 0;
+  color: #6c757d;
+}
+
+.checking-formula {
+  padding: 0.75rem;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
 }
 
 .graph-visualization {
@@ -1180,10 +1489,10 @@ const cleanFormulaForDisplay = (formula) => {
 
 .root-info {
   margin: 1rem 0;
-  background: #e8f5e8;
+  background: #ffffff;
   padding: 0.75rem;
   border-radius: 4px;
-  border: 1px solid #c3e6cb;
+  border: 1px solid #dbd8d8;
 }
 
 .root-formula {
@@ -1202,17 +1511,7 @@ const cleanFormulaForDisplay = (formula) => {
   border: 1px solid #dee2e6;
 }
 
-.preorder-result {
-  border-left: 4px solid #409eff;
-}
 
-.inorder-result {
-  border-left: 4px solid #67c23a;
-}
-
-.postorder-result {
-  border-left: 4px solid #e6a23c;
-}
 
 /* 最短路径结果样式 */
 .shortest-path-result {
@@ -1244,7 +1543,6 @@ const cleanFormulaForDisplay = (formula) => {
   padding: 0.75rem;
   border-radius: 4px;
   border: 1px solid #dee2e6;
-  border-left: 4px solid #17a2b8;
 }
 
 .dijkstra-details {
@@ -1253,7 +1551,6 @@ const cleanFormulaForDisplay = (formula) => {
   padding: 0.75rem;
   border-radius: 4px;
   border: 1px solid #dee2e6;
-  border-left: 4px solid #6f42c1;
 }
 
 .algorithm-content {
@@ -1274,7 +1571,6 @@ const cleanFormulaForDisplay = (formula) => {
   padding: 0.75rem;
   border-radius: 4px;
   border: 1px solid #dee2e6;
-  border-left: 4px solid #28a745;
 }
 
 .paths-grid {
@@ -1290,6 +1586,8 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   border: 1px solid #c3e6cb;
   text-align: center;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
 .path-formula {
@@ -1303,7 +1601,6 @@ const cleanFormulaForDisplay = (formula) => {
   padding: 0.75rem;
   border-radius: 4px;
   border: 1px solid #dee2e6;
-  border-left: 4px solid #fd7e14;
 }
 
 /* 原图可视化结果样式 */

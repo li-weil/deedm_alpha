@@ -970,6 +970,13 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   border: 1px solid #ffeaa7;
 }
+.pcnf-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
 
 .pnf-title {
   margin: 0.5rem 0;
