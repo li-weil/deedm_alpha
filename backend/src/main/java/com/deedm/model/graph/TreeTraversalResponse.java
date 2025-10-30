@@ -3,6 +3,7 @@ package com.deedm.model.graph;
 public class TreeTraversalResponse {
     private boolean success;
     private String errorMessage;
+    private String type;
 
     // 树的基本信息
     private String formula;
@@ -47,6 +48,14 @@ public class TreeTraversalResponse {
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
         this.success = false;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getFormula() {

@@ -53,27 +53,75 @@ const handleWheel = (event) => {
   // 确保事件存在有效的内容引用
   if (!content.value) return
 
+  // 检查事件目标是否为textarea内部
+  const target = event.target
+  const isTextareaInner = target.closest('.el-textarea__inner')
+
+  // 如果在textarea内部且可以滚动，让textarea处理滚动
+  if (isTextareaInner) {
+    const textarea = target.closest('.el-textarea__inner')
+    if (textarea && textarea.scrollHeight > textarea.clientHeight) {
+      // 检查是否还有滚动空间
+      const canScrollUp = textarea.scrollTop > 0
+      const canScrollDown = textarea.scrollTop < textarea.scrollHeight - textarea.clientHeight
+
+      const delta = event.deltaY || event.detail || event.wheelDelta
+      const scrollDirection = delta > 0 ? 1 : -1
+
+      // 如果还有滚动空间，让textarea处理
+      if ((scrollDirection > 0 && canScrollDown) || (scrollDirection < 0 && canScrollUp)) {
+        return // 让textarea处理滚动
+      }
+    }
+  }
+
   // 阻止默认滚动行为和事件冒泡
-  if (event.preventDefault) {
-    event.preventDefault()
-  } else {
-    event.returnValue = false // IE兼容
-  }
+  event.preventDefault()
+  event.stopPropagation()
 
-  if (event.stopPropagation) {
-    event.stopPropagation()
-  } else {
-    event.cancelBubble = true // IE兼容
-  }
-
-  // 获取滚动增量
+  // 获取滚动增量，支持不同浏览器和设备
   const delta = event.deltaY || event.detail || event.wheelDelta
 
   // 根据不同浏览器处理滚动方向
-  const scrollDelta = delta > 0 ? 1 : -1
+  const scrollDirection = delta > 0 ? 1 : -1
 
-  // 执行滚动
-  content.value.scrollTop += scrollDelta * 40 // 40px每次滚动
+  // 动态计算滚动步长，考虑以下因素：
+  // 1. 基础步长
+  // 2. 滚动强度（delta值大小）
+  // 3. 系统滚动偏好（如果可用）
+  const baseStepSize = 30
+  const intensityMultiplier = Math.min(Math.abs(delta) / 100, 3) // 限制最大倍数
+  const stepSize = baseStepSize * (1 + intensityMultiplier * 0.5)
+
+  // 计算最终滚动距离
+  const scrollDistance = scrollDirection * stepSize
+
+  // 使用平滑滚动
+  const currentScrollTop = content.value.scrollTop
+  const targetScrollTop = currentScrollTop + scrollDistance
+
+  // 确保不超出边界
+  const maxScrollTop = content.value.scrollHeight - content.value.clientHeight
+  const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop))
+
+  // 使用requestAnimationFrame实现平滑滚动
+  if (content.value.smoothScrolling) {
+    // 如果正在滚动中，取消之前的滚动
+    cancelAnimationFrame(content.value.smoothScrolling)
+  }
+
+  const animateScroll = () => {
+    const distance = finalScrollTop - content.value.scrollTop
+    if (Math.abs(distance) > 1) {
+      content.value.scrollTop += distance * 0.2 // 平滑系数
+      content.value.smoothScrolling = requestAnimationFrame(animateScroll)
+    } else {
+      content.value.scrollTop = finalScrollTop
+      content.value.smoothScrolling = null
+    }
+  }
+
+  content.value.smoothScrolling = requestAnimationFrame(animateScroll)
 }
 
 // 处理清空按钮点击

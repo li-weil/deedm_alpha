@@ -262,12 +262,12 @@ export const generateLaTeXCode = (result) => {
   }
 
   // 处理图遍历结果
-  if (result.nodesString && result.edgesString) {
+  if (result.type === 'graph-travel') {
     latexCode += `\\begin{array}{c}\n\\text{图遍历分析结果:}\n\\end{array}\n\n`
 
-    // 显示图的基本信息
-    if (result.formula) {
-      latexCode += `\\begin{array}{c}\n\\text{图的基本信息:} ${result.formula}\n\\end{array}\n\n`
+    // 显示图形可视化信息
+    if (result.graphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{图形可视化已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
     }
 
     // 显示度数计算结果
@@ -328,25 +328,22 @@ export const generateLaTeXCode = (result) => {
       }
     }
 
-    // 显示图形可视化信息
-    if (result.graphImageUrl) {
-      latexCode += `\\begin{array}{c}\n\\text{图形可视化已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
-    }
+
   }
 
   // 处理树遍历结果
-  if (result.rootNode) {
+  if (result.type === 'tree-travel') {
     latexCode += `\\begin{array}{c}\n\\text{树遍历分析结果:}\n\\end{array}\n\n`
-
-    // 显示树的基本信息
-    if (result.formula) {
-      latexCode += `\\begin{array}{c}\n\\text{树的基本信息:} ${result.formula}\n\\end{array}\n\n`
-    }
-
+    
     // 显示根节点信息
     if (result.rootNode) {
       latexCode += `\\begin{array}{c}\n\\text{根节点:} ${result.rootNode}\n\\end{array}\n\n`
     }
+
+   // 显示树形可视化信息
+    if (result.graphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{树形可视化已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
+    }    
 
     // 显示邻接矩阵
     if (result.adjacencyMatrix) {
@@ -378,24 +375,21 @@ export const generateLaTeXCode = (result) => {
       latexCode += `\\begin{array}{c}\n遍历顺序: ${result.postorderResult.traversalOrder}\n\\end{array}\n\n`
     }
 
-    // 显示树形可视化信息
-    if (result.graphImageUrl) {
-      latexCode += `\\begin{array}{c}\n\\text{树形可视化已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
-    }
+ 
   }
 
   // 处理最短路径计算结果
-  if (result.startNode && (result.adjacencyMatrix || result.shortestPaths || result.dijkstraDetails)) {
+  if (result.type === 'shortest-path') {
     latexCode += `\\begin{array}{c}\n\\text{带权图最短路径计算结果:}\n\\end{array}\n\n`
-
-    // 显示图的基本信息
-    if (result.formula) {
-      latexCode += `\\begin{array}{c}\n\\text{带权图的基本信息:} ${result.formula}\n\\end{array}\n\n`
-    }
 
     // 显示起始节点
     if (result.startNode) {
       latexCode += `\\begin{array}{c}\n\\text{起始节点:} ${result.startNode}\n\\end{array}\n\n`
+    }
+
+    // 显示原图可视化信息
+    if (result.graphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{图位置图示已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
     }
 
     // 显示邻接矩阵（带权矩阵）
@@ -418,15 +412,64 @@ export const generateLaTeXCode = (result) => {
       })
     }
 
-    // 显示原图可视化信息
-    if (result.graphImageUrl) {
-      latexCode += `\\begin{array}{c}\n\\text{图位置图示已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
-    }
+
 
     // 显示最短路径图可视化信息
     if (result.pathGraphImageUrl) {
       latexCode += `\\begin{array}{c}\n\\text{最短路径图已生成 (图片路径: ${result.pathGraphImageUrl})}\n\\end{array}\n\n`
     }
+  }
+
+  // 处理最小生成树计算结果
+  if (result.type === 'spanning-tree') {
+    latexCode += `\\begin{array}{c}\n\\text{带权图最小生成树计算结果:}\n\\end{array}\n\n`
+
+    // 显示带权图的距离矩阵
+    if (result.weightMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{带权图的距离矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.weightMatrix}\n\\end{array}\n\n`
+    }
+
+    // 显示Kruskal算法结果
+    if (result.kruskalResult) {
+      latexCode += `\\begin{array}{c}\n\\text{Kruskal算法结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{使用Kruskal算法发现最小生成树（森林），总权重 = ${result.kruskalResult.totalWeight}}\n\\end{array}\n\n`
+
+      if (result.kruskalResult.edges) {
+        latexCode += `\\begin{array}{c}\n\\text{生成树的边集:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.kruskalResult.edges}\n\\end{array}\n\n`
+      }
+
+      if (result.kruskalResult.steps) {
+        latexCode += `\\begin{array}{c}\n\\text{算法计算过程:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.kruskalResult.steps}\n\\end{array}\n\n`
+      }
+
+      if (result.kruskalTreeImageUrl) {
+        latexCode += `\\begin{array}{c}\n\\text{Kruskal最小生成树图形已生成 (图片路径: ${result.kruskalTreeImageUrl})}\n\\end{array}\n\n`
+      }
+    }
+
+    // 显示Prim算法结果
+    if (result.primResult) {
+      latexCode += `\\begin{array}{c}\n\\text{Prim算法结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{使用Prim算法发现最小生成树（森林），总权重 = ${result.primResult.totalWeight}}\n\\end{array}\n\n`
+
+      if (result.primResult.edges) {
+        latexCode += `\\begin{array}{c}\n\\text{生成树的边集:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.primResult.edges}\n\\end{array}\n\n`
+      }
+
+      if (result.primResult.steps) {
+        latexCode += `\\begin{array}{c}\n\\text{算法计算过程:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.primResult.steps}\n\\end{array}\n\n`
+      }
+
+      if (result.primTreeImageUrl) {
+        latexCode += `\\begin{array}{c}\n\\text{Prim最小生成树图形已生成 (图片路径: ${result.primTreeImageUrl})}\n\\end{array}\n\n`
+      }
+    }
+
   }
 
   return latexCode

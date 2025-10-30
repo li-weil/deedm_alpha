@@ -652,7 +652,6 @@ const handleImageError = (event) => {
 <style scoped>
 .formula-syntax-interface {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .interface-header {

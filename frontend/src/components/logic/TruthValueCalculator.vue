@@ -459,7 +459,6 @@ const cleanFormulaForDisplay = (formula) => {
 <style scoped>
 .truth-value-calculator {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .page-title-section {

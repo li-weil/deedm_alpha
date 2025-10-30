@@ -504,7 +504,6 @@ const cleanFormulaForDisplay = (formula) => {
 <style scoped>
 .truth-table-constructor {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .button-section {

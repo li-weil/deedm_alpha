@@ -210,6 +210,7 @@ const onTreeTraversalResult = (result) => {
     const formattedResult = {
       index: props.formulaResults.length + 1,
       formula: result.formula || '树遍历分析',
+      type: result.type || 'tree-travel',
       rootNode: result.rootNode,
       adjacencyMatrix: result.adjacencyMatrix,
       incidenceMatrix: result.incidenceMatrix,

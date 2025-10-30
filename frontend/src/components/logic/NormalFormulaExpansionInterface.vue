@@ -443,7 +443,6 @@ const closeInterface = () => {
 <style scoped>
 .normal-form-expansion-interface {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .button-section {

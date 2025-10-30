@@ -708,7 +708,6 @@ const cleanFormulaForDisplay = (formula) => {
 <style scoped>
 .principal-normal-form-interface {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .button-section {

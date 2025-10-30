@@ -547,7 +547,6 @@ const closeInterface = () => {
 <style scoped>
 .reason-argument-check-interface {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .button-section {

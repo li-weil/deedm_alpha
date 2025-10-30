@@ -30,6 +30,7 @@ public class TreeTraversalService {
             }
 
             // 设置基本信息
+            response.setType("tree-travel");
             response.setNodesString(request.getNodesString());
             response.setEdgesString(request.getEdgesString());
             response.setRootString(request.getRootString());

@@ -802,7 +802,6 @@ const getFormulaTypeTag = (type) => {
 <style scoped>
 .truth-table-interface {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .button-section {

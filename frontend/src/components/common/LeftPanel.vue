@@ -446,6 +446,19 @@
           <!-- 显示图遍历结果 -->
           <div v-else-if="result.type === 'graph-travel'" class="graph-travel-result">
             <h5 class="result-title">图遍历分析结果：</h5>
+            <!-- 图形可视化 -->
+            <div v-if="result.graphImageUrl" class="graph-visualization">
+              <h6>图形可视化：</h6>
+              <div class="graph-image-container">
+                <img
+                  :src="result.graphImageUrl"
+                  alt="图的可视化"
+                  class="graph-image"
+                  @error="handleGraphImageError"
+                />
+              </div>
+            </div>
+
             <!-- 度数计算结果 -->
             <div v-if="result.nodeDegrees && result.nodeDegrees.length > 0" class="node-degrees">
               <h6>顶点度数：</h6>
@@ -551,18 +564,128 @@
               </div>
             </div>
 
-            <!-- 图形可视化 -->
+
+          </div>
+
+          <!-- 显示最小生成树计算结果 -->
+          <div v-else-if="result.type === 'spanning-tree'" class="spanning-tree-result">
+            <h5 class="result-title">带权图最小生成树计算结果：</h5>
+
+            <!-- 原图可视化 -->
             <div v-if="result.graphImageUrl" class="graph-visualization">
-              <h6>图形可视化：</h6>
+              <h6>原图可视化：</h6>
               <div class="graph-image-container">
                 <img
                   :src="result.graphImageUrl"
-                  alt="图的可视化"
+                  alt="原图的可视化"
                   class="graph-image"
                   @error="handleGraphImageError"
                 />
               </div>
             </div>
+            
+            <!-- 带权图的距离矩阵 -->
+            <div v-if="result.weightMatrix" class="weight-matrix">
+              <h6>带权图的距离矩阵：</h6>
+              <math-renderer
+                :formula="result.weightMatrix"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <!-- Kruskal算法结果 -->
+            <div v-if="result.kruskalResult" class="kruskal-result">
+              <h6>Kruskal算法结果：</h6>
+              <div class="algorithm-summary">
+                <math-renderer
+                  :formula="`使用Kruskal算法发现最小生成树（森林），总权重 = ${result.kruskalResult.totalWeight}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="summary-formula"
+                />
+              </div>
+
+              <div v-if="result.kruskalResult.edges" class="algorithm-edges">
+                <h6>生成树的边集：</h6>
+                <math-renderer
+                  :formula="result.kruskalResult.edges"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="edges-formula"
+                />
+              </div>
+
+              <div v-if="result.kruskalResult.steps" class="algorithm-steps">
+                <h6>算法计算过程：</h6>
+                <math-renderer
+                  :formula="result.kruskalResult.steps"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="steps-formula"
+                />
+              </div>
+
+              <div v-if="result.kruskalTreeImageUrl" class="tree-visualization">
+                <h6>Kruskal最小生成树图形：</h6>
+                <div class="tree-image-container">
+                  <img
+                    :src="result.kruskalTreeImageUrl"
+                    alt="Kruskal最小生成树"
+                    class="tree-image"
+                    @error="handleGraphImageError"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Prim算法结果 -->
+            <div v-if="result.primResult" class="prim-result">
+              <h6>Prim算法结果：</h6>
+              <div class="algorithm-summary">
+                <math-renderer
+                  :formula="`使用Prim算法发现最小生成树（森林），总权重 = ${result.primResult.totalWeight}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="summary-formula"
+                />
+              </div>
+
+              <div v-if="result.primResult.edges" class="algorithm-edges">
+                <h6>生成树的边集：</h6>
+                <math-renderer
+                  :formula="result.primResult.edges"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="edges-formula"
+                />
+              </div>
+
+              <div v-if="result.primResult.steps" class="algorithm-steps">
+                <h6>算法计算过程：</h6>
+                <math-renderer
+                  :formula="result.primResult.steps"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="steps-formula"
+                />
+              </div>
+
+              <div v-if="result.primTreeImageUrl" class="tree-visualization">
+                <h6>Prim最小生成树图形：</h6>
+                <div class="tree-image-container">
+                  <img
+                    :src="result.primTreeImageUrl"
+                    alt="Prim最小生成树"
+                    class="tree-image"
+                    @error="handleGraphImageError"
+                  />
+                </div>
+              </div>
+            </div>
+
+
           </div>
 
           <!-- 显示树遍历结果 -->
@@ -686,26 +809,53 @@ const handleWheel = (event) => {
   if (!content.value) return
 
   // 阻止默认滚动行为和事件冒泡
-  if (event.preventDefault) {
-    event.preventDefault()
-  } else {
-    event.returnValue = false // IE兼容
-  }
+  event.preventDefault()
+  event.stopPropagation()
 
-  if (event.stopPropagation) {
-    event.stopPropagation()
-  } else {
-    event.cancelBubble = true // IE兼容
-  }
-
-  // 获取滚动增量
+  // 获取滚动增量，支持不同浏览器和设备
   const delta = event.deltaY || event.detail || event.wheelDelta
 
   // 根据不同浏览器处理滚动方向
-  const scrollDelta = delta > 0 ? 1 : -1
+  // 现代浏览器deltaY向下为正值，wheelDelta向下为负值
+  const scrollDirection = delta > 0 ? 1 : -1
 
-  // 执行滚动
-  content.value.scrollTop += scrollDelta * 40 // 40px每次滚动
+  // 动态计算滚动步长，考虑以下因素：
+  // 1. 基础步长
+  // 2. 滚动强度（delta值大小）
+  // 3. 系统滚动偏好（如果可用）
+  const baseStepSize = 30
+  const intensityMultiplier = Math.min(Math.abs(delta) / 50, 5) // 限制最大倍数
+  const stepSize = baseStepSize * (1 + intensityMultiplier * 0.5)
+
+  // 计算最终滚动距离
+  const scrollDistance = scrollDirection * stepSize
+
+  // 使用平滑滚动
+  const currentScrollTop = content.value.scrollTop
+  const targetScrollTop = currentScrollTop + scrollDistance
+
+  // 确保不超出边界
+  const maxScrollTop = content.value.scrollHeight - content.value.clientHeight
+  const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop))
+
+  // 使用requestAnimationFrame实现平滑滚动
+  if (content.value.smoothScrolling) {
+    // 如果正在滚动中，取消之前的滚动
+    cancelAnimationFrame(content.value.smoothScrolling)
+  }
+
+  const animateScroll = () => {
+    const distance = finalScrollTop - content.value.scrollTop
+    if (Math.abs(distance) > 1) {
+      content.value.scrollTop += distance  // 平滑系数，和右面板保持一致
+      content.value.smoothScrolling = requestAnimationFrame(animateScroll)
+    } else {
+      content.value.scrollTop = finalScrollTop
+      content.value.smoothScrolling = null
+    }
+  }
+
+  content.value.smoothScrolling = requestAnimationFrame(animateScroll)
 }
 
 // 处理清空按钮点击
@@ -713,16 +863,6 @@ const handleClear = () => {
   emit('clear')
 }
 
-// 公式渲染完成回调
-const onFormulaRendered = () => {
-  console.log('Formula rendered successfully on left panel')
-}
-
-// 公式渲染错误回调
-const onFormulaError = (error) => {
-  console.error('Formula rendering error on left panel:', error)
-  ElMessage.error('公式渲染失败')
-}
 
 // AST图片加载成功处理
 const handleASTImageLoad = (event) => {
@@ -853,7 +993,6 @@ const cleanFormulaForDisplay = (formula) => {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  scroll-behavior: smooth;
 }
 
 .formula-display {
@@ -1221,6 +1360,78 @@ const cleanFormulaForDisplay = (formula) => {
 .matrix-formula {
   overflow-x: auto;
   font-size: 0.9em;
+}
+
+/* 最小生成树相关样式 */
+.spanning-tree-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 1rem;
+}
+
+.algorithm-summary {
+  margin: 1rem 0;
+}
+
+.summary-formula {
+  padding: 0.5rem;
+  background: #e3f2fd;
+  border-radius: 4px;
+  border: 1px solid #2196f3;
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.algorithm-edges {
+  margin: 1rem 0;
+}
+
+.edges-formula {
+  padding: 0.5rem;
+  background: #f1f8e9;
+  border-radius: 4px;
+  border: 1px solid #4caf50;
+  font-size: 0.9em;
+}
+
+.algorithm-steps {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.steps-formula {
+  padding: 0.75rem;
+  background: #fff3e0;
+  border-radius: 4px;
+  border: 1px solid #ff9800;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.tree-visualization {
+  margin: 1rem 0;
+}
+
+.tree-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f5f5f5;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  min-height: 80px;
+}
+
+.tree-image {
+  max-width: 100%;
+  height: auto;
+  max-height: 200px;
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  object-fit: contain;
 }
 
 .path-matrices {

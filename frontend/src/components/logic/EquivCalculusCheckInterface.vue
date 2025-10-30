@@ -377,7 +377,6 @@ const closeInterface = () => {
 <style scoped>
 .equiv-calculus-check-interface {
   max-height: 80vh;
-  overflow-y: auto;
 }
 
 .button-section {
