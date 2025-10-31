@@ -22,11 +22,10 @@
       :before-close="handleSetExprOperationClose"
       class="set-expr-operation-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showSetExprOperation = false">返回</el-button>
-        </el-empty>
-      </div>
+      <set-expr-operation-interface
+        @close="handleSetExprOperationClose"
+        @set-expr-operation-result="onSetExprOperationResult"
+      />
     </el-dialog>
 
     <!-- 单个关系运算界面模态框 -->
@@ -125,6 +124,7 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import SetOperationInterface from '@/components/setrelfun/SetOperationInterface.vue'
+import SetExprOperationInterface from '@/components/setrelfun/SetExprOperationInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -266,6 +266,31 @@ const onSetOperationResult = (result) => {
     ElMessage.success('集合运算结果已添加到主界面')
   } else {
     ElMessage.error(result?.errorMessage || '集合运算失败')
+  }
+}
+
+const onSetExprOperationResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到集合表达式运算结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '集合表达式运算分析',
+      type: result.type || 'setExpressionOperation',
+      result: result.result,
+      latexResult: result.latexResult,
+      index: result.index
+    }
+
+    // 使用 generateLaTeXCode 生成 LaTeX 字符串
+    const latexString = generateLaTeXCode(formattedResult)
+
+    // 发送结果到主界面
+    emit('set-expr-operation-result', { result: formattedResult, latexString })
+
+    ElMessage.success('集合表达式运算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '集合表达式运算失败')
   }
 }
 

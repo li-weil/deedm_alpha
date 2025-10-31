@@ -608,5 +608,20 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理集合表达式运算结果
+  if (result.type === 'setExpressionOperation') {
+    latexCode += `\\begin{array}{c}\n\\text{集合表达式运算结果:}\n\\end{array}\n\n`
+
+    // 显示输入集合与表达式信息
+    latexCode += `\\begin{array}{c}\n\\text{输入集合与表达式:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示表达式运算结果
+    if (result.latexResult) {
+      latexCode += `\\begin{array}{c}\n\\text{表达式运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{result} = ${result.latexResult}\n\\end{array}\n\n`
+    }
+  }
+
   return latexCode
 }

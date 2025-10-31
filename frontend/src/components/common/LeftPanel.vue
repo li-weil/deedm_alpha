@@ -298,6 +298,33 @@
             </div>
           </div>
 
+          <!-- 显示集合表达式运算结果 -->
+          <div v-else-if="result.type === 'setExpressionOperation'" class="set-expr-operation-result">
+            <h5 class="result-title">集合表达式运算结果：</h5>
+
+            <!-- 集合基本信息 -->
+            <div class="result-basic">
+              <h6>输入集合与表达式：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 表达式运算结果 -->
+            <div v-if="result.latexResult" class="operation-result">
+              <h6>表达式运算结果：</h6>
+              <math-renderer
+                :formula="`result = ${result.latexResult}`"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+          </div>
+
           <!-- 显示公式类型 -->
           <div v-if="result.formulaType" class="formula-type">
             <el-tag :type="getFormulaTypeTag(result.formulaType)" class="type-tag">
@@ -2277,6 +2304,44 @@ const cleanFormulaForDisplay = (formula) => {
 .set-operation-result .power-set-formula {
   margin: 0.5rem 0;
   font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+/* 集合表达式运算结果样式 */
+.set-expr-operation-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #17a2b8;
+}
+
+.set-expr-operation-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.set-expr-operation-result .operation-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.set-expr-operation-result .operation-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05rem;
   padding: 0.5rem;
   background: #f8f9fa;
   border-radius: 4px;
