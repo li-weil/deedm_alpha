@@ -325,6 +325,119 @@
             </div>
           </div>
 
+          <!-- 显示关系运算结果 -->
+          <div v-else-if="result.type === 'relationOperation'" class="relation-operation-result">
+            <h5 class="result-title">关系运算分析结果：</h5>
+
+            <!-- 集合和关系基本信息 -->
+            <div class="result-basic">
+              <h6>输入集合和关系：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 关系矩阵显示 -->
+            <div v-if="result.relationRMatrix" class="matrix-result">
+              <h6>关系R的矩阵：</h6>
+              <math-renderer
+                :formula="`M_R = ` + result.relationRMatrix"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <div v-if="result.relationSMatrix" class="matrix-result">
+              <h6>关系S的矩阵：</h6>
+              <math-renderer
+                :formula="`M_S = ` + result.relationSMatrix"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <!-- 关系交结果 -->
+            <div v-if="result.intersectionResult" class="operation-result">
+              <h6>关系交运算：</h6>
+              <math-renderer
+                :formula="`R \\cap S = ` + result.intersectionResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 关系并结果 -->
+            <div v-if="result.unionResult" class="operation-result">
+              <h6>关系并运算：</h6>
+              <math-renderer
+                :formula="`R \\cup S = ` + result.unionResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 关系差结果 -->
+            <div v-if="result.subtractResult" class="operation-result">
+              <h6>关系差运算：</h6>
+              <math-renderer
+                :formula="`R - S = ` + result.subtractResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 关系逆结果 -->
+            <div v-if="result.inverseRResult || result.inverseSResult" class="operation-result">
+              <h6>关系逆运算：</h6>
+              <div v-if="result.inverseRResult">
+                <math-renderer
+                  :formula="`R^{-1} = ` + result.inverseRResult"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+              <div v-if="result.inverseSResult">
+                <math-renderer
+                  :formula="`S^{-1} = ` + result.inverseSResult"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 关系复合结果 -->
+            <div v-if="result.compositeResult" class="operation-result">
+              <h6>关系复合运算：</h6>
+              <math-renderer
+                :formula="result.compositeResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 逆的复合结果 -->
+            <div v-if="result.invcompResult" class="operation-result">
+              <h6>逆的复合运算：</h6>
+              <math-renderer
+                :formula="result.invcompResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+          </div>
+
           <!-- 显示公式类型 -->
           <div v-if="result.formulaType" class="formula-type">
             <el-tag :type="getFormulaTypeTag(result.formulaType)" class="type-tag">
@@ -2340,6 +2453,54 @@ const cleanFormulaForDisplay = (formula) => {
 }
 
 .set-expr-operation-result .operation-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+/* 关系运算结果样式 */
+.relation-operation-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #6f42c1;
+}
+
+.relation-operation-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-operation-result .matrix-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-operation-result .operation-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-operation-result .matrix-formula,
+.relation-operation-result .operation-formula {
   margin: 0.5rem 0;
   font-size: 1.05rem;
   padding: 0.5rem;

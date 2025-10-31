@@ -36,11 +36,10 @@
       :before-close="handleRelationOperationClose"
       class="relation-operation-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showRelationOperation = false">返回</el-button>
-        </el-empty>
-      </div>
+      <relation-operation-interface
+        @close="handleRelationOperationClose"
+        @relation-operation-result="onRelationOperationResult"
+      />
     </el-dialog>
 
     <!-- 关系性质判断界面模态框 -->
@@ -125,6 +124,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import SetOperationInterface from '@/components/setrelfun/SetOperationInterface.vue'
 import SetExprOperationInterface from '@/components/setrelfun/SetExprOperationInterface.vue'
+import RelationOperationInterface from '@/components/setrelfun/RelationOperationInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -291,6 +291,46 @@ const onSetExprOperationResult = (result) => {
     ElMessage.success('集合表达式运算结果已添加到主界面')
   } else {
     ElMessage.error(result?.errorMessage || '集合表达式运算失败')
+  }
+}
+
+const onRelationOperationResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到关系运算结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '关系运算分析',
+      type: result.type || 'relationOperation',
+      setA: result.setA,
+      setB: result.setB,
+      setC: result.setC,
+      relationR: result.relationR,
+      relationS: result.relationS,
+      relationRLatex: result.relationRLatex,
+      relationSLatex: result.relationSLatex,
+      intersectionResult: result.intersectionResult,
+      unionResult: result.unionResult,
+      subtractResult: result.subtractResult,
+      inverseRResult: result.inverseRResult,
+      inverseSResult: result.inverseSResult,
+      compositeResult: result.compositeResult,
+      invcompResult: result.invcompResult,
+      relationRMatrix: result.relationRMatrix,
+      relationSMatrix: result.relationSMatrix,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用 generateLaTeXCode 生成 LaTeX 字符串
+    const latexString = generateLaTeXCode(formattedResult)
+
+    // 发送结果到主界面
+    emit('relation-operation-result', { result: formattedResult, latexString })
+
+    ElMessage.success('关系运算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '关系运算失败')
   }
 }
 

@@ -623,5 +623,66 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理关系运算结果
+  if (result.type === 'relationOperation') {
+    latexCode += `\\begin{array}{c}\n\\text{关系运算分析结果:}\n\\end{array}\n\n`
+
+    // 显示输入集合和关系信息
+    latexCode += `\\begin{array}{c}\n\\text{输入集合和关系:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示关系矩阵
+    if (result.relationRMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关系R的矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nM_R = ${result.relationRMatrix}\n\\end{array}\n\n`
+    }
+
+    if (result.relationSMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关系S的矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nM_S = ${result.relationSMatrix}\n\\end{array}\n\n`
+    }
+
+    // 显示关系交运算结果
+    if (result.intersectionResult) {
+      latexCode += `\\begin{array}{c}\n\\text{关系交运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nR \\cap S = ${result.intersectionResult}\n\\end{array}\n\n`
+    }
+
+    // 显示关系并运算结果
+    if (result.unionResult) {
+      latexCode += `\\begin{array}{c}\n\\text{关系并运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nR \\cup S = ${result.unionResult}\n\\end{array}\n\n`
+    }
+
+    // 显示关系差运算结果
+    if (result.subtractResult) {
+      latexCode += `\\begin{array}{c}\n\\text{关系差运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nR - S = ${result.subtractResult}\n\\end{array}\n\n`
+    }
+
+    // 显示关系逆运算结果
+    if (result.inverseRResult || result.inverseSResult) {
+      latexCode += `\\begin{array}{c}\n\\text{关系逆运算结果:}\n\\end{array}\n\n`
+      if (result.inverseRResult) {
+        latexCode += `\\begin{array}{c}\nR^{-1} = ${result.inverseRResult}\n\\end{array}\n\n`
+      }
+      if (result.inverseSResult) {
+        latexCode += `\\begin{array}{c}\nS^{-1} = ${result.inverseSResult}\n\\end{array}\n\n`
+      }
+    }
+
+    // 显示关系复合运算结果
+    if (result.compositeResult) {
+      latexCode += `\\begin{array}{c}\n\\text{关系复合运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.compositeResult}\n\\end{array}\n\n`
+    }
+
+    // 显示逆的复合运算结果
+    if (result.invcompResult) {
+      latexCode += `\\begin{array}{c}\n\\text{逆的复合运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.invcompResult}\n\\end{array}\n\n`
+    }
+  }
+
   return latexCode
 }

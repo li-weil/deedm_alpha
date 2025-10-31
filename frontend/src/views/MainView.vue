@@ -459,9 +459,9 @@ const onSetExprOperationResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '集合表达式运算结果已添加到主界面')
 }
 
-const onRelationOperationResult = (result) => {
-  console.log('关系运算结果:', result)
-  ElMessage.success('关系运算完成')
+const onRelationOperationResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到关系运算结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '关系运算结果已添加到主界面')
 }
 
 const onRelationPropertyResult = (result) => {
