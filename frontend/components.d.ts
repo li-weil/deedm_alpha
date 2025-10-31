@@ -46,6 +46,7 @@ declare module 'vue' {
     RightPanel: typeof import('./src/components/common/RightPanel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SetOperationInterface: typeof import('./src/components/setrelfun/SetOperationInterface.vue')['default']
     ShortestPathInterface: typeof import('./src/components/graph/ShortestPathInterface.vue')['default']
     SpanningTreeInterface: typeof import('./src/components/graph/SpanningTreeInterface.vue')['default']
     SpecialGraphInterface: typeof import('./src/components/graph/SpecialGraphInterface.vue')['default']

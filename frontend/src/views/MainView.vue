@@ -8,6 +8,8 @@
         :default-active="activeMenu"
         class="main-menu"
         @select="handleMenuSelect"
+        :collapse="isMobile"
+        @click.stop="handleMenuClick"
       >
         <!-- 命题逻辑(P)菜单 -->
         <el-sub-menu index="propositional-logic">
@@ -204,7 +206,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Tools, Connection, Histogram, Share, Notebook, QuestionFilled } from '@element-plus/icons-vue'
 
@@ -226,6 +228,7 @@ const activeMenu = ref('')
 const currentFormula = ref('\\forall x \\in S, P(x) \\rightarrow Q(x)')
 const latexCode = ref('')
 const formulaResults = ref([])
+const isMobile = ref(false)
 
 // 组件引用
 const propositionalLogicModalRef = ref(null)
@@ -234,12 +237,43 @@ const combinatoricsModalRef = ref(null)
 const graphTheoryModalRef = ref(null)
 const algebraStructureModalRef = ref(null)
 
+// 检测是否为移动端设备
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
+// 处理窗口大小变化
+const handleResize = () => {
+  checkMobile()
+}
+
+// 处理菜单点击事件（移动端优化）
+const handleMenuClick = (event) => {
+  // 在移动端，阻止菜单项点击后立即重新打开子菜单
+  if (isMobile.value) {
+    event.stopPropagation()
+    event.preventDefault()
+  }
+}
 
 // 处理菜单项点击
 const handleMenuSelect = (index) => {
   console.log('Selected menu item:', index)
   activeMenu.value = index
 
+  // 防止移动端重复触发菜单
+  if (isMobile.value) {
+    // 移动端延迟处理菜单，避免与子菜单关闭事件冲突
+    setTimeout(() => {
+      processMenuSelection(index)
+    }, 100)
+  } else {
+    processMenuSelection(index)
+  }
+}
+
+// 处理菜单选择的实际逻辑
+const processMenuSelection = (index) => {
   // 根据菜单项进行相应的处理和打开对应的模态框
   switch (index) {
     // 命题逻辑菜单项 - 打开对应的模态框
@@ -415,9 +449,9 @@ const onNormalFormulaExpansionResult = (data) => {
 }
 
 // 集合关系函数结果处理函数
-const onSetOperationResult = (result) => {
-  console.log('集合运算结果:', result)
-  ElMessage.success('集合运算完成')
+const onSetOperationResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到集合运算结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '集合运算结果已添加到主界面')
 }
 
 const onSetExprOperationResult = (result) => {
@@ -658,6 +692,12 @@ const showUsageDialog = () => {
 
 onMounted(() => {
   console.log('Main view mounted with new architecture')
+  checkMobile()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 

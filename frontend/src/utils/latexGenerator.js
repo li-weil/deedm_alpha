@@ -551,5 +551,62 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理集合运算结果
+  if (result.type === 'set-operation') {
+    latexCode += `\\begin{array}{c}\n\\text{集合运算分析结果:}\n\\end{array}\n\n`
+
+    // 显示输入集合信息
+    latexCode += `\\begin{array}{c}\n\\text{输入集合:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示交集结果
+    if (result.intersectionResult) {
+      latexCode += `\\begin{array}{c}\n\\text{交集运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.intersectionResult}\n\\end{array}\n\n`
+    }
+
+    // 显示并集结果
+    if (result.unionResult) {
+      latexCode += `\\begin{array}{c}\n\\text{并集运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.unionResult}\n\\end{array}\n\n`
+    }
+
+    // 显示差集结果
+    if (result.subtractResult) {
+      latexCode += `\\begin{array}{c}\n\\text{差集运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.subtractResult}\n\\end{array}\n\n`
+    }
+
+    // 显示补集结果
+    if (result.complementAResult || result.complementBResult) {
+      latexCode += `\\begin{array}{c}\n\\text{补集运算结果:}\n\\end{array}\n\n`
+      if (result.complementAResult) {
+        latexCode += `\\begin{array}{c}\n${result.complementAResult}\n\\end{array}\n\n`
+      }
+      if (result.complementBResult) {
+        latexCode += `\\begin{array}{c}\n${result.complementBResult}\n\\end{array}\n\n`
+      }
+    }
+
+    // 显示对称差结果
+    if (result.differenceResult) {
+      latexCode += `\\begin{array}{c}\n\\text{对称差运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.differenceResult}\n\\end{array}\n\n`
+    }
+
+    // 显示幂集结果
+    if (result.powerSetAResult && result.powerSetAResult.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{幂集运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{集合A的幂集:}\n\\wp(A) = \\{${result.powerSetAResult.join(', ')}\\}\n\\end{array}\n\n`
+    }
+
+    if (result.powerSetBResult && result.powerSetBResult.length > 0) {
+      if (!result.powerSetAResult || result.powerSetAResult.length === 0) {
+        latexCode += `\\begin{array}{c}\n\\text{幂集运算结果:}\n\\end{array}\n\n`
+      }
+      latexCode += `\\begin{array}{c}\n\\text{集合B的幂集:}\n\\wp(B) = \\{${result.powerSetBResult.join(', ')}\\}\n\\end{array}\n\n`
+    }
+  }
+
   return latexCode
 }

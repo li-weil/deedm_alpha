@@ -194,6 +194,110 @@
             </div>
           </div>
 
+          <!-- 显示集合运算结果 -->
+          <div v-else-if="result.type === 'set-operation'" class="set-operation-result">
+            <h5 class="result-title">集合运算分析结果：</h5>
+
+            <!-- 集合基本信息 -->
+            <div class="result-basic">
+              <h6>输入集合：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 交集结果 -->
+            <div v-if="result.intersectionResult" class="operation-result">
+              <h6>交集运算：</h6>
+              <math-renderer
+                :formula="result.intersectionResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 并集结果 -->
+            <div v-if="result.unionResult" class="operation-result">
+              <h6>并集运算：</h6>
+              <math-renderer
+                :formula="result.unionResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 差集结果 -->
+            <div v-if="result.subtractResult" class="operation-result">
+              <h6>差集运算：</h6>
+              <math-renderer
+                :formula="result.subtractResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 补集结果 -->
+            <div v-if="result.complementAResult || result.complementBResult" class="operation-result">
+              <h6>补集运算：</h6>
+              <div v-if="result.complementAResult">
+                <math-renderer
+                  :formula="result.complementAResult"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+              <div v-if="result.complementBResult">
+                <math-renderer
+                  :formula="result.complementBResult"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 对称差结果 -->
+            <div v-if="result.differenceResult" class="operation-result">
+              <h6>对称差运算：</h6>
+              <math-renderer
+                :formula="result.differenceResult"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+            </div>
+
+            <!-- 幂集结果 -->
+            <div v-if="result.powerSetAResult && result.powerSetAResult.length > 0" class="power-set-result">
+              <h6>幂集运算：</h6>
+              <div class="power-set-item">
+                <h6>集合A的幂集：</h6>
+                <math-renderer
+                  :formula="`\\wp(A) = \\{` + result.powerSetAResult.join(', ') + `\\}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="power-set-formula"
+                />
+              </div>
+              <div v-if="result.powerSetBResult && result.powerSetBResult.length > 0" class="power-set-item">
+                <h6>集合B的幂集：</h6>
+                <math-renderer
+                  :formula="`\\wp(B) = \\{` + result.powerSetBResult.join(', ') + `\\}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="power-set-formula"
+                />
+              </div>
+            </div>
+          </div>
+
           <!-- 显示公式类型 -->
           <div v-if="result.formulaType" class="formula-type">
             <el-tag :type="getFormulaTypeTag(result.formulaType)" class="type-tag">
@@ -2117,6 +2221,67 @@ const cleanFormulaForDisplay = (formula) => {
   border: 1px solid #e9ecef;
   margin-top: 1rem;
   border-left: 4px solid #6f42c1;
+}
+
+/* 集合运算结果样式 */
+.set-operation-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #28a745;
+}
+
+.set-operation-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.set-operation-result .operation-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.set-operation-result .operation-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.set-operation-result .power-set-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.set-operation-result .power-set-item {
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.set-operation-result .power-set-formula {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
 }
 
 .visualization-hint {

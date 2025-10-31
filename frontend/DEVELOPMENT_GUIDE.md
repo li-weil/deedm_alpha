@@ -26,8 +26,8 @@
 │ 功能组件层 (具体功能实现)                             │
 │ └── /components/                                   │
 │     ├── logic/ (命题逻辑)                            │
-│     ├── set/ (集合论)                               │
-│     ├── combinatorics/ (组合数学)                   │
+│     ├── setrelfun/ (集合论)                          │
+│     ├── count/ (组合数学)                           │
 │     ├── graph/ (图论)                              │
 │     └── algebra/ (代数结构)                         │
 ├─────────────────────────────────────────────────────┤
@@ -58,16 +58,17 @@ LeftPanel显示结果 + RightPanel显示LaTeX
 - 利用graphviz，结合原java应用实现，参考`/home/admin-unix/Deedm/backend/src/main/java/com/deedm/controller/GraphTravelController.java`，`/home/admin-unix/Deedm/backend/src/main/java/com/deedm/service/GraphTravelService.java`
 
 
-## 🚀 新功能开发标准流程
+## 🚀 新功能开发标准流程(集合关系函数(S)板块)
 
 ### 步骤1：后端接口实现
-- **Controller层**: `/backend/src/main/java/com/deedm/controller/`对应的子目录板块中
-- **Service层**: `/backend/src/main/java/com/deedm/service/`对应的子目录板块中
+- **Controller层**: `/backend/src/main/java/com/deedm/controller/setrelfun`对应的子目录板块中
+- **Service层**: `/backend/src/main/java/com/deedm/service/setrelfun`对应的子目录板块中
 - **Respose**要返回retule.type参数，用来在`/home/admin-unix/Deedm/frontend/src/utils/latexGenerator.js`中判断是哪一个子界面，进而完成latex代码生成逻辑
 - 我已经手动完成了legacy代码迁移到`/home/admin-unix/Deedm/backend/src/main/java/com/deedm/legacy`
 
 ### 步骤2：前端子界面组件开发
-**文件位置**: `/frontend/src/components/` 对应板块文件夹
+**文件位置**: `/frontend/src/components/setrelfun` 对应板块文件夹
+样式参考`/home/admin-unix/Deedm/frontend/src/components/graph/GraphTravelInterface.vue`
 
 ### 步骤3：更新LeftPanel.vue
 **位置**: `/home/admin-unix/Deedm/frontend/src/components/common/LeftPanel.vue`
@@ -81,7 +82,7 @@ LeftPanel显示结果 + RightPanel显示LaTeX
 
 
 ### 步骤5：更新学科View文件
-**位置**: `/home/admin-unix/Deedm/frontend/src/views/` 对应板块视图文件
+**位置**: `/home/admin-unix/Deedm/frontend/src/views/SetRelationFunctionView.vue` 对应板块视图文件
 - 在 `<div class="[domain]-modals">` 代码块下添加子界面模态框
 - 导入 `@/utils/latexGenerator.js` 组件
 - 导入子界面组件
@@ -95,8 +96,7 @@ LeftPanel显示结果 + RightPanel显示LaTeX
 具体实现参考`onEquivCalculusResult`
 - 函数名与次级界面保持一致
 
-### 下一步是图论板块开发
-以图论板块为例，对应文件是 `GraphTheoryView.vue`：
+
 
 所有板块参考已经实现的命题逻辑板块。
 已经实现的命题逻辑板块子界面在`/home/admin-unix/Deedm/frontend/src/components/logic`

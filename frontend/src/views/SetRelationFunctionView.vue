@@ -8,11 +8,10 @@
       :before-close="handleSetOperationClose"
       class="set-operation-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showSetOperation = false">返回</el-button>
-        </el-empty>
-      </div>
+      <set-operation-interface
+        @close="handleSetOperationClose"
+        @set-operation-result="onSetOperationResult"
+      />
     </el-dialog>
 
     <!-- 集合表达式运算界面模态框 -->
@@ -125,6 +124,8 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import SetOperationInterface from '@/components/setrelfun/SetOperationInterface.vue'
+import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
 const props = defineProps({
@@ -231,6 +232,43 @@ const handleFunctionClose = () => {
   showFunction.value = false
 }
 
+// 处理单个集合运算结果
+const onSetOperationResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到集合运算结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '集合运算分析',
+      type: result.type || 'set-operation',
+      setU: result.setU,
+      setA: result.setA,
+      setB: result.setB,
+      intersectionResult: result.intersectionResult,
+      unionResult: result.unionResult,
+      subtractResult: result.subtractResult,
+      complementAResult: result.complementAResult,
+      complementBResult: result.complementBResult,
+      differenceResult: result.differenceResult,
+      powerSetAResult: result.powerSetAResult,
+      powerSetBResult: result.powerSetBResult,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    console.log('SetRelationFunctionView: 生成的LaTeX代码长度:', latexString?.length || 0)
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('set-operation-result', { result: formattedResult, latexString })
+
+    ElMessage.success('集合运算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '集合运算失败')
+  }
+}
+
 // 暴露方法给父组件
 defineExpose({
   openSetOperation,
@@ -245,9 +283,6 @@ defineExpose({
 </script>
 
 <style scoped>
-.set-relation-function-modals {
-  /* 不需要额外样式，只用于包装模态框 */
-}
 
 .coming-soon {
   padding: 3rem;
