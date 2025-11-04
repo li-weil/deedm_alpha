@@ -50,11 +50,10 @@
       :before-close="handleRelationPropertyClose"
       class="relation-property-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showRelationProperty = false">返回</el-button>
-        </el-empty>
-      </div>
+      <relation-property-interface
+        @close="handleRelationPropertyClose"
+        @relation-property-result="onRelationPropertyResult"
+      />
     </el-dialog>
 
     <!-- 关系闭包计算界面模态框 -->
@@ -125,6 +124,7 @@ import { ElMessage } from 'element-plus'
 import SetOperationInterface from '@/components/setrelfun/SetOperationInterface.vue'
 import SetExprOperationInterface from '@/components/setrelfun/SetExprOperationInterface.vue'
 import RelationOperationInterface from '@/components/setrelfun/RelationOperationInterface.vue'
+import RelationPropertyInterface from '@/components/setrelfun/RelationPropertyInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -331,6 +331,39 @@ const onRelationOperationResult = (result) => {
     ElMessage.success('关系运算结果已添加到主界面')
   } else {
     ElMessage.error(result?.errorMessage || '关系运算失败')
+  }
+}
+
+const onRelationPropertyResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到关系性质判断结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '关系性质判断分析',
+      type: result.type || 'relation-property',
+      setAString: result.setAString,
+      relationRString: result.relationRString,
+      intTypeElement: result.intTypeElement,
+      matrixString: result.matrixString,
+      graphImageUrl: result.graphImageUrl,
+      reflexiveResult: result.reflexiveResult,
+      irreflexiveResult: result.irreflexiveResult,
+      symmetricResult: result.symmetricResult,
+      antisymmetricResult: result.antisymmetricResult,
+      transitiveResult: result.transitiveResult,
+      ...result
+    }
+
+    const latexString = generateLaTeXCode(formattedResult)
+    emit('relation-property-result', {
+      result: formattedResult,
+      latexString: latexString
+    })
+
+    ElMessage.success('关系性质判断结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '关系性质判断失败')
   }
 }
 

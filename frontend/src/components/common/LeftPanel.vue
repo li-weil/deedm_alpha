@@ -298,6 +298,144 @@
             </div>
           </div>
 
+          <!-- 关系性质判断结果 -->
+          <div v-else-if="result.type === 'relation-property'" class="relation-property-result">
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>输入集合和关系：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 关系矩阵 -->
+            <div v-if="result.matrixString" class="matrix-result">
+              <h6>关系矩阵：</h6>
+              <math-renderer
+                :formula="result.matrixString"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <!-- 关系图 -->
+            <div v-if="result.graphImageUrl" class="graph-result">
+              <h6>关系图：</h6>
+              <div class="graph-image-container">
+                <img :src="result.graphImageUrl" alt="关系图" class="graph-image" />
+              </div>
+            </div>
+
+            <!-- 自反性结果 -->
+            <div v-if="result.reflexiveResult" class="property-result">
+              <h6>自反性分析：</h6>
+
+              <math-renderer
+                :formula="result.reflexiveResult.explanation"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="property-formula"
+              />
+              <div v-if="result.reflexiveResult.counterExample" class="counter-example">
+                <el-text type="danger" size="small">反例：</el-text>
+                <math-renderer
+                  :formula="result.reflexiveResult.counterExample"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="counter-example-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 反自反性结果 -->
+            <div v-if="result.irreflexiveResult" class="property-result">
+              <h6>反自反性分析：</h6>
+ 
+              <math-renderer
+                :formula="result.irreflexiveResult.explanation"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="property-formula"
+              />
+              <div v-if="result.irreflexiveResult.counterExample" class="counter-example">
+                <el-text type="danger" size="small">反例：</el-text>
+                <math-renderer
+                  :formula="result.irreflexiveResult.counterExample"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="counter-example-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 对称性结果 -->
+            <div v-if="result.symmetricResult" class="property-result">
+              <h6>对称性分析：</h6>
+  
+              <math-renderer
+                :formula="result.symmetricResult.explanation"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="property-formula"
+              />
+              <div v-if="result.symmetricResult.counterExample1" class="counter-example">
+                <el-text type="danger" size="small">反例：</el-text>
+                <math-renderer
+                  :formula="result.symmetricResult.counterExample1 + ' \\wedge ' + result.symmetricResult.counterExample2"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="counter-example-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 反对称性结果 -->
+            <div v-if="result.antisymmetricResult" class="property-result">
+              <h6>反对称性分析：</h6>
+    
+              <math-renderer
+                :formula="result.antisymmetricResult.explanation"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="property-formula"
+              />
+              <div v-if="result.antisymmetricResult.counterExample1" class="counter-example">
+                <el-text type="danger" size="small">反例：</el-text>
+                <math-renderer
+                  :formula="result.antisymmetricResult.counterExample1 + ' \\wedge ' + result.antisymmetricResult.counterExample2"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="counter-example-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 传递性结果 -->
+            <div v-if="result.transitiveResult" class="property-result">
+              <h6>传递性分析：</h6>
+
+              <math-renderer
+                :formula="result.transitiveResult.explanation"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="property-formula"
+              />
+              <div v-if="result.transitiveResult.counterExample1" class="counter-example">
+                <el-text type="danger" size="small">反例：</el-text>
+                <math-renderer
+                  :formula="result.transitiveResult.counterExample1 + ' \\wedge ' + result.transitiveResult.counterExample2 + ' \\wedge ' + result.transitiveResult.counterExample3"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="counter-example-formula"
+                />
+              </div>
+            </div>
+          </div>
+
           <!-- 显示集合表达式运算结果 -->
           <div v-else-if="result.type === 'setExpressionOperation'" class="set-expr-operation-result">
             <h5 class="result-title">集合表达式运算结果：</h5>
@@ -2421,6 +2559,121 @@ const cleanFormulaForDisplay = (formula) => {
   background: #f8f9fa;
   border-radius: 4px;
   border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+/* 关系性质判断结果样式 */
+.relation-property-result {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.relation-property-result .result-basic {
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.relation-property-result .result-basic h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.relation-property-result .result-formula {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-property-result .matrix-result,
+.relation-property-result .graph-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.relation-property-result .matrix-result h6,
+.relation-property-result .graph-result h6 {
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.relation-property-result .matrix-formula {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.relation-property-result .graph-image-container {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.relation-property-result .graph-image {
+  max-width: 100%;
+  height: auto;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.relation-property-result .property-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-property-result .property-result h6 {
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.relation-property-result .property-formula {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.relation-property-result .counter-example {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #fef2f2;
+  border-radius: 4px;
+  border: 1px solid #fecaca;
+}
+
+.relation-property-result .counter-example-formula {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  padding: 0.4rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #fecaca;
   overflow-x: auto;
 }
 

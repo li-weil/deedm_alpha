@@ -22,6 +22,8 @@ public class RelationOperationResponse {
     private String invcompResult;
     private String relationRMatrix;
     private String relationSMatrix;
+    private String relationRGraphImageUrl;
+    private String relationSGraphImageUrl;
     private String formula;
     private int index;
 
@@ -198,6 +200,22 @@ public class RelationOperationResponse {
 
     public void setRelationSMatrix(String relationSMatrix) {
         this.relationSMatrix = relationSMatrix;
+    }
+
+    public String getRelationRGraphImageUrl() {
+        return relationRGraphImageUrl;
+    }
+
+    public void setRelationRGraphImageUrl(String relationRGraphImageUrl) {
+        this.relationRGraphImageUrl = relationRGraphImageUrl;
+    }
+
+    public String getRelationSGraphImageUrl() {
+        return relationSGraphImageUrl;
+    }
+
+    public void setRelationSGraphImageUrl(String relationSGraphImageUrl) {
+        this.relationSGraphImageUrl = relationSGraphImageUrl;
     }
 
     public String getFormula() {

@@ -464,9 +464,9 @@ const onRelationOperationResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '关系运算结果已添加到主界面')
 }
 
-const onRelationPropertyResult = (result) => {
-  console.log('关系性质判断结果:', result)
-  ElMessage.success('关系性质判断完成')
+const onRelationPropertyResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到关系性质判断结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '关系性质判断结果已添加到主界面')
 }
 
 const onRelationClosureResult = (result) => {

@@ -96,7 +96,7 @@
         </el-col>
         <el-col :span="5">
           <el-checkbox v-model="options.invcomp" size="large">
-            逆的复合
+            逆关系复合
           </el-checkbox>
         </el-col>
         <el-col :span="5">
@@ -293,6 +293,21 @@
               />
             </div>
 
+            <!-- 关系图显示 -->
+            <div v-if="result.relationRGraphImageUrl" class="graph-result">
+              <h4>关系R的图：</h4>
+              <div class="graph-image-container">
+                <img :src="result.relationRGraphImageUrl" alt="关系R的图" class="graph-image" />
+              </div>
+            </div>
+
+            <div v-if="result.relationSGraphImageUrl" class="graph-result">
+              <h4>关系S的图：</h4>
+              <div class="graph-image-container">
+                <img :src="result.relationSGraphImageUrl" alt="关系S的图" class="graph-image" />
+              </div>
+            </div>
+
             <!-- 关系交结果 -->
             <div v-if="result.intersectionResult" class="operation-result">
               <h4>关系交运算：</h4>
@@ -469,14 +484,32 @@ const startCalculation = async () => {
 
     if (result.success) {
       results.value = [result]
+
+      // 添加成功反馈
+      feedback.value.push({
+        formula: result.formula,
+        type: 'success',
+        message: '关系运算完成'
+      })
+
       ElMessage.success('关系运算完成')
 
       // 发送结果给父组件
       emit('relation-operation-result', result)
     } else {
+      feedback.value.push({
+        formula: '关系运算失败',
+        type: 'error',
+        message: result.errorMessage || '关系运算失败'
+      })
       ElMessage.error(result.errorMessage || '关系运算失败')
     }
   } catch (error) {
+    feedback.value.push({
+      formula: '运算错误',
+      type: 'error',
+      message: `运算失败: ${error.message}`
+    })
     ElMessage.error('运算过程中发生错误: ' + error.message)
   }
 }
@@ -513,15 +546,26 @@ const generateRandomRelations = async () => {
       }
 
       feedback.value = [{
-        formula: result.message,
-        type: 'success'
+        formula: result.message || '随机关系生成完成',
+        type: 'success',
+        message: '已生成随机关系'
       }]
 
       ElMessage.success('随机关系生成完成')
     } else {
+      feedback.value.push({
+        formula: '生成失败',
+        type: 'error',
+        message: result.message || '生成随机关系失败'
+      })
       ElMessage.error(result.message || '生成随机关系失败')
     }
   } catch (error) {
+    feedback.value.push({
+      formula: '生成错误',
+      type: 'error',
+      message: `生成失败: ${error.message}`
+    })
     ElMessage.error('生成过程中发生错误: ' + error.message)
   }
 }
@@ -585,8 +629,9 @@ const checkInput = async () => {
     })
 
     feedback.value = [{
-      formula: result.message,
-      type: result.valid ? 'success' : 'warning'
+      formula: result.valid ? '输入验证通过' : '输入验证失败',
+      type: result.valid ? 'success' : 'warning',
+      message: result.message
     }]
 
     if (result.valid) {
@@ -595,6 +640,11 @@ const checkInput = async () => {
       ElMessage.warning('输入格式不正确，请检查')
     }
   } catch (error) {
+    feedback.value.push({
+      formula: '验证错误',
+      type: 'error',
+      message: `验证失败: ${error.message}`
+    })
     ElMessage.error('验证过程中发生错误: ' + error.message)
   }
 }
@@ -629,7 +679,8 @@ const loadExample = (exampleType) => {
 
     feedback.value = [{
       formula: '已加载例题6.8的数据',
-      type: 'info'
+      type: 'info',
+      message: '例题6.8：关系复合运算示例'
     }]
   } else if (exampleType === 'problem6_10') {
     setAInput.value = '{1, 2, 3, 4}'
@@ -656,7 +707,8 @@ const loadExample = (exampleType) => {
 
     feedback.value = [{
       formula: '已加载习题6.10的数据',
-      type: 'info'
+      type: 'info',
+      message: '习题6.10：关系性质判断示例'
     }]
   }
 }
@@ -665,6 +717,7 @@ const loadExample = (exampleType) => {
 const closeInterface = () => {
   emit('close')
 }
+
 </script>
 
 <style scoped>
@@ -764,43 +817,42 @@ const closeInterface = () => {
   margin-bottom: 2rem;
 }
 
-.feedback-content {
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  padding: 1rem;
-  background-color: #fafafa;
+.feedback-content,
+.results-content {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
-.feedback-item {
-  margin-bottom: 0.5rem;
+.feedback-item,
+.result-item {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.feedback-item:last-child,
+.result-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.feedback-formula,
+.result-formula {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  overflow-x: auto;
   padding: 0.5rem;
+  background: rgb(255, 255, 255);
   border-radius: 4px;
-  background-color: white;
-}
-
-.feedback-formula {
-  margin-bottom: 0.25rem;
+  border: 1px solid #dee2e6;
 }
 
 .feedback-message {
   font-size: 0.9rem;
-}
-
-.results-content {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  padding: 1rem;
-  background-color: #fafafa;
-}
-
-.result-item {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  border-radius: 4px;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
 }
 
 .result-basic,
@@ -822,9 +874,39 @@ const closeInterface = () => {
 .matrix-formula,
 .operation-formula {
   padding: 0.5rem;
-  background-color: #f8f9fa;
+  background-color: #ffffff;
   border-radius: 4px;
   border-left: 4px solid #409eff;
+  border: 1px solid #dee2e6;
+}
+
+/* 关系图样式 */
+.graph-result {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.graph-result h4 {
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.graph-image-container {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.graph-image {
+  max-width: 100%;
+  height: auto;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
 }
 
 /* 响应式设计 */

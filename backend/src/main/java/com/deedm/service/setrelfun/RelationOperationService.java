@@ -6,10 +6,15 @@ import com.deedm.legacy.setrelfun.Set;
 import com.deedm.legacy.setrelfun.Relation;
 import com.deedm.legacy.setrelfun.Matrix;
 import com.deedm.legacy.setrelfun.SetrelfunUtil;
+import com.deedm.legacy.util.GraphvizUtil;
+import com.deedm.legacy.graph.AbstractGraph;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.io.PrintWriter;
+import java.io.File;
 
 @Service
 public class RelationOperationService {
@@ -95,6 +100,19 @@ public class RelationOperationService {
                 response.setRelationSMatrix(matrixS.toLaTeXString());
             }
 
+            // 生成关系图
+            if (request.isUseGraph()) {
+                try {
+                    String relationRGraphUrl = generateRelationGraph(relationR, "RelationR_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8), request.isIntTypeElement());
+                    String relationSGraphUrl = generateRelationGraph(relationS, "RelationS_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8), request.isIntTypeElement());
+                    response.setRelationRGraphImageUrl(relationRGraphUrl);
+                    response.setRelationSGraphImageUrl(relationSGraphUrl);
+                } catch (Exception e) {
+                    System.err.println("关系图生成失败: " + e.getMessage());
+                    // 图形生成失败不影响其他功能
+                }
+            }
+
             // 执行各种运算
             performRelationOperations(relationR, relationS, rFromSet, rToSet, sFromSet, sToSet, request, response);
 
@@ -170,9 +188,9 @@ public class RelationOperationService {
             Set setB = Set.randomGenerateSubset(setA);
             Set setC = Set.randomGenerateSubset(setA);
 
-            // 生成默认关系
+            // 生成默认关系 - 确保两个关系有相同的源集合和目标集合，以便进行交、并、差运算
             Relation relationR = Relation.randomGenerate(setA, setB, 8);
-            Relation relationS = Relation.randomGenerate(setB, setC, 8);
+            Relation relationS = Relation.randomGenerate(setA, setB, 8);
 
             result.put("success", true);
             result.put("message", "随机关系生成完成");
@@ -183,8 +201,8 @@ public class RelationOperationService {
             result.put("relationS", relationS.toString());
             result.put("relationRFromSet", 0); // A
             result.put("relationRToSet", 1);   // B
-            result.put("relationSFromSet", 1); // B
-            result.put("relationSToSet", 2);   // C
+            result.put("relationSFromSet", 0); // A (改为相同源集合)
+            result.put("relationSToSet", 1);   // B (改为相同目标集合)
             result.put("intTypeElement", false);
 
         } catch (Exception e) {
@@ -316,6 +334,45 @@ public class RelationOperationService {
             if (invcompResult.length() > 0) {
                 response.setInvcompResult(invcompResult.toString());
             }
+        }
+    }
+
+    private String generateRelationGraph(Relation relation, String uniqueId, boolean intTypeElement) {
+        try {
+            // 检查Graphviz是否可用
+            if (!GraphvizUtil.isGraphvizAvailable()) {
+                System.err.println("Graphviz不可用，无法生成关系图");
+                return null;
+            }
+
+            // 生成DOT文件名和PNG文件名
+            String dotFileName = "./data/" + uniqueId + ".dot";
+            String pngFileName = "./data/" + uniqueId + ".png";
+
+            // 写入DOT文件
+            try (PrintWriter writer = new PrintWriter(dotFileName)) {
+                AbstractGraph graph = relation.getRelationGraph(intTypeElement);
+                graph.simplyWriteToDotFile(writer);
+            }
+
+            // 生成PNG文件
+            boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
+
+            if (success && new File(pngFileName).exists()) {
+                // 删除DOT文件，保留PNG文件
+                new File(dotFileName).delete();
+                return "/api/setrelfun/relation-operation/relation-image/" + uniqueId + ".png";
+            } else {
+                // 清理失败的文件
+                new File(dotFileName).delete();
+                new File(pngFileName).delete();
+                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                return null;
+            }
+
+        } catch (Exception e) {
+            System.err.println("生成关系图失败: " + e.getMessage());
+            return null;
         }
     }
 }

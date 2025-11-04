@@ -684,5 +684,75 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理关系性质判断结果
+  if (result.type === 'relation-property') {
+    latexCode += `\\begin{array}{c}\n\\text{关系性质判断分析结果:}\n\\end{array}\n\n`
+
+    // 显示输入集合和关系信息
+    latexCode += `\\begin{array}{c}\n\\text{输入集合和关系:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示关系矩阵
+    if (result.matrixString) {
+      latexCode += `\\begin{array}{c}\n\\text{关系矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.matrixString}\n\\end{array}\n\n`
+    }
+
+    // 显示关系图
+    if (result.graphImageUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{关系图已生成 (图片路径: ${result.graphImageUrl})}\n\\end{array}\n\n`
+    }
+
+    // 自反性分析
+    if (result.reflexiveResult) {
+      const reflexiveText = result.reflexiveResult.isReflexive ? '自反关系' : '不是自反关系'
+      latexCode += `\\begin{array}{c}\n\\text{自反性分析: ${reflexiveText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.reflexiveResult.explanation}\n\\end{array}\n\n`
+      if (result.reflexiveResult.counterExample) {
+        latexCode += `\\begin{array}{c}\n\\text{反例:} ${result.reflexiveResult.counterExample}\n\\end{array}\n\n`
+      }
+    }
+
+    // 反自反性分析
+    if (result.irreflexiveResult) {
+      const irreflexiveText = result.irreflexiveResult.isReflexive ? '反自反关系' : '不是反自反关系'
+      latexCode += `\\begin{array}{c}\n\\text{反自反性分析: ${irreflexiveText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.irreflexiveResult.explanation}\n\\end{array}\n\n`
+      if (result.irreflexiveResult.counterExample) {
+        latexCode += `\\begin{array}{c}\n\\text{反例:} ${result.irreflexiveResult.counterExample}\n\\end{array}\n\n`
+      }
+    }
+
+    // 对称性分析
+    if (result.symmetricResult) {
+      const symmetricText = result.symmetricResult.isSymmetric ? '对称关系' : '不是对称关系'
+      latexCode += `\\begin{array}{c}\n\\text{对称性分析: ${symmetricText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.symmetricResult.explanation}\n\\end{array}\n\n`
+      if (result.symmetricResult.counterExample1 && result.symmetricResult.counterExample2) {
+        latexCode += `\\begin{array}{c}\n\\text{反例:} ${result.symmetricResult.counterExample1} \\wedge ${result.symmetricResult.counterExample2}\n\\end{array}\n\n`
+      }
+    }
+
+    // 反对称性分析
+    if (result.antisymmetricResult) {
+      const antisymmetricText = result.antisymmetricResult.isSymmetric ? '反对称关系' : '不是反对称关系'
+      latexCode += `\\begin{array}{c}\n\\text{反对称性分析: ${antisymmetricText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.antisymmetricResult.explanation}\n\\end{array}\n\n`
+      if (result.antisymmetricResult.counterExample1 && result.antisymmetricResult.counterExample2) {
+        latexCode += `\\begin{array}{c}\n\\text{反例:} ${result.antisymmetricResult.counterExample1} \\wedge ${result.antisymmetricResult.counterExample2}\n\\end{array}\n\n`
+      }
+    }
+
+    // 传递性分析
+    if (result.transitiveResult) {
+      const transitiveText = result.transitiveResult.isTransitive ? '传递关系' : '不是传递关系'
+      latexCode += `\\begin{array}{c}\n\\text{传递性分析: ${transitiveText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.transitiveResult.explanation}\n\\end{array}\n\n`
+      if (result.transitiveResult.counterExample1 && result.transitiveResult.counterExample2 && result.transitiveResult.counterExample3) {
+        latexCode += `\\begin{array}{c}\n\\text{反例:} ${result.transitiveResult.counterExample1} \\wedge ${result.transitiveResult.counterExample2} \\wedge ${result.transitiveResult.counterExample3}\n\\end{array}\n\n`
+      }
+    }
+  }
+
   return latexCode
 }
