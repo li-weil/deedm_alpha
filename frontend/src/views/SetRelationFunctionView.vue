@@ -64,11 +64,10 @@
       :before-close="handleRelationClosureClose"
       class="relation-closure-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showRelationClosure = false">返回</el-button>
-        </el-empty>
-      </div>
+      <relation-closure-interface
+        @close="handleRelationClosureClose"
+        @relation-closure-result="onRelationClosureResult"
+      />
     </el-dialog>
 
     <!-- 等价关系计算界面模态框 -->
@@ -125,6 +124,7 @@ import SetOperationInterface from '@/components/setrelfun/SetOperationInterface.
 import SetExprOperationInterface from '@/components/setrelfun/SetExprOperationInterface.vue'
 import RelationOperationInterface from '@/components/setrelfun/RelationOperationInterface.vue'
 import RelationPropertyInterface from '@/components/setrelfun/RelationPropertyInterface.vue'
+import RelationClosureInterface from '@/components/setrelfun/RelationClosureInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -364,6 +364,38 @@ const onRelationPropertyResult = (result) => {
     ElMessage.success('关系性质判断结果已添加到主界面')
   } else {
     ElMessage.error(result?.errorMessage || '关系性质判断失败')
+  }
+}
+
+const onRelationClosureResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到关系闭包计算结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '关系闭包计算分析',
+      type: result.type || 'relation-closure',
+      setAString: result.setAString,
+      relationRString: result.relationRString,
+      intTypeElement: result.intTypeElement,
+      relationMatrix: result.relationMatrix,
+      relationGraphUrl: result.relationGraphUrl,
+      reflexiveClosureResult: result.reflexiveClosureResult,
+      symmetricClosureResult: result.symmetricClosureResult,
+      transitiveClosureResult: result.transitiveClosureResult,
+      equivalenceClosureResult: result.equivalenceClosureResult,
+      ...result
+    }
+
+    // 使用 generateLaTeXCode 生成 LaTeX 字符串
+    const latexString = generateLaTeXCode(formattedResult)
+
+    // 发送结果到主界面
+    emit('relation-closure-result', { result: formattedResult, latexString })
+
+    ElMessage.success('关系闭包计算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '关系闭包计算失败')
   }
 }
 

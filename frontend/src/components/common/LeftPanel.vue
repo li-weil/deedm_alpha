@@ -576,6 +576,158 @@
             </div>
           </div>
 
+          <!-- 显示关系闭包计算结果 -->
+          <div v-else-if="result.type === 'relation-closure'" class="relation-closure-result">
+            <h5 class="result-title">关系闭包计算结果：</h5>
+
+            <!-- 集合和关系基本信息 -->
+            <div class="result-basic">
+              <h6>输入集合和关系：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 关系矩阵显示 -->
+            <div v-if="result.relationMatrix" class="matrix-result">
+              <h6>关系R的矩阵：</h6>
+              <math-renderer
+                :formula="`M_R = ` + result.relationMatrix"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <!-- 关系图显示 -->
+            <div v-if="result.relationGraphUrl" class="graph-result">
+              <h6>关系R的关系图：</h6>
+              <div class="graph-image-container">
+                <img :src="result.relationGraphUrl" alt="关系图" class="graph-image" />
+              </div>
+            </div>
+
+            <!-- 自反闭包结果 -->
+            <div v-if="result.reflexiveClosureResult" class="closure-result">
+              <h6>自反闭包 r(R)：</h6>
+              <math-renderer
+                :formula="`r(R) = ` + result.reflexiveClosureResult.closureLaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+              <div v-if="result.reflexiveClosureResult.closureMatrix" class="matrix-result">
+                <h6>自反闭包矩阵：</h6>
+                <math-renderer
+                  :formula="`M_{r(R)} = ` + result.reflexiveClosureResult.closureMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="matrix-formula"
+                />
+              </div>
+              <div v-if="result.reflexiveClosureResult.closureGraphUrl" class="graph-result">
+                <h6>自反闭包关系图：</h6>
+                <div class="graph-image-container">
+                  <img :src="result.reflexiveClosureResult.closureGraphUrl" alt="自反闭包关系图" class="graph-image" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 对称闭包结果 -->
+            <div v-if="result.symmetricClosureResult" class="closure-result">
+              <h6>对称闭包 s(R)：</h6>
+              <math-renderer
+                :formula="`s(R) = ` + result.symmetricClosureResult.closureLaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+              <div v-if="result.symmetricClosureResult.closureMatrix" class="matrix-result">
+                <h6>对称闭包矩阵：</h6>
+                <math-renderer
+                  :formula="`M_{s(R)} = ` + result.symmetricClosureResult.closureMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="matrix-formula"
+                />
+              </div>
+              <div v-if="result.symmetricClosureResult.closureGraphUrl" class="graph-result">
+                <h6>对称闭包关系图：</h6>
+                <div class="graph-image-container">
+                  <img :src="result.symmetricClosureResult.closureGraphUrl" alt="对称闭包关系图" class="graph-image" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 传递闭包结果 -->
+            <div v-if="result.transitiveClosureResult" class="closure-result">
+              <h6>传递闭包 t(R) ({{ result.transitiveClosureResult.algorithmUsed }})：</h6>
+              <math-renderer
+                :formula="`t(R) = ` + result.transitiveClosureResult.closureLaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+              <div v-if="result.transitiveClosureResult.closureMatrix" class="matrix-result">
+                <h6>传递闭包矩阵：</h6>
+                <math-renderer
+                  :formula="`M_{t(R)} = ` + result.transitiveClosureResult.closureMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="matrix-formula"
+                />
+              </div>
+              <!-- 传递闭包详细计算过程 -->
+              <div v-if="result.transitiveClosureResult.detailMatrices && result.transitiveClosureResult.detailMatrices.length > 0" class="transitive-details">
+                <h6>传递闭包计算过程：</h6>
+                <div v-for="(matrix, index) in result.transitiveClosureResult.detailMatrices" :key="index" class="detail-step">
+                  <p class="step-description">{{ result.transitiveClosureResult.detailDescriptions[index] }}：</p>
+                  <math-renderer
+                    :formula="matrix"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="detail-matrix"
+                  />
+                </div>
+              </div>
+              <div v-if="result.transitiveClosureResult.closureGraphUrl" class="graph-result">
+                <h6>传递闭包关系图：</h6>
+                <div class="graph-image-container">
+                  <img :src="result.transitiveClosureResult.closureGraphUrl" alt="传递闭包关系图" class="graph-image" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 等价闭包结果 -->
+            <div v-if="result.equivalenceClosureResult" class="closure-result">
+              <h6>等价闭包 tsr(R)：</h6>
+              <math-renderer
+                :formula="`tsr(R) = ` + result.equivalenceClosureResult.closureLaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="operation-formula"
+              />
+              <div v-if="result.equivalenceClosureResult.closureMatrix" class="matrix-result">
+                <h6>等价闭包矩阵：</h6>
+                <math-renderer
+                  :formula="`M_{tsr(R)} = ` + result.equivalenceClosureResult.closureMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="matrix-formula"
+                />
+              </div>
+              <div v-if="result.equivalenceClosureResult.closureGraphUrl" class="graph-result">
+                <h6>等价闭包关系图：</h6>
+                <div class="graph-image-container">
+                  <img :src="result.equivalenceClosureResult.closureGraphUrl" alt="等价闭包关系图" class="graph-image" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- 显示公式类型 -->
           <div v-if="result.formulaType" class="formula-type">
             <el-tag :type="getFormulaTypeTag(result.formulaType)" class="type-tag">
@@ -2768,6 +2920,121 @@ const cleanFormulaForDisplay = (formula) => {
   align-items: center;
   justify-content: center;
   height: 100%;
+}
+
+/* 关系闭包计算结果样式 */
+.relation-closure-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #e83e8c;
+}
+
+.relation-closure-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-closure-result .matrix-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-closure-result .matrix-formula {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.relation-closure-result .graph-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-closure-result .graph-image-container {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.relation-closure-result .graph-image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.relation-closure-result .closure-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.relation-closure-result .operation-formula {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.relation-closure-result .transitive-details {
+  margin: 1rem 0;
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.relation-closure-result .detail-step {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.relation-closure-result .detail-step:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.relation-closure-result .step-description {
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.relation-closure-result .detail-matrix {
+  font-size: 0.85rem;
+  padding: 0.4rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
 }
 
 h6 {

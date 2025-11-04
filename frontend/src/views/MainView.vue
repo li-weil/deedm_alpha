@@ -469,9 +469,9 @@ const onRelationPropertyResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '关系性质判断结果已添加到主界面')
 }
 
-const onRelationClosureResult = (result) => {
-  console.log('关系闭包计算结果:', result)
-  ElMessage.success('关系闭包计算完成')
+const onRelationClosureResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到关系闭包计算结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '关系闭包计算结果已添加到主界面')
 }
 
 const onEquivalenceRelationResult = (result) => {

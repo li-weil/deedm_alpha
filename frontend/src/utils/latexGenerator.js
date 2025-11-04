@@ -754,5 +754,96 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理关系闭包计算结果
+  if (result.type === 'relation-closure') {
+    latexCode += `\\begin{array}{c}\n\\text{关系闭包计算结果:}\n\\end{array}\n\n`
+
+    // 显示输入集合和关系信息
+    latexCode += `\\begin{array}{c}\n\\text{输入集合和关系:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示关系矩阵
+    if (result.relationMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关系R的矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nM_R = ${result.relationMatrix}\n\\end{array}\n\n`
+    }
+
+    // 显示关系图
+    if (result.relationGraphUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{关系图已生成 (图片路径: ${result.relationGraphUrl})}\n\\end{array}\n\n`
+    }
+
+    // 自反闭包结果
+    if (result.reflexiveClosureResult) {
+      latexCode += `\\begin{array}{c}\n\\text{自反闭包计算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nr(R) = ${result.reflexiveClosureResult.closureLaTeX}\n\\end{array}\n\n`
+
+      if (result.reflexiveClosureResult.closureMatrix) {
+        latexCode += `\\begin{array}{c}\n\\text{自反闭包矩阵:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\nM_{r(R)} = ${result.reflexiveClosureResult.closureMatrix}\n\\end{array}\n\n`
+      }
+
+      if (result.reflexiveClosureResult.closureGraphUrl) {
+        latexCode += `\\begin{array}{c}\n\\text{自反闭包关系图已生成 (图片路径: ${result.reflexiveClosureResult.closureGraphUrl})}\n\\end{array}\n\n`
+      }
+    }
+
+    // 对称闭包结果
+    if (result.symmetricClosureResult) {
+      latexCode += `\\begin{array}{c}\n\\text{对称闭包计算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\ns(R) = ${result.symmetricClosureResult.closureLaTeX}\n\\end{array}\n\n`
+
+      if (result.symmetricClosureResult.closureMatrix) {
+        latexCode += `\\begin{array}{c}\n\\text{对称闭包矩阵:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\nM_{s(R)} = ${result.symmetricClosureResult.closureMatrix}\n\\end{array}\n\n`
+      }
+
+      if (result.symmetricClosureResult.closureGraphUrl) {
+        latexCode += `\\begin{array}{c}\n\\text{对称闭包关系图已生成 (图片路径: ${result.symmetricClosureResult.closureGraphUrl})}\n\\end{array}\n\n`
+      }
+    }
+
+    // 传递闭包结果
+    if (result.transitiveClosureResult) {
+      latexCode += `\\begin{array}{c}\n\\text{传递闭包计算结果 (${result.transitiveClosureResult.algorithmUsed}):}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nt(R) = ${result.transitiveClosureResult.closureLaTeX}\n\\end{array}\n\n`
+
+      if (result.transitiveClosureResult.closureMatrix) {
+        latexCode += `\\begin{array}{c}\n\\text{传递闭包矩阵:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\nM_{t(R)} = ${result.transitiveClosureResult.closureMatrix}\n\\end{array}\n\n`
+      }
+
+      // 传递闭包详细计算过程
+      if (result.transitiveClosureResult.detailMatrices && result.transitiveClosureResult.detailMatrices.length > 0) {
+        latexCode += `\\begin{array}{c}\n\\text{传递闭包详细计算过程:}\n\\end{array}\n\n`
+
+        result.transitiveClosureResult.detailMatrices.forEach((matrix, index) => {
+          const description = result.transitiveClosureResult.detailDescriptions[index] || `步骤${index + 1}`
+          latexCode += `\\begin{array}{c}\n\\text{${description}:}\n\\end{array}\n\n`
+          latexCode += `\\begin{array}{c}\n${matrix}\n\\end{array}\n\n`
+        })
+      }
+
+      if (result.transitiveClosureResult.closureGraphUrl) {
+        latexCode += `\\begin{array}{c}\n\\text{传递闭包关系图已生成 (图片路径: ${result.transitiveClosureResult.closureGraphUrl})}\n\\end{array}\n\n`
+      }
+    }
+
+    // 等价闭包结果
+    if (result.equivalenceClosureResult) {
+      latexCode += `\\begin{array}{c}\n\\text{等价闭包计算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\ntsr(R) = ${result.equivalenceClosureResult.closureLaTeX}\n\\end{array}\n\n`
+
+      if (result.equivalenceClosureResult.closureMatrix) {
+        latexCode += `\\begin{array}{c}\n\\text{等价闭包矩阵:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\nM_{tsr(R)} = ${result.equivalenceClosureResult.closureMatrix}\n\\end{array}\n\n`
+      }
+
+      if (result.equivalenceClosureResult.closureGraphUrl) {
+        latexCode += `\\begin{array}{c}\n\\text{等价闭包关系图已生成 (图片路径: ${result.equivalenceClosureResult.closureGraphUrl})}\n\\end{array}\n\n`
+      }
+    }
+  }
+
   return latexCode
 }
