@@ -22,11 +22,10 @@
       :before-close="handleExprCalculatorClose"
       class="expr-calculator-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showExprCalculator = false">返回</el-button>
-        </el-empty>
-      </div>
+      <expression-calculator-interface
+        @close="handleExprCalculatorClose"
+        @expression-calculator-result="onExpressionCalculatorResult"
+      />
     </el-dialog>
 
     <!-- 递归表达式计算界面模态框 -->
@@ -155,6 +154,7 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import CombCalculatorInterface from '@/components/counting/CombCalculatorInterface.vue'
+import ExpressionCalculatorInterface from '@/components/counting/ExpressionCalculatorInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -298,6 +298,25 @@ const onCombCalculatorResult = (result) => {
     ElMessage.success('排列组合数计算结果已发送到主界面')
   } catch (error) {
     console.error('处理排列组合数计算结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
+const onExpressionCalculatorResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理组合表达式计算结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+
+    // 发送结果到主界面
+    emit('expression-calculator-result', result)
+    emit('update-current-formula', result.originalExpression || result.formula)
+    emit('update-latex-code', latexString)
+
+    ElMessage.success('组合表达式计算结果已发送到主界面')
+  } catch (error) {
+    console.error('处理组合表达式计算结果失败:', error)
     ElMessage.error('处理结果失败: ' + error.message)
   }
 }

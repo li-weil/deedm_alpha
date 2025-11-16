@@ -160,7 +160,7 @@
       :current-formula="currentFormula"
       :latex-code="latexCode"
       @comb-calculator-result="onCombCalculatorResult"
-      @expr-calculator-result="onExprCalculatorResult"
+      @expression-calculator-result="onExpressionCalculatorResult"
       @recu-expr-calculator-result="onRecuExprCalculatorResult"
       @count-string-result="onCountStringResult"
       @count-integer-result="onCountIntegerResult"
@@ -512,8 +512,14 @@ const onCombCalculatorResult = (result) => {
   ElMessage.success('排列组合数计算完成')
 }
 
-const onExprCalculatorResult = (result) => {
-  console.log('组合表达式计算结果:', result)
+const onExpressionCalculatorResult = (result) => {
+  console.log('MainView: 接收到组合表达式计算结果', result)
+
+  // 生成LaTeX代码
+  const latexString = generateLaTeXCode(result)
+
+  handleResultWithLatex(result, latexString, '组合表达式计算结果已添加到主界面')
+
   ElMessage.success('组合表达式计算完成')
 }
 

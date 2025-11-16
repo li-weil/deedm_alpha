@@ -1959,6 +1959,35 @@
             </div>
           </div>
 
+          <!-- 组合表达式计算结果 -->
+          <div v-else-if="result.type === 'expression_calculator'" class="expression-calculator-result">
+            <h5 class="result-title">组合表达式计算结果（第 {{ result.index }} 次计算）：</h5>
+
+            <!-- 原始表达式 -->
+            <div class="expression-info">
+              <h6>原始表达式：</h6>
+              <math-renderer
+                :formula="`\\text{表达式} = ${result.originalExpression}`"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="expression-formula"
+              />
+            </div>
+
+            <!-- 计算结果 -->
+            <div class="calculation-result">
+              <h6>计算结果：</h6>
+              <div class="result-item-content">
+                <math-renderer
+                  :formula="`${result.originalExpression} = ${result.result}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="result-formula-detail"
+                />
+              </div>
+            </div>
+          </div>
+
           </div>
       </div>
     </div>
@@ -3992,6 +4021,7 @@ h6 {
 
 .calculation-item {
   margin: 0.5rem 0;
+  overflow-x:auto;
 }
 
 .calculation-formula {
@@ -4010,13 +4040,61 @@ h6 {
   font-weight: 600;
 }
 
+.expression-calculator-result {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.expression-info,
+.calculation-result {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.expression-formula {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.result-item-content {
+  margin: 0.5rem 0;
+}
+
+.result-formula-detail {
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.expression-calculator-result h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .comb-calculator-result {
+  .comb-calculator-result,
+  .expression-calculator-result {
     padding: 1rem;
   }
 
-  .calculation-formula {
+  .calculation-formula,
+  .result-formula-detail {
     font-size: 0.9rem;
   }
 }

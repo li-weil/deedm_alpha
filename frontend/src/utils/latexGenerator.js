@@ -1066,5 +1066,17 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  if (result.type === 'expression_calculator') {
+    latexCode += `\\begin{array}{c}\n\\text{组合表达式计算结果（第 ${result.index} 次）:}\n\\end{array}\n\n`
+
+    // 显示原始表达式
+    latexCode += `\\begin{array}{c}\n\\text{原始表达式:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{表达式} = ${result.originalExpression}\n\\end{array}\n\n`
+
+    // 显示计算结果
+    latexCode += `\\begin{array}{c}\n\\text{计算结果:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.originalExpression} = ${result.result}\n\\end{array}\n\n`
+  }
+
   return latexCode
 }

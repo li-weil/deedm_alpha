@@ -37,6 +37,7 @@ declare module 'vue' {
     ElText: typeof import('element-plus/es')['ElText']
     EquivalenceInterface: typeof import('./src/components/setrelfun/EquivalenceInterface.vue')['default']
     EquivCalculusCheckInterface: typeof import('./src/components/logic/EquivCalculusCheckInterface.vue')['default']
+    ExpressionCalculatorInterface: typeof import('./src/components/counting/ExpressionCalculatorInterface.vue')['default']
     FormulaSyntaxInterface: typeof import('./src/components/logic/FormulaSyntaxInterface.vue')['default']
     FunctionPropertyInterface: typeof import('./src/components/setrelfun/FunctionPropertyInterface.vue')['default']
     GraphTravelInterface: typeof import('./src/components/graph/GraphTravelInterface.vue')['default']
