@@ -1144,5 +1144,49 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 整数计数结果处理
+  if (result.type === 'countInteger') {
+    latexCode += `\\begin{array}{c}\n\\text{整数计数分析结果:}\n\\end{array}\n\n`
+
+    // 基本信息
+    latexCode += `\\begin{array}{c}\n\\text{输入参数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    latexCode += `\\begin{array}{c}\n\\text{计数范围:} [${result.start}, ${result.end}]\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{总整数个数:} ${result.totalCount}\n\\end{array}\n\n`
+
+    // 过滤条件
+    latexCode += `\\begin{array}{c}\n\\text{过滤条件:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.filterDescription}\n\\end{array}\n\n`
+
+    // 统计结果
+    latexCode += `\\begin{array}{c}\n\\text{统计结果:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{满足条件的整数数:} ${result.acceptedCount}\n\\end{array}\n\n`
+
+    if (result.totalCount > 0) {
+      const percentage = ((result.acceptedCount / result.totalCount) * 100).toFixed(2)
+      latexCode += `\\begin{array}{c}\n\\text{占比:} ${percentage}\\% \n\\end{array}\n\n`
+    }
+
+    // 详细结果 - 按原Java应用风格显示每个整数
+    if (result.detailedResults && result.detailedResults.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{整数处理详情:}\n\\end{array}\n\n`
+
+      // 逐个显示每个整数的处理结果
+      latexCode += `\\begin{array}{l}\n`
+      for (let i = 0; i < result.detailedResults.length; i++) {
+        const detail = result.detailedResults[i]
+        const acceptMessage = detail.acceptMessage.replace(/\s+/g, '\\ ') // 替换空格为LaTeX空格
+        latexCode += `\\quad ${detail.index} : ${detail.value}, \\textrm{${acceptMessage}} \\\\\n`
+      }
+      latexCode += `\\end{array}\n\n`
+
+      // 如果有更多数据未显示，添加省略号
+      if (result.detailedResults.length < result.totalCount) {
+        latexCode += `\\begin{array}{c}\n\\vdots \\\\\n\\text{${result.totalCount - result.detailedResults.length} 个整数未显示}\n\\end{array}\n\n`
+      }
+    }
+  }
+
   return latexCode
 }

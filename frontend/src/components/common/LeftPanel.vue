@@ -2094,6 +2094,78 @@
             </div>
           </div>
 
+          <!-- 整数计数结果 -->
+          <div v-else-if="result.type === 'countInteger'" class="count-integer-result">
+            <h5 class="result-title">整数计数分析结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>输入参数：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div class="parameter-info">
+                <p><strong>计数范围：</strong> [{{ result.start }}, {{ result.end }}]</p>
+                <p><strong>总整数个数：</strong> {{ result.totalCount }}</p>
+                <div class="filter-condition">
+                  <strong>过滤条件：</strong>
+                  <math-renderer
+                    :formula="result.filterDescription"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="filter-formula"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 统计结果 -->
+            <div class="result-statistics">
+              <h6>统计结果：</h6>
+              <div class="statistics-grid">
+                <div class="stat-item">
+                  <span class="stat-label">满足条件的整数数：</span>
+                  <span class="stat-value">{{ result.acceptedCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">占比：</span>
+                  <span class="stat-value">{{ result.totalCount > 0 ? ((result.acceptedCount / result.totalCount * 100).toFixed(2) + '%') : '0%' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 详细结果 - 按原Java应用风格显示 -->
+            <div v-if="result.detailedResults && result.detailedResults.length > 0" class="result-details">
+              <h6>整数处理详情：</h6>
+              <div class="integer-processing-list">
+                <div v-for="(detail, index) in result.detailedResults" :key="index" class="integer-item">
+                  <math-renderer
+                    :formula="`${detail.index} : ${detail.value}, \\textrm{${detail.acceptMessage}}`"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="integer-formula"
+                  />
+                </div>
+
+                <!-- 显示省略标记 -->
+                <div v-if="result.detailedResults.length < result.totalCount" class="ellipsis-indicator">
+                  <math-renderer
+                    :formula="'\\vdots'"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="ellipsis-formula"
+                  />
+                  <el-text type="info" size="small" class="ellipsis-text">
+                    {{ result.totalCount - result.detailedResults.length }} 个整数未显示
+                  </el-text>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
       </div>
     </div>
@@ -2126,6 +2198,30 @@ const content = ref(null)
 
 // 处理鼠标滚轮事件
 const handleWheel = (event) => {
+  // 检查鼠标是否位于可滚动的内部元素上
+  const target = event.target
+  let isScrollableElement = false
+
+  // 检查目标元素或其父元素是否是可滚动的
+  let currentElement = target
+  while (currentElement && currentElement !== event.currentTarget) {
+    const computedStyle = window.getComputedStyle(currentElement)
+    const overflowY = computedStyle.overflowY
+    const overflow = computedStyle.overflow
+
+    if ((overflowY === 'scroll' || overflowY === 'auto' || overflow === 'scroll' || overflow === 'auto') &&
+        currentElement.scrollHeight > currentElement.clientHeight) {
+      isScrollableElement = true
+      break
+    }
+    currentElement = currentElement.parentElement
+  }
+
+  // 如果鼠标位于可滚动元素上，允许默认滚动行为
+  if (isScrollableElement) {
+    return // 不阻止默认行为，让内部元素处理滚动
+  }
+
   // 确保事件存在有效的内容引用
   if (!content.value) return
 
@@ -4367,6 +4463,162 @@ h6 {
 }
 
 .count-string-result h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.count-integer-result {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.count-integer-result .result-basic {
+  margin-bottom: 1rem;
+}
+
+.count-integer-result .parameter-info {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.count-integer-result .parameter-info p {
+  margin: 0.25rem 0;
+}
+
+.count-integer-result .parameter-info strong {
+  color: #374151;
+}
+
+.count-integer-result .filter-condition {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.count-integer-result .filter-formula {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.count-integer-result .result-statistics {
+  margin-bottom: 1rem;
+}
+
+.count-integer-result .statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.count-integer-result .stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.count-integer-result .stat-label {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.count-integer-result .stat-value {
+  font-weight: 600;
+  color: #059669;
+}
+
+.count-integer-result .result-details {
+  margin-top: 1rem;
+}
+
+.count-integer-result .integer-processing-list {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9rem;
+  max-height: 400px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+/* 确保滚动条样式正确显示 */
+.count-integer-result .integer-processing-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.count-integer-result .integer-processing-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.count-integer-result .integer-processing-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.count-integer-result .integer-processing-list::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.count-integer-result .integer-item {
+  padding: 0.25rem 0;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 确保鼠标悬停时显示工具提示 */
+.count-integer-result .integer-item:hover {
+  background: #f0f9ff;
+  border-radius: 2px;
+  padding: 0.25rem 0.25rem;
+}
+
+.count-integer-result .integer-formula {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+.count-integer-result .ellipsis-indicator {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.count-integer-result .ellipsis-formula {
+  margin-bottom: 0.25rem;
+}
+
+.count-integer-result .ellipsis-text {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.count-integer-result h6 {
   color: #374151;
   margin: 0.5rem 0;
   font-size: 1rem;

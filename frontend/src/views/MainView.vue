@@ -520,9 +520,13 @@ const onCountStringResult = (data) => {
   console.log('MainView: handleResultWithLatex 调用完成')
 }
 
-const onCountIntegerResult = (result) => {
-  console.log('整数计数结果:', result)
-  ElMessage.success('整数计数完成')
+const onCountIntegerResult = (data) => {
+  console.log('MainView: 接收到整数计数结果事件', data)
+  const { result, latexString } = data
+  console.log('MainView: 解构后的结果', { result, latexString })
+
+  handleResultWithLatex(result, latexString, '整数计数结果已添加到主界面')
+  console.log('MainView: handleResultWithLatex 调用完成')
 }
 
 const onCountSolverResult = (result) => {

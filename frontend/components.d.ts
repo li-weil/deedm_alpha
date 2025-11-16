@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     CombCalculatorInterface: typeof import('./src/components/counting/CombCalculatorInterface.vue')['default']
+    CountIntegerInterface: typeof import('./src/components/counting/CountIntegerInterface.vue')['default']
     CountStringInterface: typeof import('./src/components/counting/CountStringInterface.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']

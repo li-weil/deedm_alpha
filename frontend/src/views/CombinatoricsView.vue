@@ -64,11 +64,10 @@
       :before-close="handleCountIntegerClose"
       class="count-integer-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showCountInteger = false">返回</el-button>
-        </el-empty>
-      </div>
+      <count-integer-interface
+        @close="handleCountIntegerClose"
+        @count-integer-result="onCountIntegerResult"
+      />
     </el-dialog>
 
     <!-- 不定方程求解界面模态框 -->
@@ -155,6 +154,7 @@ import CombCalculatorInterface from '@/components/counting/CombCalculatorInterfa
 import ExpressionCalculatorInterface from '@/components/counting/ExpressionCalculatorInterface.vue'
 import RecursionExpressionInterface from '@/components/counting/RecursionExpressionInterface.vue'
 import CountStringInterface from '@/components/counting/CountStringInterface.vue'
+import CountIntegerInterface from '@/components/counting/CountIntegerInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -351,6 +351,27 @@ const onCountStringResult = (result) => {
     ElMessage.success('字符串计数结果已发送到主界面')
   } catch (error) {
     console.error('处理字符串计数结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
+const onCountIntegerResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理整数计数结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    console.log('CombinatoricsView: 生成LaTeX代码', latexString)
+
+    // 发送结果到主界面
+    const dataToSend = { result, latexString }
+    console.log('CombinatoricsView: 准备发送到MainView', dataToSend)
+    emit('count-integer-result', dataToSend)
+    console.log('CombinatoricsView: 已发送到MainView')
+
+    ElMessage.success('整数计数结果已发送到主界面')
+  } catch (error) {
+    console.error('处理整数计数结果失败:', error)
     ElMessage.error('处理结果失败: ' + error.message)
   }
 }
