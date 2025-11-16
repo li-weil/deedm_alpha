@@ -1,15 +1,18 @@
+/**
+ * 
+ */
 package com.deedm.legacy.counting;
 
 import java.math.BigInteger;
 
 /**
- * 排列组合数计算工具类
- * 支持大数运算，避免整数溢出
+ * @author user
+ *
  */
 public class CombCalculator {
-
+	
 	/**
-	 * Calculate x^y
+	 * Calculate x^y 
 	 */
 	public static int power(int x, int y) {
 		int result = 1;
@@ -17,19 +20,19 @@ public class CombCalculator {
 			result = result * x;
 			if (result <= 0) return -1;
 		}
-		return result;
+		return result; 
 	}
-
+	
 	/**
-	 * 支持大数计算Calculate x^y
+	 * ֧�ִ�����Calculate x^y 
 	 */
 	public static BigInteger powerBigInteger(BigInteger x, int y) {
 		BigInteger result = new BigInteger("0");
 		result = x.pow(y);
 		return result;
 	}
-
-
+	
+	
 	/**
 	 * Calculate n!
 	 */
@@ -42,9 +45,9 @@ public class CombCalculator {
 		}
 		return result;
 	}
-
+	
 	/**
-	 * 支持大数计算Calculate n!
+	 * ֧�ִ�����Calculate n! 
 	 */
 	public static BigInteger factorialBigInteger(int n) {
 		if (n == 0) return BigInteger.valueOf(1);
@@ -55,10 +58,10 @@ public class CombCalculator {
 		}
 		return result;
 	}
-
-
+	
+	
 	/**
-	 * Calculate C(n, m)
+	 * Calculate C(n, m) 
 	 */
 	public static int choose(int n, int m) {
 		if (n < m) return 0;
@@ -70,12 +73,12 @@ public class CombCalculator {
 			result = result * (n-i);
 			if (result < 0) return -1;
 		}
-		for (int i = 1; i <= m; i++) result = result / i;
+		for (int i = 1; i <= m; i++) result = result / i; 
 		return result;
 	}
-
+	
 	/**
-	 * 支持大数计算Calculate C(n, m)
+	 * ֧�ִ�����Calculate C(n, m) 
 	 */
 	public static BigInteger chooseBigInteger(int n, int m) {
 		if (m < 0 || n < 0) return BigInteger.valueOf(-1);
@@ -92,9 +95,9 @@ public class CombCalculator {
 		}
 		return result;
 	}
-
+	
 	/**
-	 * Calculate P(n, m)
+	 * Calculate P(n, m) 
 	 */
 	public static int permutation(int n, int m) {
 		if (n < m) return 0;
@@ -105,9 +108,9 @@ public class CombCalculator {
 		}
 		return result;
 	}
-
+	
 	/**
-	 * 支持大数计算Calculate P(n, m)
+	 * ֧�ִ�����Calculate P(n, m) 
 	 */
 	public static BigInteger permutationBigInteger(int n, int m) {
 		if (m < 0 || n < 0) return BigInteger.valueOf(-1);
@@ -117,5 +120,21 @@ public class CombCalculator {
 			result = result.multiply(BigInteger.valueOf(n-i));
 		}
 		return result;
+	}
+	
+	public static void main(String[] args) {
+		int n = 100;
+		int m = 51;
+		
+		System.out.println(n + "^" + m + " = " + power(n, m));
+		System.out.println(n + "! = " + factorial(n));
+		System.out.println("C(" + n + ", " + m + ") = " + choose(n, m));
+		System.out.println("P(" + n + ", " + m + ") = " + permutation(n, m));
+		System.out.println(powerBigInteger(BigInteger.valueOf(n), m));
+		System.out.println(factorialBigInteger(n));
+		System.out.println(chooseBigInteger(n, m));
+		System.out.println(permutationBigInteger(n, m));
+		
+
 	}
 }
