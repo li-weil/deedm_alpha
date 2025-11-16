@@ -2,34 +2,34 @@
 
 ## 📋 概述
 
-本文档描述了 Deemm 离散数学教学演示辅助工具的前端开发流程和架构规范。基于优化后的 Vue 3 + Element Plus 架构，为开发新功能提供完整的指导。
+本文档描述了 Deedm 离散数学教学演示辅助工具的前端开发流程和架构规范。基于优化后的 Vue 3 + Element Plus 架构，为开发新功能提供完整的指导。
 
 ## 🏗️ 架构概览
 
 ### 系统架构图
 ```
 ┌─────────────────────────────────────────────────────┐
-│ 主控制层 (MainView.vue)                             │
-│ ├── 顶部导航菜单 (下拉菜单配置)                         │
-│ ├── 左右分屏布局 (LeftPanel + RightPanel)           │
-│ ├── 模态框管理 (学科View组件)                        │
+│ 主控制层 (MainView.vue)                              │
+│ ├── 顶部导航菜单 (下拉菜单配置)                        │
+│ ├── 左右分屏布局 (LeftPanel + RightPanel)             │
+│ ├── 模态框管理 (学科View组件)                          │
 │ ├── 状态管理 (formulaResults, currentFormula等)       │
 │ └── 事件处理 (handleResultWithLatex等)                │
-├─────────────────────────────────────────────────────┤
-│ 学科视图层 (学科View组件)                             │
-│ ├── PropositionalLogicView.vue  已实现             │
+├───────────────────────────────────────────────────── ┤
+│ 学科视图层 (学科View组件)                              │
+│ ├── PropositionalLogicView.vue  已实现                │
 │ ├── SetRelationFunctionView.vue (集合关系函数)        │
-│ ├── CombinatoricsView.vue (组合计数)                 │
-│ ├── GraphTheoryView.vue (图与树)                     │
-│ └── AlgebraStructureView.vue (代数结构)              │
+│ ├── CombinatoricsView.vue (组合计数)                  │
+│ ├── GraphTheoryView.vue (图与树)                      │
+│ └── AlgebraStructureView.vue (代数结构)               │
 ├─────────────────────────────────────────────────────┤
 │ 功能组件层 (具体功能实现)                             │
-│ └── /components/                                   │
+│ └── /components/                                    │
 │     ├── logic/ (命题逻辑)                            │
 │     ├── setrelfun/ (集合论)                          │
-│     ├── count/ (组合数学)                           │
-│     ├── graph/ (图论)                              │
-│     └── algebra/ (代数结构)                         │
+│     ├── count/ (组合数学)                            │
+│     ├── graph/ (图论)                               │
+│     └── algebra/ (代数结构)                          │
 ├─────────────────────────────────────────────────────┤
 │ 通用组件层                                           │
 │ └── /components/common/                             │

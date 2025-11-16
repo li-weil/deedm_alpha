@@ -298,6 +298,172 @@
             </div>
           </div>
 
+          <!-- 等价关系计算结果 -->
+          <div v-else-if="result.type === 'equivalence-relation'" class="equivalence-relation-result">
+            <h5 class="result-title">等价关系分析结果：</h5>
+
+            <!-- 基本信息结果 -->
+            <div class="result-basic">
+              <h6>输入信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 关系性质分析结果 -->
+            <div class="properties-result">
+              <h6>关系性质分析：</h6>
+              <div class="property-item">
+                <el-tag :type="result.isReflexive ? 'success' : 'danger'" size="small">
+                  自反性: {{ result.isReflexive ? '是' : '否' }}
+                </el-tag>
+                <math-renderer
+                  v-if="result.reflexiveResult"
+                  :formula="result.reflexiveResult"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="property-formula"
+                />
+              </div>
+
+              <div class="property-item">
+                <el-tag :type="result.isSymmetric ? 'success' : 'danger'" size="small">
+                  对称性: {{ result.isSymmetric ? '是' : '否' }}
+                </el-tag>
+                <math-renderer
+                  v-if="result.symmetricResult"
+                  :formula="result.symmetricResult"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="property-formula"
+                />
+              </div>
+
+              <div class="property-item">
+                <el-tag :type="result.isTransitive ? 'success' : 'danger'" size="small">
+                  传递性: {{ result.isTransitive ? '是' : '否' }}
+                </el-tag>
+                <math-renderer
+                  v-if="result.transitiveResult"
+                  :formula="result.transitiveResult"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="property-formula"
+                />
+              </div>
+
+              <div class="property-item">
+                <el-tag :type="result.isEquivalenceRelation ? 'success' : 'warning'" size="small">
+                  等价关系: {{ result.isEquivalenceRelation ? '是' : '否' }}
+                </el-tag>
+              </div>
+            </div>
+
+            <!-- 关系矩阵结果 -->
+            <div v-if="result.relationMatrix" class="matrix-result">
+              <h6>关系矩阵：</h6>
+              <math-renderer
+                :formula="result.relationMatrix"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <!-- 关系图结果 -->
+            <div v-if="result.relationGraphUrl" class="graph-result">
+              <h6>关系图：</h6>
+              <div class="graph-image">
+                <el-image
+                  :src="result.relationGraphUrl"
+                  :preview-src-list="[result.relationGraphUrl]"
+                  fit="contain"
+                  style="max-width: 100%; max-height: 200px;"
+                >
+                  <template #error>
+                    <div class="image-error">
+                      <el-icon><Picture /></el-icon>
+                      <span>关系图加载失败</span>
+                    </div>
+                  </template>
+                </el-image>
+              </div>
+            </div>
+
+            <!-- 等价关系闭包结果 -->
+            <div v-if="result.equivalenceClosure" class="closure-result">
+              <h6>等价关系闭包（最小等价关系）：</h6>
+              <math-renderer
+                :formula="result.equivalenceClosure"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="closure-formula"
+              />
+
+              <div v-if="result.equivalenceClosureMatrix" class="closure-matrix">
+                <h6>闭包关系矩阵：</h6>
+                <math-renderer
+                  :formula="result.equivalenceClosureMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="matrix-formula"
+                />
+              </div>
+
+              <div v-if="result.equivalenceClosureGraphUrl" class="closure-graph">
+                <h6>闭包关系图：</h6>
+                <div class="graph-image">
+                  <el-image
+                    :src="result.equivalenceClosureGraphUrl"
+                    :preview-src-list="[result.equivalenceClosureGraphUrl]"
+                    fit="contain"
+                    style="max-width: 100%; max-height: 200px;"
+                  >
+                    <template #error>
+                      <div class="image-error">
+                        <el-icon><Picture /></el-icon>
+                        <span>闭包关系图加载失败</span>
+                      </div>
+                    </template>
+                  </el-image>
+                </div>
+              </div>
+            </div>
+
+            <!-- 等价类结果 -->
+            <div v-if="result.equivalenceClasses && result.equivalenceClasses.length > 0" class="classes-result">
+              <h6>等价类：</h6>
+              <div v-for="(eqClass, classIndex) in result.equivalenceClasses" :key="classIndex" class="class-item">
+                <math-renderer
+                  :formula="'[' + eqClass.element + ']_R'"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="class-title"
+                />
+                <math-renderer
+                  :formula="eqClass.equivalenceClassLaTeX"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="class-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 商集结果 -->
+            <div v-if="result.quotientSet" class="quotient-result">
+              <h6>商集：</h6>
+              <math-renderer
+                :formula="`A/R = ${result.quotientSet}`"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="quotient-formula"
+              />
+            </div>
+          </div>
+
           <!-- 关系性质判断结果 -->
           <div v-else-if="result.type === 'relation-property'" class="relation-property-result">
             <!-- 基本信息 -->
@@ -434,6 +600,195 @@
                 />
               </div>
             </div>
+          </div>
+
+          <!-- 偏序关系计算结果 -->
+          <div v-else-if="result.type === 'partial-order'" class="partial-order-result">
+            <h5 class="result-title">偏序关系分析结果：</h5>
+
+            <!-- 基本信息结果 -->
+            <div class="result-basic">
+              <h6>输入信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div v-if="result.setSString" class="subset-info">
+                <strong>子集S：</strong>
+                <math-renderer
+                  :formula="result.setSString"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                />
+              </div>
+            </div>
+
+            <!-- 偏序关系性质验证 -->
+            <div class="properties-result">
+              <h6>偏序关系性质验证：</h6>
+              <div class="property-item">
+                <el-tag :type="result.isReflexive ? 'success' : 'danger'" size="small">
+                  自反性: {{ result.isReflexive ? '是' : '否' }}
+                </el-tag>
+                <div class="property-text">{{ result.reflexiveResult }}</div>
+              </div>
+              <div class="property-item">
+                <el-tag :type="result.isAntisymmetric ? 'success' : 'danger'" size="small">
+                  反对称性: {{ result.isAntisymmetric ? '是' : '否' }}
+                </el-tag>
+                <div class="property-text">{{ result.antisymmetricResult }}</div>
+              </div>
+              <div class="property-item">
+                <el-tag :type="result.isTransitive ? 'success' : 'danger'" size="small">
+                  传递性: {{ result.isTransitive ? '是' : '否' }}
+                </el-tag>
+                <div class="property-text">{{ result.transitiveResult }}</div>
+              </div>
+              <div class="partial-order-verdict">
+                <el-tag :type="result.isPartialOrder ? 'success' : 'danger'" size="large">
+                  {{ result.isPartialOrder ? '是偏序关系' : '不是偏序关系' }}
+                </el-tag>
+              </div>
+            </div>
+
+            <!-- 关系矩阵 -->
+            <div v-if="result.relationMatrix" class="matrix-result">
+              <h6>关系矩阵：</h6>
+              <math-renderer
+                :formula="result.relationMatrix"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="matrix-formula"
+              />
+            </div>
+
+            <!-- 关系图和哈斯图 -->
+            <div v-if="result.relationGraphUrl || result.hasseDiagramUrl" class="graph-section">
+              <div v-if="result.relationGraphUrl" class="graph-result">
+                <h6>关系图：</h6>
+                <div class="graph-image">
+                  <el-image
+                    :src="result.relationGraphUrl"
+                    :preview-src-list="[result.relationGraphUrl]"
+                    fit="contain"
+                    style="max-width: 100%; max-height: 200px;"
+                  >
+                    <template #error>
+                      <div class="image-error">
+                        <el-icon><Picture /></el-icon>
+                        <span>关系图加载失败</span>
+                      </div>
+                    </template>
+                  </el-image>
+                </div>
+              </div>
+
+              <div v-if="result.hasseDiagramUrl" class="graph-result">
+                <h6>哈斯图：</h6>
+                <div class="graph-image">
+                  <el-image
+                    :src="result.hasseDiagramUrl"
+                    :preview-src-list="[result.hasseDiagramUrl]"
+                    fit="contain"
+                    style="max-width: 100%; max-height: 200px;"
+                  >
+                    <template #error>
+                      <div class="image-error">
+                        <el-icon><Picture /></el-icon>
+                        <span>哈斯图加载失败</span>
+                      </div>
+                    </template>
+                  </el-image>
+                </div>
+              </div>
+            </div>
+
+            <!-- 只有偏序关系才显示以下内容 -->
+            <template v-if="result.isPartialOrder">
+              <!-- 元素计算结果 -->
+              <div v-if="result.minimalElements || result.maximalElements || result.leastElement || result.greatestElement" class="element-calculation">
+                <h6>元素计算：</h6>
+                <div v-if="result.minimalElements" class="element-item">
+                  <strong>极小元：</strong>
+                  <math-renderer
+                    :formula="result.minimalElements"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="element-formula"
+                  />
+                </div>
+                <div v-if="result.maximalElements" class="element-item">
+                  <strong>极大元：</strong>
+                  <math-renderer
+                    :formula="result.maximalElements"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="element-formula"
+                  />
+                </div>
+                <div v-if="result.leastElement" class="element-item">
+                  <strong>最小元：</strong>
+                  <math-renderer
+                    :formula="result.leastElement"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="element-formula"
+                  />
+                </div>
+                <div v-if="result.greatestElement" class="element-item">
+                  <strong>最大元：</strong>
+                  <math-renderer
+                    :formula="result.greatestElement"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="element-formula"
+                  />
+                </div>
+              </div>
+
+              <!-- 界和确界计算结果（仅当提供了子集S时） -->
+              <div v-if="result.setSString && (result.lowerBounds || result.upperBounds || result.greatestLowerBound || result.leastUpperBound)" class="bound-calculation">
+                <h6>界和确界计算（子集S）：</h6>
+                <div v-if="result.lowerBounds" class="bound-item">
+                  <strong>下界：</strong>
+                  <math-renderer
+                    :formula="result.lowerBounds"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="bound-formula"
+                  />
+                </div>
+                <div v-if="result.upperBounds" class="bound-item">
+                  <strong>上界：</strong>
+                  <math-renderer
+                    :formula="result.upperBounds"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="bound-formula"
+                  />
+                </div>
+                <div v-if="result.greatestLowerBound" class="bound-item">
+                  <strong>最大下界：</strong>
+                  <math-renderer
+                    :formula="result.greatestLowerBound"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="bound-formula"
+                  />
+                </div>
+                <div v-if="result.leastUpperBound" class="bound-item">
+                  <strong>最小上界：</strong>
+                  <math-renderer
+                    :formula="result.leastUpperBound"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="bound-formula"
+                  />
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- 显示集合表达式运算结果 -->
@@ -1428,7 +1783,7 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Delete } from '@element-plus/icons-vue'
+import { Delete, Picture } from '@element-plus/icons-vue'
 import MathRenderer from '@/components/common/MathRenderer.vue'
 
 // 定义 props
@@ -2714,6 +3069,116 @@ const cleanFormulaForDisplay = (formula) => {
   overflow-x: auto;
 }
 
+/* 等价关系计算结果样式 */
+.equivalence-relation-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #17a2b8;
+}
+
+.equivalence-relation-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.equivalence-relation-result .properties-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.equivalence-relation-result .property-item {
+  margin: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.equivalence-relation-result .property-formula {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+.equivalence-relation-result .matrix-result,
+.equivalence-relation-result .closure-result,
+.equivalence-relation-result .classes-result,
+.equivalence-relation-result .quotient-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.equivalence-relation-result .matrix-formula,
+.equivalence-relation-result .closure-formula,
+.equivalence-relation-result .class-formula,
+.equivalence-relation-result .quotient-formula {
+  margin: 0;
+  font-size: 1rem;
+  padding: 0.5rem;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.equivalence-relation-result .class-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  line-height: 1.4;
+}
+
+.equivalence-relation-result .closure-matrix,
+.equivalence-relation-result .closure-graph {
+  margin-top: 0.75rem;
+}
+
+.equivalence-relation-result .graph-image {
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+.equivalence-relation-result .image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  background: #f5f5f5;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.equivalence-relation-result .class-item {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
 /* 关系性质判断结果样式 */
 .relation-property-result {
   margin-bottom: 1rem;
@@ -2884,6 +3349,152 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   border: 1px solid #dee2e6;
   overflow-x: auto;
+}
+
+/* 偏序关系结果样式 */
+.partial-order-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #fd7e14;
+}
+
+.partial-order-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.partial-order-result .subset-info {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #e3f2fd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.partial-order-result .properties-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.partial-order-result .property-item {
+  margin: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.partial-order-result .property-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-left: 0.5rem;
+}
+
+.partial-order-result .partial-order-verdict {
+  margin-top: 1rem;
+  text-align: center;
+  padding: 0.5rem;
+  background: #fff3cd;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
+
+.partial-order-result .matrix-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.partial-order-result .matrix-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.partial-order-result .graph-section {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.partial-order-result .graph-result {
+  margin: 0.5rem 0;
+}
+
+.partial-order-result .graph-image {
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.partial-order-result .image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.partial-order-result .element-calculation,
+.partial-order-result .bound-calculation {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.partial-order-result .element-item,
+.partial-order-result .bound-item {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.partial-order-result .element-formula,
+.partial-order-result .bound-formula {
+  font-size: 0.95rem;
+  overflow-x: auto;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .partial-order-result .property-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .partial-order-result .element-item,
+  .partial-order-result .bound-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 }
 
 .relation-operation-result .matrix-result {

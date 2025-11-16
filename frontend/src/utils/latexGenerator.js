@@ -608,6 +608,140 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理等价关系计算结果
+  if (result.type === 'equivalence-relation') {
+    latexCode += `\\begin{array}{c}\n\\text{等价关系分析结果:}\n\\end{array}\n\n`
+
+    // 显示输入信息
+    latexCode += `\\begin{array}{c}\n\\text{输入信息:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示关系性质分析结果
+    latexCode += `\\begin{array}{c}\n\\text{关系性质分析:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{自反性:} ${result.isReflexive ? '是' : '否'}\n\\end{array}\n\n`
+    if (result.reflexiveResult) {
+      latexCode += `\\begin{array}{c}\n${result.reflexiveResult}\n\\end{array}\n\n`
+    }
+    latexCode += `\\begin{array}{c}\n\\text{对称性:} ${result.isSymmetric ? '是' : '否'}\n\\end{array}\n\n`
+    if (result.symmetricResult) {
+      latexCode += `\\begin{array}{c}\n${result.symmetricResult}\n\\end{array}\n\n`
+    }
+    latexCode += `\\begin{array}{c}\n\\text{传递性:} ${result.isTransitive ? '是' : '否'}\n\\end{array}\n\n`
+    if (result.transitiveResult) {
+      latexCode += `\\begin{array}{c}\n${result.transitiveResult}\n\\end{array}\n\n`
+    }
+    latexCode += `\\begin{array}{c}\n\\text{等价关系:} ${result.isEquivalenceRelation ? '是' : '否'}\n\\end{array}\n\n`
+
+    // 显示关系矩阵
+    if (result.relationMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关系矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.relationMatrix}\n\\end{array}\n\n`
+    }
+
+    // 显示等价关系闭包
+    if (result.equivalenceClosure) {
+      latexCode += `\\begin{array}{c}\n\\text{等价关系闭包（最小等价关系）:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.equivalenceClosure}\n\\end{array}\n\n`
+
+      // 显示闭包关系矩阵
+      if (result.equivalenceClosureMatrix) {
+        latexCode += `\\begin{array}{c}\n\\text{闭包关系矩阵:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.equivalenceClosureMatrix}\n\\end{array}\n\n`
+      }
+    }
+
+    // 显示等价类
+    if (result.equivalenceClasses && result.equivalenceClasses.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{等价类:}\n\\end{array}\n\n`
+      result.equivalenceClasses.forEach(eqClass => {
+        latexCode += `\\begin{array}{c}\n[${eqClass.element}]_R = ${eqClass.equivalenceClassLaTeX}\n\\end{array}\n\n`
+      })
+    }
+
+    // 显示商集
+    if (result.quotientSet) {
+      latexCode += `\\begin{array}{c}\n\\text{商集:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nA/R = ${result.quotientSet}\n\\end{array}\n\n`
+    }
+  }
+
+  // 处理偏序关系计算结果
+  if (result.type === 'partial-order') {
+    latexCode += `\\begin{array}{c}\n\\text{偏序关系分析结果:}\n\\end{array}\n\n`
+
+    // 显示输入信息
+    latexCode += `\\begin{array}{c}\n\\text{输入信息:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示子集信息
+    if (result.setSString) {
+      latexCode += `\\begin{array}{c}\n\\text{子集S:} ${result.setSString}\n\\end{array}\n\n`
+    }
+
+    // 显示偏序关系性质验证
+    latexCode += `\\begin{array}{c}\n\\text{偏序关系性质验证:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{自反性:} ${result.isReflexive ? '是' : '否'}\n\\end{array}\n\n`
+    if (result.reflexiveResult) {
+      latexCode += `\\begin{array}{c}\n${result.reflexiveResult}\n\\end{array}\n\n`
+    }
+    latexCode += `\\begin{array}{c}\n\\text{反对称性:} ${result.isAntisymmetric ? '是' : '否'}\n\\end{array}\n\n`
+    if (result.antisymmetricResult) {
+      latexCode += `\\begin{array}{c}\n${result.antisymmetricResult}\n\\end{array}\n\n`
+    }
+    latexCode += `\\begin{array}{c}\n\\text{传递性:} ${result.isTransitive ? '是' : '否'}\n\\end{array}\n\n`
+    if (result.transitiveResult) {
+      latexCode += `\\begin{array}{c}\n${result.transitiveResult}\n\\end{array}\n\n`
+    }
+    latexCode += `\\begin{array}{c}\n\\text{偏序关系:} ${result.isPartialOrder ? '是' : '否'}\n\\end{array}\n\n`
+
+    // 显示关系矩阵
+    if (result.relationMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关系矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nM_R = ${result.relationMatrix}\n\\end{array}\n\n`
+    }
+
+    // 只有偏序关系才显示以下内容
+    if (result.isPartialOrder) {
+      // 显示元素计算结果
+      if (result.minimalElements) {
+        latexCode += `\\begin{array}{c}\n\\text{极小元:} ${result.minimalElements}\n\\end{array}\n\n`
+      }
+      if (result.maximalElements) {
+        latexCode += `\\begin{array}{c}\n\\text{极大元:} ${result.maximalElements}\n\\end{array}\n\n`
+      }
+      if (result.leastElement) {
+        latexCode += `\\begin{array}{c}\n\\text{最小元:} ${result.leastElement}\n\\end{array}\n\n`
+      }
+      if (result.greatestElement) {
+        latexCode += `\\begin{array}{c}\n\\text{最大元:} ${result.greatestElement}\n\\end{array}\n\n`
+      }
+
+      // 显示界和确界计算结果（仅当提供了子集S时）
+      if (result.setSString) {
+        if (result.lowerBounds) {
+          latexCode += `\\begin{array}{c}\n\\text{子集S的下界:} ${result.lowerBounds}\n\\end{array}\n\n`
+        }
+        if (result.upperBounds) {
+          latexCode += `\\begin{array}{c}\n\\text{子集S的上界:} ${result.upperBounds}\n\\end{array}\n\n`
+        }
+        if (result.greatestLowerBound) {
+          latexCode += `\\begin{array}{c}\n\\text{子集S的最大下界:} ${result.greatestLowerBound}\n\\end{array}\n\n`
+        }
+        if (result.leastUpperBound) {
+          latexCode += `\\begin{array}{c}\n\\text{子集S的最小上界:} ${result.leastUpperBound}\n\\end{array}\n\n`
+        }
+      }
+    }
+
+    // 显示图形信息
+    if (result.relationGraphUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{关系图已生成:} ${result.relationGraphUrl}\n\\end{array}\n\n`
+    }
+    if (result.hasseDiagramUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{哈斯图已生成:} ${result.hasseDiagramUrl}\n\\end{array}\n\n`
+    }
+  }
+
   // 处理集合表达式运算结果
   if (result.type === 'setExpressionOperation') {
     latexCode += `\\begin{array}{c}\n\\text{集合表达式运算结果:}\n\\end{array}\n\n`

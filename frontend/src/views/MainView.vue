@@ -474,13 +474,16 @@ const onRelationClosureResult = ({ result, latexString }) => {
   handleResultWithLatex(result, latexString, '关系闭包计算结果已添加到主界面')
 }
 
-const onEquivalenceRelationResult = (result) => {
-  console.log('等价关系计算结果:', result)
-  ElMessage.success('等价关系计算完成')
+const onEquivalenceRelationResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到等价关系计算结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '等价关系计算结果已添加到主界面')
 }
 
-const onPartialOrderResult = (result) => {
-  console.log('偏序关系计算结果:', result)
+const onPartialOrderResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到偏序关系计算结果', result)
+
+  handleResultWithLatex(result, latexString, '偏序关系计算结果已添加到主界面')
+
   ElMessage.success('偏序关系计算完成')
 }
 

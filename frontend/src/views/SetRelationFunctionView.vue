@@ -78,11 +78,10 @@
       :before-close="handleEquivalenceRelationClose"
       class="equivalence-relation-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showEquivalenceRelation = false">返回</el-button>
-        </el-empty>
-      </div>
+      <equivalence-interface
+        @close="handleEquivalenceRelationClose"
+        @equivalence-result="onEquivalenceResult"
+      />
     </el-dialog>
 
     <!-- 偏序关系计算界面模态框 -->
@@ -93,11 +92,10 @@
       :before-close="handlePartialOrderClose"
       class="partial-order-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showPartialOrder = false">返回</el-button>
-        </el-empty>
-      </div>
+      <partial-order-interface
+        @close="handlePartialOrderClose"
+        @partial-order-result="onPartialOrderResult"
+      />
     </el-dialog>
 
     <!-- 函数性质判断界面模态框 -->
@@ -125,6 +123,8 @@ import SetExprOperationInterface from '@/components/setrelfun/SetExprOperationIn
 import RelationOperationInterface from '@/components/setrelfun/RelationOperationInterface.vue'
 import RelationPropertyInterface from '@/components/setrelfun/RelationPropertyInterface.vue'
 import RelationClosureInterface from '@/components/setrelfun/RelationClosureInterface.vue'
+import EquivalenceInterface from '@/components/setrelfun/EquivalenceInterface.vue'
+import PartialOrderInterface from '@/components/setrelfun/PartialOrderInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -269,6 +269,49 @@ const onSetOperationResult = (result) => {
   }
 }
 
+// 处理等价关系计算结果
+const onEquivalenceResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到等价关系计算结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '等价关系分析',
+      type: result.type || 'equivalence-relation',
+      setAString: result.setAString,
+      relationRString: result.relationRString,
+      intTypeElement: result.intTypeElement,
+      isReflexive: result.isReflexive,
+      isSymmetric: result.isSymmetric,
+      isTransitive: result.isTransitive,
+      isEquivalenceRelation: result.isEquivalenceRelation,
+      reflexiveResult: result.reflexiveResult,
+      symmetricResult: result.symmetricResult,
+      transitiveResult: result.transitiveResult,
+      relationMatrix: result.relationMatrix,
+      relationGraphUrl: result.relationGraphUrl,
+      equivalenceClosure: result.equivalenceClosure,
+      equivalenceClosureMatrix: result.equivalenceClosureMatrix,
+      equivalenceClosureGraphUrl: result.equivalenceClosureGraphUrl,
+      equivalenceClasses: result.equivalenceClasses,
+      quotientSet: result.quotientSet,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    console.log('SetRelationFunctionView: 生成的LaTeX代码长度:', latexString?.length || 0)
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('equivalence-relation-result', { result: formattedResult, latexString })
+
+    ElMessage.success('等价关系计算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '等价关系计算失败')
+  }
+}
+
 const onSetExprOperationResult = (result) => {
   console.log('SetRelationFunctionView: 接收到集合表达式运算结果', result)
 
@@ -396,6 +439,54 @@ const onRelationClosureResult = (result) => {
     ElMessage.success('关系闭包计算结果已添加到主界面')
   } else {
     ElMessage.error(result?.errorMessage || '关系闭包计算失败')
+  }
+}
+
+// 处理偏序关系计算结果
+const onPartialOrderResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到偏序关系计算结果', result)
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '偏序关系分析',
+      type: result.type || 'partial-order',
+      setAString: result.setAString,
+      setSString: result.setSString,
+      relationRString: result.relationRString,
+      intTypeElement: result.intTypeElement,
+      isPartialOrder: result.isPartialOrder,
+      isReflexive: result.isReflexive,
+      isAntisymmetric: result.isAntisymmetric,
+      isTransitive: result.isTransitive,
+      reflexiveResult: result.reflexiveResult,
+      antisymmetricResult: result.antisymmetricResult,
+      transitiveResult: result.transitiveResult,
+      relationMatrix: result.relationMatrix,
+      relationGraphUrl: result.relationGraphUrl,
+      hasseDiagramUrl: result.hasseDiagramUrl,
+      minimalElements: result.minimalElements,
+      maximalElements: result.maximalElements,
+      leastElement: result.leastElement,
+      greatestElement: result.greatestElement,
+      lowerBounds: result.lowerBounds,
+      upperBounds: result.upperBounds,
+      greatestLowerBound: result.greatestLowerBound,
+      leastUpperBound: result.leastUpperBound,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    console.log('SetRelationFunctionView: 生成的LaTeX代码长度:', latexString?.length || 0)
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('partial-order-result', { result: formattedResult, latexString })
+
+    ElMessage.success('偏序关系计算结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '偏序关系计算失败')
   }
 }
 
