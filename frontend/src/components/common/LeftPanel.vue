@@ -1960,7 +1960,7 @@
           </div>
 
           <!-- 组合表达式计算结果 -->
-          <div v-else-if="result.type === 'expression_calculator'" class="expression-calculator-result">
+          <div v-else-if="result.type === 'expression-calculator'" class="expression-calculator-result">
             <h5 class="result-title">组合表达式计算结果（第 {{ result.index }} 次计算）：</h5>
 
             <!-- 原始表达式 -->
@@ -1984,6 +1984,112 @@
                   :display-mode="true"
                   class="result-formula-detail"
                 />
+              </div>
+            </div>
+          </div>
+
+          <!-- 递归表达式计算结果 -->
+          <div v-else-if="result.type === 'recu-expr-calculator'" class="recursion-expression-result">
+            <h5 class="result-title">递归表达式计算结果（第 {{ result.index }} 次计算）：</h5>
+
+            <!-- 递归表达式参数 -->
+            <div class="recursion-params">
+              <h6>递归表达式参数：</h6>
+              <div class="param-item">
+                <strong>递归表达式：</strong>{{ result.originalExpression }}
+              </div>
+              <div class="param-item">
+                <strong>递归次数：</strong>n = {{ result.n }}
+              </div>
+              <div class="param-item">
+                <strong>初始值：</strong>a₁ = {{ result.a }}, b₁ = {{ result.b }}
+              </div>
+            </div>
+
+            <!-- 计算结果 -->
+            <div class="recursion-result">
+              <h6>计算结果：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="recursion-formula-detail"
+              />
+            </div>
+          </div>
+
+          <!-- 字符串计数结果 -->
+          <div v-else-if="result.type === 'count-string'" class="count-string-result">
+            <h5 class="result-title">字符串计数分析结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>输入参数：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div class="parameter-info">
+                <p><strong>基础字符集：</strong> {{ result.baseSet }}</p>
+                <p><strong>字符串长度：</strong> {{ result.length }}</p>
+                <p><strong>重复允许：</strong> {{ result.allowRepetition ? '允许重复' : '不允许重复' }}</p>
+                <div class="filter-condition">
+                  <strong>过滤条件：</strong>
+                  <math-renderer
+                    :formula="result.filterDescription"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="filter-formula"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 统计结果 -->
+            <div class="result-statistics">
+              <h6>统计结果：</h6>
+              <div class="statistics-grid">
+                <div class="stat-item">
+                  <span class="stat-label">总字符串数：</span>
+                  <span class="stat-value">{{ result.totalCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">满足条件的字符串数：</span>
+                  <span class="stat-value">{{ result.acceptedCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">结果公式：</span>
+                  <math-renderer
+                    :formula="result.resultFormula"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="result-formula-inline"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 详细结果 -->
+            <div v-if="result.stringDetails && result.stringDetails.length > 0" class="result-details">
+              <h6>字符串详情：</h6>
+              <div class="string-details-table">
+                <el-table :data="result.stringDetails.slice(0, 20)" stripe size="small" class="details-table">
+                  <el-table-column prop="index" label="序号" width="70" />
+                  <el-table-column prop="content" label="字符串" width="120" />
+                  <el-table-column prop="accepted" label="是否接受" width="90">
+                    <template #default="scope">
+                      <el-tag :type="scope.row.accepted ? 'success' : 'danger'" size="small">
+                        {{ scope.row.accepted ? '接受' : '不接受' }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="acceptedCount" label="接受计数" width="90" />
+                </el-table>
+                <div v-if="result.stringDetails.length > 20" class="more-indicator">
+                  <el-text type="info" size="small">... 还有 {{ result.stringDetails.length - 20 }} 个字符串 ...</el-text>
+                </div>
               </div>
             </div>
           </div>
@@ -4086,6 +4192,53 @@ h6 {
   font-weight: 600;
 }
 
+/* 递归表达式计算结果样式 */
+.recursion-expression-result {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #ff6b6b;
+}
+
+.recursion-params,
+.recursion-result {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.param-item {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.param-item strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.recursion-formula-detail {
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.recursion-expression-result h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .comb-calculator-result,
@@ -4097,5 +4250,126 @@ h6 {
   .result-formula-detail {
     font-size: 0.9rem;
   }
+}
+
+/* 字符串计数结果样式 */
+.count-string-result {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.count-string-result .result-basic {
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.count-string-result .parameter-info {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.count-string-result .parameter-info p {
+  margin: 0.5rem 0;
+  color: #6c757d;
+}
+
+.count-string-result .parameter-info strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.count-string-result .filter-condition {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.count-string-result .filter-formula {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.count-string-result .result-statistics {
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.count-string-result .statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.count-string-result .stat-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.count-string-result .stat-label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  color: #374151;
+}
+
+.count-string-result .stat-value {
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.count-string-result .result-formula-inline {
+  display: inline-block;
+  font-size: 0.9rem;
+}
+
+.count-string-result .result-details {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.count-string-result .string-details-table {
+  margin-top: 1rem;
+}
+
+.count-string-result .details-table {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.count-string-result .more-indicator {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.count-string-result h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
 }
 </style>

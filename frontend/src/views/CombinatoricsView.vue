@@ -10,7 +10,7 @@
     >
       <comb-calculator-interface
         @close="handleCombCalculatorClose"
-        @comb-calculator-result="onCombCalculatorResult"
+        @comb-calculator="onCombCalculatorResult"
       />
     </el-dialog>
 
@@ -24,7 +24,7 @@
     >
       <expression-calculator-interface
         @close="handleExprCalculatorClose"
-        @expression-calculator-result="onExpressionCalculatorResult"
+        @expression-calculator="onExpressionCalculatorResult"
       />
     </el-dialog>
 
@@ -36,11 +36,10 @@
       :before-close="handleRecuExprCalculatorClose"
       class="recu-expr-calculator-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showRecuExprCalculator = false">返回</el-button>
-        </el-empty>
-      </div>
+      <recursion-expression-interface
+        @close="handleRecuExprCalculatorClose"
+        @recu-expr-calculator="onRecuExprCalculatorResult"
+      />
     </el-dialog>
 
     <!-- 字符串计数界面模态框 -->
@@ -51,11 +50,10 @@
       :before-close="handleCountStringClose"
       class="count-string-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showCountString = false">返回</el-button>
-        </el-empty>
-      </div>
+      <count-string-interface
+        @close="handleCountStringClose"
+        @count-string="onCountStringResult"
+      />
     </el-dialog>
 
     <!-- 整数计数界面模态框 -->
@@ -155,6 +153,8 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import CombCalculatorInterface from '@/components/counting/CombCalculatorInterface.vue'
 import ExpressionCalculatorInterface from '@/components/counting/ExpressionCalculatorInterface.vue'
+import RecursionExpressionInterface from '@/components/counting/RecursionExpressionInterface.vue'
+import CountStringInterface from '@/components/counting/CountStringInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -176,7 +176,7 @@ const props = defineProps({
 const emit = defineEmits([
   'comb-calculator-result',
   'expr-calculator-result',
-  'recu-expr-calculator-result',
+  'recursion-expression-result',
   'count-string-result',
   'count-integer-result',
   'count-solver-result',
@@ -291,9 +291,7 @@ const onCombCalculatorResult = (result) => {
     const latexString = generateLaTeXCode(result)
 
     // 发送结果到主界面
-    emit('comb-calculator-result', result)
-    emit('update-current-formula', result.formula)
-    emit('update-latex-code', latexString)
+    emit('comb-calculator', { result, latexString })
 
     ElMessage.success('排列组合数计算结果已发送到主界面')
   } catch (error) {
@@ -310,13 +308,49 @@ const onExpressionCalculatorResult = (result) => {
     const latexString = generateLaTeXCode(result)
 
     // 发送结果到主界面
-    emit('expression-calculator-result', result)
-    emit('update-current-formula', result.originalExpression || result.formula)
-    emit('update-latex-code', latexString)
+    emit('expression-calculator', { result, latexString })
 
     ElMessage.success('组合表达式计算结果已发送到主界面')
   } catch (error) {
     console.error('处理组合表达式计算结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
+const onRecuExprCalculatorResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理递归表达式计算结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+
+    // 发送结果到主界面
+    emit('recu-expr-calculator', { result, latexString })
+
+    ElMessage.success('递归表达式计算结果已发送到主界面')
+  } catch (error) {
+    console.error('处理递归表达式计算结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
+const onCountStringResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理字符串计数结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    console.log('CombinatoricsView: 生成LaTeX代码', latexString)
+
+    // 发送结果到主界面
+    const dataToSend = { result, latexString }
+    console.log('CombinatoricsView: 准备发送到MainView', dataToSend)
+    emit('count-string', dataToSend)
+    console.log('CombinatoricsView: 已发送到MainView')
+
+    ElMessage.success('字符串计数结果已发送到主界面')
+  } catch (error) {
+    console.error('处理字符串计数结果失败:', error)
     ElMessage.error('处理结果失败: ' + error.message)
   }
 }

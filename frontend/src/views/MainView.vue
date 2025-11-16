@@ -159,10 +159,10 @@
       :formula-results="formulaResults"
       :current-formula="currentFormula"
       :latex-code="latexCode"
-      @comb-calculator-result="onCombCalculatorResult"
-      @expression-calculator-result="onExpressionCalculatorResult"
-      @recu-expr-calculator-result="onRecuExprCalculatorResult"
-      @count-string-result="onCountStringResult"
+      @comb-calculator="onCombCalculatorResult"
+      @expression-calculator="onExpressionCalculatorResult"
+      @recu-expr-calculator="onRecuExprCalculatorResult"
+      @count-string="onCountStringResult"
       @count-integer-result="onCountIntegerResult"
       @count-solver-result="onCountSolverResult"
       @count-function-result="onCountFunctionResult"
@@ -484,53 +484,40 @@ const onEquivalenceRelationResult = ({ result, latexString }) => {
 
 const onPartialOrderResult = ({ result, latexString }) => {
   console.log('MainView: 接收到偏序关系计算结果', result)
-
   handleResultWithLatex(result, latexString, '偏序关系计算结果已添加到主界面')
-
-  ElMessage.success('偏序关系计算完成')
 }
 
 const onFunctionPropertyResult = ({ result, latexString }) => {
   console.log('MainView: 接收到函数性质判断结果', result)
-  console.log('MainView: result.isFunction =', result.isFunction)
-  console.log('MainView: result.keys =', Object.keys(result))
-
   handleResultWithLatex(result, latexString, '函数性质判断结果已添加到主界面')
-
-  ElMessage.success('函数性质判断完成')
 }
 
 // 排列组合数计算结果处理函数
-const onCombCalculatorResult = (result) => {
-  console.log('MainView: 接收到排列组合数计算结果', result)
-
-  // 生成LaTeX代码
-  const latexString = generateLaTeXCode(result)
-
+const onCombCalculatorResult = (data) => {
+  const { result, latexString } = data
+  console.log('MainView: 接收到排列组合数计算结果', { result, latexString })
   handleResultWithLatex(result, latexString, '排列组合数计算结果已添加到主界面')
-
-  ElMessage.success('排列组合数计算完成')
 }
 
-const onExpressionCalculatorResult = (result) => {
-  console.log('MainView: 接收到组合表达式计算结果', result)
-
-  // 生成LaTeX代码
-  const latexString = generateLaTeXCode(result)
-
+const onExpressionCalculatorResult = (data) => {
+  const { result, latexString } = data
+  console.log('MainView: 接收到组合表达式计算结果', { result, latexString })
   handleResultWithLatex(result, latexString, '组合表达式计算结果已添加到主界面')
-
-  ElMessage.success('组合表达式计算完成')
 }
 
-const onRecuExprCalculatorResult = (result) => {
-  console.log('递归表达式计算结果:', result)
-  ElMessage.success('递归表达式计算完成')
+const onRecuExprCalculatorResult = (data) => {
+  const { result, latexString } = data
+  console.log('MainView: 接收到递归表达式计算结果', { result, latexString })
+  handleResultWithLatex(result, latexString, '递归表达式计算结果已添加到主界面')
 }
 
-const onCountStringResult = (result) => {
-  console.log('字符串计数结果:', result)
-  ElMessage.success('字符串计数完成')
+const onCountStringResult = (data) => {
+  console.log('MainView: 接收到字符串计数结果事件', data)
+  const { result, latexString } = data
+  console.log('MainView: 解构后的结果', { result, latexString })
+
+  handleResultWithLatex(result, latexString, '字符串计数结果已添加到主界面')
+  console.log('MainView: handleResultWithLatex 调用完成')
 }
 
 const onCountIntegerResult = (result) => {
@@ -638,16 +625,24 @@ const updateLatexCode = (code) => {
 
 // 通用的结果处理函数
 const handleResultWithLatex = (result, latexString, successMessage) => {
+  console.log('handleResultWithLatex: 开始处理', { result, latexString, successMessage })
+
   formulaResults.value.push(result)
+  console.log('handleResultWithLatex: 已添加到 formulaResults, 当前数量:', formulaResults.value.length)
+
   currentFormula.value = result.formula
+  console.log('handleResultWithLatex: 已更新 currentFormula:', currentFormula.value)
 
   if (latexString) {
     updateLatexCode(latexString)
+    console.log('handleResultWithLatex: 已更新LaTeX代码')
   }
 
   if (successMessage) {
     ElMessage.success(successMessage)
   }
+
+  console.log('handleResultWithLatex: 处理完成')
 }
 
 // 清空公式内容

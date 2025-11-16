@@ -1,13 +1,19 @@
 <template>
-  <div class="expression-calculator-interface">
+  <div class="recursion-expression-interface">
     <!-- 按钮操作区域 -->
     <div class="button-section">
-      <!-- 第一行按钮：开始计算、清除输入、合法性检查、清除结果、取消 -->
+      <!-- 第一行按钮：开始运算、生成随机表达式、清除输入、合法性检查 -->
       <el-row :gutter="20" class="button-row">
         <el-col :span="4">
           <el-button type="primary" @click="startCalculation">
             <el-icon><Check /></el-icon>
-            开始计算(Y)
+            开始运算(Y)
+          </el-button>
+        </el-col>
+        <el-col :span="4">
+          <el-button type="success" @click="generateRandomExpression">
+            <el-icon><MagicStick /></el-icon>
+            生成随机表达式(G)
           </el-button>
         </el-col>
         <el-col :span="4">
@@ -37,49 +43,93 @@
       </el-row>
 
       <!-- 第二行按钮：示例题 -->
-      <el-divider content-position="left">《离散数学基础》教材示例展示</el-divider>
+      <el-divider content-position="left">《离散数学基础》递归关系示例展示</el-divider>
       <el-row :gutter="15" class="example-buttons">
         <el-col :span="4">
-          <el-button size="small" @click="loadExample('factorial')">阶乘计算</el-button>
+          <el-button size="small" @click="loadExample('fibonacci')">斐波那契数列</el-button>
         </el-col>
         <el-col :span="4">
-          <el-button size="small" @click="loadExample('permutation')">排列计算</el-button>
+          <el-button size="small" @click="loadExample('factorial')">阶乘递归</el-button>
         </el-col>
         <el-col :span="4">
-          <el-button size="small" @click="loadExample('combination')">组合计算</el-button>
+          <el-button size="small" @click="loadExample('power')">2的幂次</el-button>
         </el-col>
         <el-col :span="4">
-          <el-button size="small" @click="loadExample('complex')">复杂表达式</el-button>
+          <el-button size="small" @click="loadExample('linear')">线性递归</el-button>
         </el-col>
         <el-col :span="4">
-          <el-button size="small" @click="loadExample('power')">幂运算</el-button>
+          <el-button size="small" @click="loadExample('quadratic')">平方递归</el-button>
         </el-col>
       </el-row>
     </div>
 
-    <!-- 表达式输入区域 -->
+    <!-- 递归表达式输入区域 -->
     <div class="expression-input-section">
-      <el-divider content-position="left">组合表达式输入</el-divider>
+      <el-divider content-position="left">递归表达式的输入</el-divider>
+
+      <!-- 说明信息 -->
+      <el-alert
+        title="递归表达式说明"
+        description="支持含有初始值为一或二个未知数的递归计算，初始值未填写时使用默认值1。支持加减乘除、乘方、阶乘、排列组合等运算。"
+        type="info"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 1rem;"
+      />
+
       <el-row :gutter="20">
         <el-col :span="24">
           <div class="input-group">
-            <label>组合表达式(n)：</label>
+            <label>递归表达式(E)：</label>
             <el-input
               v-model="expressionInput"
-              placeholder="例如：2+3*4, 5!, C(6,3), P(5,2), 2^3! 等"
+              placeholder="例如：a + b, 2*a + 1, a^2 + 1"
               class="expression-input"
-              type="textarea"
-              :rows="3"
-              resize="none"
             />
           </div>
         </el-col>
       </el-row>
+
+      <el-row :gutter="20" style="margin-top: 1rem;">
+        <el-col :span="8">
+          <div class="input-group">
+            <label>递归次数n(N)：</label>
+            <el-input
+              v-model="inputN"
+              placeholder="例如：5"
+              class="param-input"
+            />
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="input-group">
+            <label>初始值a(A)：</label>
+            <el-input
+              v-model="inputA"
+              placeholder="默认值：1"
+              class="param-input"
+            />
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="input-group">
+            <label>初始值b(B)：</label>
+            <el-input
+              v-model="inputB"
+              placeholder="默认值：1"
+              class="param-input"
+            />
+          </div>
+        </el-col>
+      </el-row>
+
       <div class="input-hint">
         <el-text type="info" size="small">
-          支持的运算符：+ - * / ^ ! P() C() , ()
+          <strong>支持运算符：</strong>+ - * / ^ ! P(排列) C(组合) , (参数分隔符) () (括号)
           <br>
-          示例：2+3*4, 5!, C(6,3), P(5,2), 2^3!, (2+3)!, C(P(5,2),3)
+          <strong>变量说明：</strong>a, b表示初始值，n表示当前递归次数
+          <br>
+          <strong>示例：</strong>a + b (斐波那契), 2*a + 1 (等差数列), a * b (乘法递归)
         </el-text>
       </div>
     </div>
@@ -104,14 +154,25 @@
         </div>
       </div>
 
-      <!-- 计算结果区域 -->
+      <!-- 运算结果区域 -->
       <div v-if="results.length > 0" class="results-section">
-        <el-divider content-position="left">组合表达式计算结果</el-divider>
+        <el-divider content-position="left">递归表达式计算结果</el-divider>
         <div class="results-content">
           <div v-for="(result, index) in results" :key="index" class="result-item">
-            <!-- 表达式基本信息 -->
+            <!-- 递归表达式基本信息 -->
             <div class="result-basic">
-              <h4>第 {{ result.index }} 次计算：</h4>
+              <h4>递归表达式参数：</h4>
+              <div class="formula-info">
+                <p><strong>表达式：</strong>{{ result.originalExpression }}</p>
+                <p><strong>递归次数 n = </strong>{{ result.n }}</p>
+                <p><strong>初始值 a = </strong>{{ result.a }}</p>
+                <p><strong>初始值 b = </strong>{{ result.b }}</p>
+              </div>
+            </div>
+
+            <!-- 计算结果 -->
+            <div class="calculation-result">
+              <h4>计算结果：</h4>
               <math-renderer
                 :formula="result.formula"
                 :type="'mathjax'"
@@ -131,6 +192,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Check,
+  MagicStick,
   Delete,
   WarningFilled,
   RefreshRight,
@@ -140,67 +202,87 @@ import MathRenderer from '@/components/common/MathRenderer.vue'
 
 // 响应式数据
 const expressionInput = ref('')
+const inputN = ref('')
+const inputA = ref('')
+const inputB = ref('')
 const feedback = ref([])
 const results = ref([])
 const counter = ref(0)
 
 // 示例数据
 const examples = {
+  fibonacci: {
+    expression: 'a + b',
+    n: '5',
+    a: '1',
+    b: '1'
+  },
   factorial: {
-    expression: '5!',
-    description: '计算5的阶乘'
-  },
-  permutation: {
-    expression: 'P(6,2)',
-    description: '从6个元素中取2个的排列数'
-  },
-  combination: {
-    expression: 'C(10,3)',
-    description: '从10个元素中取3个的组合数'
-  },
-  complex: {
-    expression: 'C(6,2) + P(4,2) - 3!',
-    description: '复杂组合表达式'
+    expression: 'n * a',
+    n: '5',
+    a: '1',
+    b: '1'
   },
   power: {
-    expression: '2^3!',
-    description: '2的3阶乘次幂'
+    expression: '2 * a',
+    n: '5',
+    a: '1',
+    b: '1'
+  },
+  linear: {
+    expression: '2 * a + 1',
+    n: '5',
+    a: '1',
+    b: '1'
+  },
+  quadratic: {
+    expression: 'a * a + 1',
+    n: '4',
+    a: '1',
+    b: '1'
   }
 }
 
 // 事件处理函数
-const emit = defineEmits(['close', 'expression-calculator'])
+const emit = defineEmits(['close', 'recu-expr-calculator'])
 
 const startCalculation = async () => {
   if (!expressionInput.value.trim()) {
-    ElMessage.warning('请输入组合表达式')
+    ElMessage.warning('请输入递归表达式')
+    return
+  }
+
+  if (!inputN.value.trim()) {
+    ElMessage.warning('请输入递归次数n')
     return
   }
 
   // 清空之前的反馈和结果
   feedback.value = []
   results.value = []
-  counter.value = 0
 
   try {
     const request = {
-      expression: expressionInput.value.trim()
+      expression: expressionInput.value.trim(),
+      n: inputN.value.trim(),
+      a: inputA.value.trim() || '1',
+      b: inputB.value.trim() || '1'
     }
 
-    console.log('ExpressionCalculatorInterface: 开始组合表达式计算', request)
+    console.log('RecursionExpressionInterface: 开始递归表达式计算', request)
 
-    const response = await callBackendApi('/counting/expression-calculator/calculate', {
+    const response = await callBackendApi('/counting/recursion-expression/calculate', {
       method: 'POST',
       body: JSON.stringify(request)
     })
 
-    console.log('ExpressionCalculatorInterface: 收到计算结果', response)
+    console.log('RecursionExpressionInterface: 收到计算结果', response)
 
     if (response.success) {
       const result = {
         ...response,
         index: counter.value + 1,
-        type: 'expression-calculator'
+        type: 'recu-expr-calculator'
       }
 
       results.value.push(result)
@@ -208,81 +290,116 @@ const startCalculation = async () => {
 
       // 添加成功反馈
       feedback.value.push({
-        formula: `\\text{组合表达式} = ${response.originalExpression}`,
+        formula: `\\text{递归表达式: ${request.expression}, 初始值: a_1=${request.a}`,
         type: 'success',
-        message: '表达式计算完成'
+        message: '递归表达式计算完成'
       })
 
       // 发送结果到主界面
-      emit('expression-calculator', result)
+      emit('recu-expr-calculator', result)
 
-      ElMessage.success('表达式计算完成')
+      ElMessage.success('递归表达式计算完成')
     } else {
       feedback.value.push({
-        formula: `\\text{组合表达式} = ${expressionInput.value}`,
+        formula: `\\text{递归表达式: ${request.expression}}`,
         type: 'error',
-        message: response.message || '表达式计算失败'
+        message: response.message || '递归表达式计算失败'
       })
-
-      ElMessage.error('表达式计算失败: ' + response.message)
     }
   } catch (error) {
-    console.error('表达式计算失败:', error)
+    console.error('递归表达式计算失败:', error)
     feedback.value.push({
-      formula: `\\text{组合表达式} = ${expressionInput.value}`,
+      formula: `\\text{递归表达式: ${expressionInput.value}}`,
       type: 'error',
       message: `计算失败: ${error.message}`
     })
+  }
+}
 
-    ElMessage.error(`计算失败: ${error.message}`)
+const generateRandomExpression = async () => {
+  try {
+    console.log('RecursionExpressionInterface: 开始生成随机递归表达式')
+
+    const response = await callBackendApi('/counting/recursion-expression/generate', {
+      method: 'GET'
+    })
+
+    console.log('RecursionExpressionInterface: 随机表达式生成结果', response)
+
+    if (response.success) {
+      expressionInput.value = response.expression
+      inputN.value = response.n
+      inputA.value = response.a
+      inputB.value = response.b
+
+      // 清除之前的结果
+      feedback.value = []
+      results.value = []
+
+      ElMessage.success('已生成随机递归表达式')
+    } else {
+      ElMessage.error('生成随机递归表达式失败: ' + response.message)
+    }
+  } catch (error) {
+    console.error('生成随机递归表达式失败:', error)
+    ElMessage.error(`生成随机递归表达式失败: ${error.message}`)
   }
 }
 
 const clearInput = () => {
   expressionInput.value = ''
+  inputN.value = ''
+  inputA.value = ''
+  inputB.value = ''
   ElMessage.info('已清空输入')
 }
 
 const checkInput = async () => {
   if (!expressionInput.value.trim()) {
-    ElMessage.warning('请输入组合表达式')
+    ElMessage.warning('请输入递归表达式')
+    return
+  }
+
+  if (!inputN.value.trim()) {
+    ElMessage.warning('请输入递归次数n')
     return
   }
 
   feedback.value = []
 
   try {
-    const response = await callBackendApi('/counting/expression-calculator/validate', {
+    const response = await callBackendApi('/counting/recursion-expression/validate', {
       method: 'POST',
       body: JSON.stringify({
-        expression: expressionInput.value.trim()
+        expression: expressionInput.value.trim(),
+        n: inputN.value.trim(),
+        a: inputA.value.trim() || '1',
+        b: inputB.value.trim() || '1'
       })
     })
 
-    if (response.success) {
+    if (response.valid) {
       feedback.value.push({
-        formula: `\\text{组合表达式} = ${expressionInput.value}`,
+        formula: `\\text{递归表达式: ${expressionInput.value}}`,
         type: 'success',
         message: response.message
       })
-      ElMessage.success('表达式格式正确')
+      ElMessage.success('递归表达式格式正确')
     } else {
       feedback.value.push({
-        formula: `\\text{组合表达式} = ${expressionInput.value}`,
+        formula: `\\text{递归表达式: ${expressionInput.value}}`,
         type: 'error',
         message: response.message
       })
-      ElMessage.error('表达式格式不正确')
+      ElMessage.error('递归表达式格式不正确')
     }
   } catch (error) {
-    console.error('检查表达式失败:', error)
+    console.error('检查递归表达式失败:', error)
     feedback.value.push({
-      formula: `\\text{组合表达式} = ${expressionInput.value}`,
+      formula: `\\text{递归表达式: ${expressionInput.value}}`,
       type: 'error',
       message: `检查失败: ${error.message}`
     })
-
-    ElMessage.error(`检查失败: ${error.message}`)
   }
 }
 
@@ -308,9 +425,12 @@ const loadExample = (exampleKey) => {
 
     // 设置示例数据
     expressionInput.value = example.expression
+    inputN.value = example.n
+    inputA.value = example.a
+    inputB.value = example.b
 
-    console.log('ExpressionCalculatorInterface: 加载示例', exampleKey, example)
-    ElMessage.info(`已加载示例：${example.description}`)
+    console.log('RecursionExpressionInterface: 加载示例', exampleKey, example)
+    ElMessage.info(`已加载示例：${exampleKey}`)
   }
 }
 
@@ -342,7 +462,7 @@ const callBackendApi = async (endpoint, options = {}) => {
 </script>
 
 <style scoped>
-.expression-calculator-interface {
+.recursion-expression-interface {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -350,7 +470,7 @@ const callBackendApi = async (endpoint, options = {}) => {
 
 /* 在大屏幕上完全自适应，无最大宽度限制 */
 @media (min-width: 1200px) {
-  .expression-calculator-interface {
+  .recursion-expression-interface {
     width: 100%;
     max-width: none;
   }
@@ -358,7 +478,7 @@ const callBackendApi = async (endpoint, options = {}) => {
 
 /* 在中等屏幕上设置合理的最大宽度 */
 @media (max-width: 1199px) and (min-width: 900px) {
-  .expression-calculator-interface {
+  .recursion-expression-interface {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
@@ -367,7 +487,7 @@ const callBackendApi = async (endpoint, options = {}) => {
 
 /* 在小屏幕上固定宽度，支持水平滚动 */
 @media (max-width: 899px) {
-  .expression-calculator-interface {
+  .recursion-expression-interface {
     width: 900px;
     min-width: 900px;
     max-width: 900px;
@@ -405,7 +525,8 @@ const callBackendApi = async (endpoint, options = {}) => {
   color: #374151;
 }
 
-.expression-input {
+.expression-input,
+.param-input {
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
@@ -470,18 +591,25 @@ const callBackendApi = async (endpoint, options = {}) => {
   margin-bottom: 1.5rem;
 }
 
+.formula-info p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.calculation-result {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
 h4 {
   color: #374151;
   margin: 1rem 0 0.5rem 0;
   font-size: 1.1rem;
   font-weight: 600;
-}
-
-h5 {
-  color: #6b7280;
-  margin: 1rem 0 0.5rem 0;
-  font-size: 1rem;
-  font-weight: 500;
 }
 
 /* 滚动条样式 */

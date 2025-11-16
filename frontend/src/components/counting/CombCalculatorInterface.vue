@@ -227,7 +227,7 @@ const options = ref({
 })
 
 // 事件处理函数
-const emit = defineEmits(['close', 'comb-calculator-result'])
+const emit = defineEmits(['close', 'comb-calculator'])
 
 const startCalculation = async () => {
   if (!inputN.value.trim() || !inputM.value.trim()) {
@@ -273,7 +273,8 @@ const startCalculation = async () => {
     if (response.success) {
       const result = {
         ...response,
-        index: counter.value + 1
+        index: counter.value + 1,
+        type: 'comb-calculator'
       }
 
       results.value.push(result)
@@ -287,7 +288,7 @@ const startCalculation = async () => {
       })
 
       // 发送结果到主界面
-      emit('comb-calculator-result', result)
+      emit('comb-calculator', result)
 
       ElMessage.success('排列组合计算完成')
     } else {

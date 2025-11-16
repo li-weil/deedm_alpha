@@ -8,8 +8,10 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     CombCalculatorInterface: typeof import('./src/components/counting/CombCalculatorInterface.vue')['default']
+    CountStringInterface: typeof import('./src/components/counting/CountStringInterface.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElCard: typeof import('element-plus/es')['ElCard']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElCheckboxGroup: typeof import('element-plus/es')['ElCheckboxGroup']
     ElCol: typeof import('element-plus/es')['ElCol']
@@ -23,6 +25,7 @@ declare module 'vue' {
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElImage: typeof import('element-plus/es')['ElImage']
     ElInput: typeof import('element-plus/es')['ElInput']
+    ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElOption: typeof import('element-plus/es')['ElOption']
@@ -49,6 +52,7 @@ declare module 'vue' {
     PartialOrderInterface: typeof import('./src/components/setrelfun/PartialOrderInterface.vue')['default']
     PrincipalNormalFormInterface: typeof import('./src/components/logic/PrincipalNormalFormInterface.vue')['default']
     ReasonArgumentCheckInterface: typeof import('./src/components/logic/ReasonArgumentCheckInterface.vue')['default']
+    RecursionExpressionInterface: typeof import('./src/components/counting/RecursionExpressionInterface.vue')['default']
     RelationClosureInterface: typeof import('./src/components/setrelfun/RelationClosureInterface.vue')['default']
     RelationOperationInterface: typeof import('./src/components/setrelfun/RelationOperationInterface.vue')['default']
     RelationPropertyInterface: typeof import('./src/components/setrelfun/RelationPropertyInterface.vue')['default']

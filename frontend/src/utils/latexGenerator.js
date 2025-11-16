@@ -1066,7 +1066,7 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
-  if (result.type === 'expression_calculator') {
+  if (result.type === 'expression-calculator') {
     latexCode += `\\begin{array}{c}\n\\text{组合表达式计算结果（第 ${result.index} 次）:}\n\\end{array}\n\n`
 
     // 显示原始表达式
@@ -1076,6 +1076,72 @@ export const generateLaTeXCode = (result) => {
     // 显示计算结果
     latexCode += `\\begin{array}{c}\n\\text{计算结果:}\n\\end{array}\n\n`
     latexCode += `\\begin{array}{c}\n${result.originalExpression} = ${result.result}\n\\end{array}\n\n`
+  }
+
+  if (result.type === 'recu-expr-calculator') {
+    latexCode += `\\begin{array}{c}\n\\text{递归表达式计算结果（第 ${result.index} 次）:}\n\\end{array}\n\n`
+
+    // 显示递归表达式参数
+    latexCode += `\\begin{array}{c}\n\\text{递归表达式参数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{递归表达式:} ${result.originalExpression}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{递归次数:} n = ${result.n}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{初始值:} a_1 = ${result.a}, b_1 = ${result.b}\n\\end{array}\n\n`
+
+    // 显示计算结果
+    latexCode += `\\begin{array}{c}\n\\text{计算结果:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\na_{${result.n}} = ${result.result}\n\\end{array}\n\n`
+
+    // 添加递归计算过程的LaTeX描述
+    latexCode += `\\begin{array}{c}\n\\text{递归关系:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\na_{n} = ${result.originalExpression}, \\quad a_1 = ${result.a}, b_1 = ${result.b}\n\\end{array}\n\n`
+  }
+
+  // 处理字符串计数结果
+  if (result.type === 'count-string') {
+    latexCode += `\\begin{array}{c}\n\\text{字符串计数分析结果:}\n\\end{array}\n\n`
+
+    // 基本信息
+    latexCode += `\\begin{array}{c}\n\\text{输入参数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    latexCode += `\\begin{array}{c}\n\\text{基础字符集:} ${result.baseSet}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{字符串长度:} n = ${result.length}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{重复允许:} ${result.allowRepetition ? '\\text{允许重复}' : '\\text{不允许重复}'}\n\\end{array}\n\n`
+
+    // 过滤条件
+    latexCode += `\\begin{array}{c}\n\\text{过滤条件:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.filterDescription}\n\\end{array}\n\n`
+
+    // 统计结果
+    latexCode += `\\begin{array}{c}\n\\text{统计结果:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{总字符串数:} ${result.totalCount}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{满足条件的字符串数:} ${result.acceptedCount}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{结果公式:} ${result.resultFormula}\n\\end{array}\n\n`
+
+    // 详细结果（只显示前20个）
+    if (result.stringDetails && result.stringDetails.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{字符串详情（前20个）:}\n\\end{array}\n\n`
+
+      // 创建表格头部
+      latexCode += `\\begin{array}{c|c|c|c}\n`
+      latexCode += `\\text{序号} & \\text{字符串} & \\text{是否接受} & \\text{接受计数} \\\\\n`
+      latexCode += `\\hline\n`
+
+      // 添加数据行（最多20行）
+      const maxRows = Math.min(result.stringDetails.length, 20)
+      for (let i = 0; i < maxRows; i++) {
+        const detail = result.stringDetails[i]
+        const accepted = detail.accepted ? '\\text{接受}' : '\\text{不接受}'
+        latexCode += `${detail.index} & ${detail.content} & ${accepted} & ${detail.acceptedCount} \\\\\n`
+      }
+
+      latexCode += `\\end{array}\n\n`
+
+      // 如果有更多数据，显示提示
+      if (result.stringDetails.length > 20) {
+        latexCode += `\\begin{array}{c}\n\\text{... 还有 ${result.stringDetails.length - 20} 个字符串 ...}\n\\end{array}\n\n`
+      }
+    }
   }
 
   return latexCode
