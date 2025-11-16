@@ -106,11 +106,10 @@
       :before-close="handleFunctionClose"
       class="function-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showFunction = false">返回</el-button>
-        </el-empty>
-      </div>
+      <function-property-interface
+        @close="handleFunctionClose"
+        @function-property-result="onFunctionPropertyResult"
+      />
     </el-dialog>
   </div>
 </template>
@@ -125,6 +124,7 @@ import RelationPropertyInterface from '@/components/setrelfun/RelationPropertyIn
 import RelationClosureInterface from '@/components/setrelfun/RelationClosureInterface.vue'
 import EquivalenceInterface from '@/components/setrelfun/EquivalenceInterface.vue'
 import PartialOrderInterface from '@/components/setrelfun/PartialOrderInterface.vue'
+import FunctionPropertyInterface from '@/components/setrelfun/FunctionPropertyInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -151,7 +151,7 @@ const emit = defineEmits([
   'relation-closure-result',
   'equivalence-relation-result',
   'partial-order-result',
-  'function-result',
+  'function-property-result',
   'update-current-formula',
   'update-latex-code'
 ])
@@ -484,6 +484,46 @@ const onPartialOrderResult = (result) => {
     ElMessage.success('偏序关系计算结果已添加到主界面')
   } else {
     ElMessage.error(result?.errorMessage || '偏序关系计算失败')
+  }
+}
+
+// 处理函数性质判断结果
+const onFunctionPropertyResult = (result) => {
+  console.log('SetRelationFunctionView: 接收到函数性质判断结果', result)
+  console.log('SetRelationFunctionView: 原始result.isFunction =', result.isFunction)
+  console.log('SetRelationFunctionView: 原始result.keys =', Object.keys(result))
+
+  if (result && result.success) {
+    const formattedResult = {
+      index: props.formulaResults.length + 1,
+      formula: result.formula || '函数性质判断分析',
+      type: result.type || 'function-property',
+      setALaTeX: result.setALaTeX,
+      setBLaTeX: result.setBLaTeX,
+      functionLaTeX: result.functionLaTeX,
+      isFunction: result.function,
+      injectionResult: result.injectionResult,
+      surjectionResult: result.surjectionResult,
+      bijectionResult: result.bijectionResult,
+      relationMatrix: result.relationMatrix,
+      relationGraphUrl: result.relationGraphUrl,
+      success: result.success,
+      errorMessage: result.errorMessage
+    }
+
+    console.log('SetRelationFunctionView: formattedResult.isFunction =', formattedResult.isFunction)
+    console.log('SetRelationFunctionView: formattedResult.keys =', Object.keys(formattedResult))
+
+    // 使用工具函数生成LaTeX代码
+    const latexString = generateLaTeXCode(formattedResult)
+    console.log('SetRelationFunctionView: 生成的LaTeX代码长度:', latexString?.length || 0)
+
+    // 发送结果给父组件，包含LaTeX代码
+    emit('function-property-result', { result: formattedResult, latexString })
+
+    ElMessage.success('函数性质判断结果已添加到主界面')
+  } else {
+    ElMessage.error(result?.errorMessage || '函数性质判断失败')
   }
 }
 

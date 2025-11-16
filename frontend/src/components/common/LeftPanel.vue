@@ -788,6 +788,118 @@
             </template>
           </div>
 
+          <!-- 函数性质判断结果 -->
+          <div v-else-if="result.type === 'function-property'" class="function-property-result">
+            <h5 class="result-title">函数性质分析结果：</h5>
+
+            <!-- 集合和函数基本信息 -->
+            <div class="result-basic">
+              <h6>输入集合和函数：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 函数判断结果 -->
+            <div class="function-judgment">
+              <h6>函数性质判断：</h6>
+              <el-alert
+                :type="result.function ? 'success' : 'error'"
+                :title="result.function ? '该关系是函数' : '该关系不是函数'"
+                :closable="false"
+                show-icon
+                class="function-alert"
+              />
+            </div>
+
+            <!-- 关系矩阵 -->
+            <div v-if="result.relationMatrix" class="matrix-result">
+              <h6>关系矩阵：</h6>
+              <div class="matrix-formula">
+                <math-renderer
+                  :formula="result.relationMatrix"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                />
+              </div>
+            </div>
+
+            <!-- 关系图 -->
+            <div v-if="result.relationGraphUrl" class="graph-result">
+              <h6>关系图：</h6>
+              <div class="graph-image">
+                <el-image
+                  :src="result.relationGraphUrl"
+                  :preview-src-list="[result.relationGraphUrl]"
+                  fit="contain"
+                  style="max-width: 100%; max-height: 300px;"
+                  class="relation-graph"
+                >
+                  <template #error>
+                    <div class="image-error">
+                      <el-icon><Picture /></el-icon>
+                      <span>关系图加载失败</span>
+                    </div>
+                  </template>
+                </el-image>
+              </div>
+            </div>
+
+            <!-- 单射性判断 -->
+            <div v-if="result.injectionResult" class="property-result">
+              <h6>单射性判断：</h6>
+              <el-alert
+                :type="result.injectionResult.isProperty ? 'success' : 'warning'"
+                :title="result.injectionResult.description"
+                :closable="false"
+                show-icon
+              >
+                <template v-if="result.injectionResult.counterExample" #default>
+                  <div class="counter-example">
+                    反例：元素 {{ result.injectionResult.counterExample }}
+                  </div>
+                </template>
+              </el-alert>
+            </div>
+
+            <!-- 满射性判断 -->
+            <div v-if="result.surjectionResult" class="property-result">
+              <h6>满射性判断：</h6>
+              <el-alert
+                :type="result.surjectionResult.isProperty ? 'success' : 'warning'"
+                :title="result.surjectionResult.description"
+                :closable="false"
+                show-icon
+              >
+                <template v-if="result.surjectionResult.counterExample" #default>
+                  <div class="counter-example">
+                    反例：元素 {{ result.surjectionResult.counterExample }}
+                  </div>
+                </template>
+              </el-alert>
+            </div>
+
+            <!-- 双射性判断 -->
+            <div v-if="result.bijectionResult" class="property-result">
+              <h6>双射性判断：</h6>
+              <el-alert
+                :type="result.bijectionResult.isProperty ? 'success' : 'warning'"
+                :title="result.bijectionResult.description"
+                :closable="false"
+                show-icon
+              >
+                <template v-if="result.bijectionResult.counterExample" #default>
+                  <div class="counter-example">
+                    反例：元素 {{ result.bijectionResult.counterExample }}
+                  </div>
+                </template>
+              </el-alert>
+            </div>
+          </div>
+
           <!-- 显示集合表达式运算结果 -->
           <div v-else-if="result.type === 'setExpressionOperation'" class="set-expr-operation-result">
             <h5 class="result-title">集合表达式运算结果：</h5>
@@ -1767,6 +1879,82 @@
                     class="code-formula"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 显示排列组合数计算结果 -->
+          <div v-else-if="result.type === 'comb-calculator'" class="comb-calculator-result">
+            <h5 class="result-title">排列组合数计算结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="basic-info">
+              <h6>输入参数：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="basic-formula"
+              />
+            </div>
+
+            <!-- 幂运算结果 -->
+            <div v-if="result.powerResult" class="power-result">
+              <h6>幂运算结果：</h6>
+              <div class="calculation-item">
+                <math-renderer
+                  :formula="`n^{m} = ${result.powerResult}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="calculation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 组合数结果 -->
+            <div v-if="result.combinationResult" class="combination-result">
+              <h6>组合数结果：</h6>
+              <div class="calculation-item">
+                <math-renderer
+                  :formula="`C(n, m) = ${result.combinationResult}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="calculation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 排列数结果 -->
+            <div v-if="result.permutationResult" class="permutation-result">
+              <h6>排列数结果：</h6>
+              <div class="calculation-item">
+                <math-renderer
+                  :formula="`P(n, m) = ${result.permutationResult}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="calculation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 阶乘结果 -->
+            <div v-if="result.factorialNResult || result.factorialMResult" class="factorial-result">
+              <h6>阶乘结果：</h6>
+              <div v-if="result.factorialNResult" class="calculation-item">
+                <math-renderer
+                  :formula="`n! = ${result.factorialNResult}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="calculation-formula"
+                />
+              </div>
+              <div v-if="result.factorialMResult" class="calculation-item">
+                <math-renderer
+                  :formula="`m! = ${result.factorialMResult}`"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="calculation-formula"
+                />
               </div>
             </div>
           </div>
@@ -3291,6 +3479,86 @@ const cleanFormulaForDisplay = (formula) => {
   overflow-x: auto;
 }
 
+/* 函数性质判断结果样式 */
+.function-property-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #6610f2;
+}
+
+.function-property-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.function-property-result .function-judgment {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.function-property-result .function-alert {
+  margin: 0.5rem 0;
+}
+
+.function-property-result .matrix-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.function-property-result .matrix-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.function-property-result .graph-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.function-property-result .graph-image {
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.function-property-result .relation-graph {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.function-property-result .property-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.function-property-result .counter-example {
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
 /* 集合表达式运算结果样式 */
 .set-expr-operation-result {
   background: #f8f9fa;
@@ -3682,6 +3950,74 @@ h6 {
 
   .panel-content {
     padding: 0.5rem;
+  }
+}
+
+/* 排列组合数计算结果样式 */
+.comb-calculator-result {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.basic-info {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.basic-formula {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.power-result,
+.combination-result,
+.permutation-result,
+.factorial-result {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.calculation-item {
+  margin: 0.5rem 0;
+}
+
+.calculation-formula {
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.comb-calculator-result h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .comb-calculator-result {
+    padding: 1rem;
+  }
+
+  .calculation-formula {
+    font-size: 0.9rem;
   }
 }
 </style>

@@ -149,7 +149,7 @@
       @relation-closure-result="onRelationClosureResult"
       @equivalence-relation-result="onEquivalenceRelationResult"
       @partial-order-result="onPartialOrderResult"
-      @function-result="onFunctionResult"
+      @function-property-result="onFunctionPropertyResult"
       @update-current-formula="updateCurrentFormula"
       @update-latex-code="updateLatexCode"
       ref="setRelationFunctionModalRef"
@@ -220,6 +220,9 @@ import PropositionalLogicView from '@/views/PropositionalLogicView.vue'
 // 导入次级界面组件（用于左侧面板显示）
 import SetRelationFunctionView from '@/views/SetRelationFunctionView.vue'
 import CombinatoricsView from '@/views/CombinatoricsView.vue'
+
+// 导入LaTeX代码生成工具
+import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 import GraphTheoryView from '@/views/GraphTheoryView.vue'
 import AlgebraStructureView from '@/views/AlgebraStructureView.vue'
 
@@ -487,14 +490,25 @@ const onPartialOrderResult = ({ result, latexString }) => {
   ElMessage.success('偏序关系计算完成')
 }
 
-const onFunctionResult = (result) => {
-  console.log('函数性质判断结果:', result)
+const onFunctionPropertyResult = ({ result, latexString }) => {
+  console.log('MainView: 接收到函数性质判断结果', result)
+  console.log('MainView: result.isFunction =', result.isFunction)
+  console.log('MainView: result.keys =', Object.keys(result))
+
+  handleResultWithLatex(result, latexString, '函数性质判断结果已添加到主界面')
+
   ElMessage.success('函数性质判断完成')
 }
 
-// 组合计数结果处理函数
+// 排列组合数计算结果处理函数
 const onCombCalculatorResult = (result) => {
-  console.log('排列组合数计算结果:', result)
+  console.log('MainView: 接收到排列组合数计算结果', result)
+
+  // 生成LaTeX代码
+  const latexString = generateLaTeXCode(result)
+
+  handleResultWithLatex(result, latexString, '排列组合数计算结果已添加到主界面')
+
   ElMessage.success('排列组合数计算完成')
 }
 

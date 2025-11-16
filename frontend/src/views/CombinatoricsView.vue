@@ -8,11 +8,10 @@
       :before-close="handleCombCalculatorClose"
       class="comb-calculator-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showCombCalculator = false">返回</el-button>
-        </el-empty>
-      </div>
+      <comb-calculator-interface
+        @close="handleCombCalculatorClose"
+        @comb-calculator-result="onCombCalculatorResult"
+      />
     </el-dialog>
 
     <!-- 组合表达式计算界面模态框 -->
@@ -155,6 +154,8 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import CombCalculatorInterface from '@/components/counting/CombCalculatorInterface.vue'
+import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
 const props = defineProps({
@@ -279,6 +280,26 @@ const handleGenerateCombinationClose = () => {
 
 const handleGenerateRepcombClose = () => {
   showGenerateRepcomb.value = false
+}
+
+// 处理排列组合数计算结果
+const onCombCalculatorResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理排列组合数计算结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+
+    // 发送结果到主界面
+    emit('comb-calculator-result', result)
+    emit('update-current-formula', result.formula)
+    emit('update-latex-code', latexString)
+
+    ElMessage.success('排列组合数计算结果已发送到主界面')
+  } catch (error) {
+    console.error('处理排列组合数计算结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
 }
 
 // 暴露方法给父组件

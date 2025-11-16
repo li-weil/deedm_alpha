@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    CombCalculatorInterface: typeof import('./src/components/counting/CombCalculatorInterface.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
@@ -37,6 +38,7 @@ declare module 'vue' {
     EquivalenceInterface: typeof import('./src/components/setrelfun/EquivalenceInterface.vue')['default']
     EquivCalculusCheckInterface: typeof import('./src/components/logic/EquivCalculusCheckInterface.vue')['default']
     FormulaSyntaxInterface: typeof import('./src/components/logic/FormulaSyntaxInterface.vue')['default']
+    FunctionPropertyInterface: typeof import('./src/components/setrelfun/FunctionPropertyInterface.vue')['default']
     GraphTravelInterface: typeof import('./src/components/graph/GraphTravelInterface.vue')['default']
     HuffmanTreeInterface: typeof import('./src/components/graph/HuffmanTreeInterface.vue')['default']
     LeftPanel: typeof import('./src/components/common/LeftPanel.vue')['default']

@@ -970,5 +970,101 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理函数性质判断结果
+  if (result.type === 'function-property') {
+    latexCode += `\\begin{array}{c}\n\\text{函数性质判断分析结果:}\n\\end{array}\n\n`
+
+    // 显示输入集合和函数信息
+    latexCode += `\\begin{array}{c}\n\\text{输入集合和函数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 显示函数判断结果
+    const functionText = result.function ? '该关系是函数' : '该关系不是函数'
+    latexCode += `\\begin{array}{c}\n\\text{函数性质判断: ${functionText}}\n\\end{array}\n\n`
+
+    // 如果不是函数，就不显示后续的性质分析
+    if (!result.function) {
+      return latexCode
+    }
+
+    // 显示关系矩阵
+    if (result.relationMatrix) {
+      latexCode += `\\begin{array}{c}\n\\text{关系矩阵:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nM_F = ${result.relationMatrix}\n\\end{array}\n\n`
+    }
+
+    // 显示关系图
+    if (result.relationGraphUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{函数关系图已生成 (图片路径: ${result.relationGraphUrl})}\n\\end{array}\n\n`
+    }
+
+    // 单射性判断结果
+    if (result.injectionResult) {
+      const injectionText = result.injectionResult.isProperty ? '单射函数（入射）' : '不是单射函数（入射）'
+      latexCode += `\\begin{array}{c}\n\\text{单射性判断: ${injectionText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.injectionResult.description}\n\\end{array}\n\n`
+      if (result.injectionResult.counterExample) {
+        latexCode += `\\begin{array}{c}\n\\text{反例: 元素} ${result.injectionResult.counterExample} \\text{有多个原像}\n\\end{array}\n\n`
+      }
+    }
+
+    // 满射性判断结果
+    if (result.surjectionResult) {
+      const surjectionText = result.surjectionResult.isProperty ? '满射函数' : '不是满射函数'
+      latexCode += `\\begin{array}{c}\n\\text{满射性判断: ${surjectionText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.surjectionResult.description}\n\\end{array}\n\n`
+      if (result.surjectionResult.counterExample) {
+        latexCode += `\\begin{array}{c}\n\\text{反例: 元素} ${result.surjectionResult.counterExample} \\text{没有原像}\n\\end{array}\n\n`
+      }
+    }
+
+    // 双射性判断结果
+    if (result.bijectionResult) {
+      const bijectionText = result.bijectionResult.isProperty ? '双射函数' : '不是双射函数'
+      latexCode += `\\begin{array}{c}\n\\text{双射性判断: ${bijectionText}}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.bijectionResult.description}\n\\end{array}\n\n`
+      if (result.bijectionResult.counterExample) {
+        latexCode += `\\begin{array}{c}\n\\text{反例: 元素} ${result.bijectionResult.counterExample} \\text{没有唯一的原像}\n\\end{array}\n\n`
+      }
+    }
+  }
+
+  if (result.type === 'comb-calculator') {
+    latexCode += `\\begin{array}{c}\n\\text{排列组合数计算结果:}\n\\end{array}\n\n`
+
+    // 显示输入参数
+    latexCode += `\\begin{array}{c}\n\\text{输入参数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 幂运算结果
+    if (result.powerResult) {
+      latexCode += `\\begin{array}{c}\n\\text{幂运算结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nn^{m} = ${result.powerResult}\n\\end{array}\n\n`
+    }
+
+    // 组合数结果
+    if (result.combinationResult) {
+      latexCode += `\\begin{array}{c}\n\\text{组合数结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nC(n, m) = ${result.combinationResult}\n\\end{array}\n\n`
+    }
+
+    // 排列数结果
+    if (result.permutationResult) {
+      latexCode += `\\begin{array}{c}\n\\text{排列数结果:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\nP(n, m) = ${result.permutationResult}\n\\end{array}\n\n`
+    }
+
+    // 阶乘结果
+    if (result.factorialNResult || result.factorialMResult) {
+      latexCode += `\\begin{array}{c}\n\\text{阶乘结果:}\n\\end{array}\n\n`
+      if (result.factorialNResult) {
+        latexCode += `\\begin{array}{c}\nn! = ${result.factorialNResult}\n\\end{array}\n\n`
+      }
+      if (result.factorialMResult) {
+        latexCode += `\\begin{array}{c}\nm! = ${result.factorialMResult}\n\\end{array}\n\n`
+      }
+    }
+  }
+
   return latexCode
 }
