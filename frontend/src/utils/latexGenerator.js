@@ -681,17 +681,8 @@ export const generateLaTeXCode = (result) => {
     // 显示偏序关系性质验证
     latexCode += `\\begin{array}{c}\n\\text{偏序关系性质验证:}\n\\end{array}\n\n`
     latexCode += `\\begin{array}{c}\n\\text{自反性:} ${result.isReflexive ? '是' : '否'}\n\\end{array}\n\n`
-    if (result.reflexiveResult) {
-      latexCode += `\\begin{array}{c}\n${result.reflexiveResult}\n\\end{array}\n\n`
-    }
     latexCode += `\\begin{array}{c}\n\\text{反对称性:} ${result.isAntisymmetric ? '是' : '否'}\n\\end{array}\n\n`
-    if (result.antisymmetricResult) {
-      latexCode += `\\begin{array}{c}\n${result.antisymmetricResult}\n\\end{array}\n\n`
-    }
     latexCode += `\\begin{array}{c}\n\\text{传递性:} ${result.isTransitive ? '是' : '否'}\n\\end{array}\n\n`
-    if (result.transitiveResult) {
-      latexCode += `\\begin{array}{c}\n${result.transitiveResult}\n\\end{array}\n\n`
-    }
     latexCode += `\\begin{array}{c}\n\\text{偏序关系:} ${result.isPartialOrder ? '是' : '否'}\n\\end{array}\n\n`
 
     // 显示关系矩阵
@@ -703,11 +694,11 @@ export const generateLaTeXCode = (result) => {
     // 只有偏序关系才显示以下内容
     if (result.isPartialOrder) {
       // 显示元素计算结果
-      if (result.minimalElements) {
-        latexCode += `\\begin{array}{c}\n\\text{极小元:} ${result.minimalElements}\n\\end{array}\n\n`
+      if (result.minimumElements) {
+        latexCode += `\\begin{array}{c}\n\\text{极小元:} ${result.minimumElements}\n\\end{array}\n\n`
       }
-      if (result.maximalElements) {
-        latexCode += `\\begin{array}{c}\n\\text{极大元:} ${result.maximalElements}\n\\end{array}\n\n`
+      if (result.maximumElements) {
+        latexCode += `\\begin{array}{c}\n\\text{极大元:} ${result.maximumElements}\n\\end{array}\n\n`
       }
       if (result.leastElement) {
         latexCode += `\\begin{array}{c}\n\\text{最小元:} ${result.leastElement}\n\\end{array}\n\n`

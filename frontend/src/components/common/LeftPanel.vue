@@ -632,19 +632,16 @@
                 <el-tag :type="result.isReflexive ? 'success' : 'danger'" size="small">
                   自反性: {{ result.isReflexive ? '是' : '否' }}
                 </el-tag>
-                <div class="property-text">{{ result.reflexiveResult }}</div>
               </div>
               <div class="property-item">
                 <el-tag :type="result.isAntisymmetric ? 'success' : 'danger'" size="small">
                   反对称性: {{ result.isAntisymmetric ? '是' : '否' }}
                 </el-tag>
-                <div class="property-text">{{ result.antisymmetricResult }}</div>
               </div>
               <div class="property-item">
                 <el-tag :type="result.isTransitive ? 'success' : 'danger'" size="small">
                   传递性: {{ result.isTransitive ? '是' : '否' }}
                 </el-tag>
-                <div class="property-text">{{ result.transitiveResult }}</div>
               </div>
               <div class="partial-order-verdict">
                 <el-tag :type="result.isPartialOrder ? 'success' : 'danger'" size="large">
@@ -691,8 +688,8 @@
                   <el-image
                     :src="result.hasseDiagramUrl"
                     :preview-src-list="[result.hasseDiagramUrl]"
-                    fit="contain"
-                    style="max-width: 100%; max-height: 200px;"
+                    fit="scale-down"
+                    style="width: auto; height: auto; max-width: 100%; max-height: 400px;"
                   >
                     <template #error>
                       <div class="image-error">
@@ -708,21 +705,21 @@
             <!-- 只有偏序关系才显示以下内容 -->
             <template v-if="result.isPartialOrder">
               <!-- 元素计算结果 -->
-              <div v-if="result.minimalElements || result.maximalElements || result.leastElement || result.greatestElement" class="element-calculation">
+              <div v-if="result.minimumElements || result.maximumElements || result.leastElement || result.greatestElement" class="element-calculation">
                 <h6>元素计算：</h6>
-                <div v-if="result.minimalElements" class="element-item">
+                <div v-if="result.minimumElements" class="element-item">
                   <strong>极小元：</strong>
                   <math-renderer
-                    :formula="result.minimalElements"
+                    :formula="result.minimumElements"
                     :type="'mathjax'"
                     :display-mode="false"
                     class="element-formula"
                   />
                 </div>
-                <div v-if="result.maximalElements" class="element-item">
+                <div v-if="result.maximumElements" class="element-item">
                   <strong>极大元：</strong>
                   <math-renderer
-                    :formula="result.maximalElements"
+                    :formula="result.maximumElements"
                     :type="'mathjax'"
                     :display-mode="false"
                     class="element-formula"
