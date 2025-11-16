@@ -78,11 +78,10 @@
       :before-close="handleCountSolverClose"
       class="count-solver-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showCountSolver = false">返回</el-button>
-        </el-empty>
-      </div>
+      <count-equation-solver-interface
+        @close="handleCountSolverClose"
+        @count-equation-solver-result="onCountEquationSolverResult"
+      />
     </el-dialog>
 
     <!-- 函数计数界面模态框 -->
@@ -93,11 +92,10 @@
       :before-close="handleCountFunctionClose"
       class="count-function-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showCountFunction = false">返回</el-button>
-        </el-empty>
-      </div>
+      <count-function-interface
+        @close="handleCountFunctionClose"
+        @count-function="onCountFunctionResult"
+      />
     </el-dialog>
 
     <!-- 排列生成界面模态框 -->
@@ -108,11 +106,10 @@
       :before-close="handleGeneratePermutationClose"
       class="generate-permutation-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showGeneratePermutation = false">返回</el-button>
-        </el-empty>
-      </div>
+      <gen-permutation-interface
+        @close="handleGeneratePermutationClose"
+        @gen-permutation-result="onGenPermutationResult"
+      />
     </el-dialog>
 
     <!-- 组合生成界面模态框 -->
@@ -123,14 +120,13 @@
       :before-close="handleGenerateCombinationClose"
       class="generate-combination-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showGenerateCombination = false">返回</el-button>
-        </el-empty>
-      </div>
+      <gen-combination-interface
+        @close="handleGenerateCombinationClose"
+        @generate-combination-result="onGenCombinationResult"
+      />
     </el-dialog>
 
-    <!-- 重复组合生成界面模态框 -->
+    <!-- 允许重复组合的生成界面模态框 -->
     <el-dialog
       v-model="showGenerateRepcomb"
       title="允许重复组合的生成(F)"
@@ -138,11 +134,10 @@
       :before-close="handleGenerateRepcombClose"
       class="generate-repcomb-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showGenerateRepcomb = false">返回</el-button>
-        </el-empty>
-      </div>
+      <gen-rep-comb-interface
+        @close="handleGenerateRepcombClose"
+        @gen-rep-comb-result="onGenRepCombResult"
+      />
     </el-dialog>
   </div>
 </template>
@@ -155,6 +150,11 @@ import ExpressionCalculatorInterface from '@/components/counting/ExpressionCalcu
 import RecursionExpressionInterface from '@/components/counting/RecursionExpressionInterface.vue'
 import CountStringInterface from '@/components/counting/CountStringInterface.vue'
 import CountIntegerInterface from '@/components/counting/CountIntegerInterface.vue'
+import CountEquationSolverInterface from '@/components/counting/CountEquationSolverInterface.vue'
+import CountFunctionInterface from '@/components/counting/CountFunctionInterface.vue'
+import GenPermutationInterface from '@/components/counting/GenPermutationInterface.vue'
+import GenCombinationInterface from '@/components/counting/GenCombinationInterface.vue'
+import GenRepCombInterface from '@/components/counting/GenRepCombInterface.vue'
 import { generateLaTeXCode } from '@/utils/latexGenerator.js'
 
 // 定义 props 和 emits
@@ -274,12 +274,78 @@ const handleGeneratePermutationClose = () => {
   showGeneratePermutation.value = false
 }
 
+// 处理排列生成结果
+const onGenPermutationResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理排列生成结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    console.log('CombinatoricsView: 生成LaTeX代码', latexString)
+
+    // 发送结果到主界面
+    const dataToSend = { result, latexString }
+    console.log('CombinatoricsView: 准备发送到MainView', dataToSend)
+    emit('generate-permutation-result', dataToSend)
+    console.log('CombinatoricsView: 已发送到MainView')
+
+    ElMessage.success('排列生成结果已发送到主界面')
+  } catch (error) {
+    console.error('处理排列生成结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
+// 处理组合生成结果
+const onGenCombinationResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理组合生成结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    console.log('CombinatoricsView: 生成LaTeX代码', latexString)
+
+    // 发送结果到主界面
+    const dataToSend = { result, latexString }
+    console.log('CombinatoricsView: 准备发送到MainView', dataToSend)
+    emit('generate-combination-result', dataToSend)
+    console.log('CombinatoricsView: 已发送到MainView')
+
+    ElMessage.success('组合生成结果已发送到主界面')
+  } catch (error) {
+    console.error('处理组合生成结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
 const handleGenerateCombinationClose = () => {
   showGenerateCombination.value = false
 }
 
 const handleGenerateRepcombClose = () => {
   showGenerateRepcomb.value = false
+}
+
+// 处理允许重复组合生成结果
+const onGenRepCombResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理允许重复组合生成结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    console.log('CombinatoricsView: 生成LaTeX代码', latexString)
+
+    // 发送结果到主界面
+    const dataToSend = { result, latexString }
+    console.log('CombinatoricsView: 准备发送到MainView', dataToSend)
+    emit('generate-repcomb-result', dataToSend)
+    console.log('CombinatoricsView: 已发送到MainView')
+
+    ElMessage.success('允许重复组合生成结果已发送到主界面')
+  } catch (error) {
+    console.error('处理允许重复组合生成结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
 }
 
 // 处理排列组合数计算结果
@@ -376,6 +442,50 @@ const onCountIntegerResult = (result) => {
   }
 }
 
+// 处理不定方程非负整数解计数结果
+const onCountEquationSolverResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理不定方程求解结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    console.log('CombinatoricsView: 生成LaTeX代码', latexString)
+
+    // 发送结果到主界面
+    const dataToSend = { result, latexString }
+    console.log('CombinatoricsView: 准备发送到MainView', dataToSend)
+    emit('count-equation-solver-result', dataToSend)
+    console.log('CombinatoricsView: 已发送到MainView')
+
+    ElMessage.success('不定方程求解结果已发送到主界面')
+  } catch (error) {
+    console.error('处理不定方程求解结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
+// 处理不同性质的函数计数结果
+const onCountFunctionResult = (result) => {
+  try {
+    console.log('CombinatoricsView: 处理函数计数结果', result)
+
+    // 生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    console.log('CombinatoricsView: 生成LaTeX代码', latexString)
+
+    // 发送结果到主界面
+    const dataToSend = { result, latexString }
+    console.log('CombinatoricsView: 准备发送到MainView', dataToSend)
+    emit('count-function-result', dataToSend)
+    console.log('CombinatoricsView: 已发送到MainView')
+
+    ElMessage.success('函数计数结果已发送到主界面')
+  } catch (error) {
+    console.error('处理函数计数结果失败:', error)
+    ElMessage.error('处理结果失败: ' + error.message)
+  }
+}
+
 // 暴露方法给父组件
 defineExpose({
   openCombCalculator,
@@ -392,11 +502,6 @@ defineExpose({
 </script>
 
 <style scoped>
-
-.coming-soon {
-  padding: 3rem;
-  text-align: center;
-}
 
 /* 对话框样式保持一致 */
 :deep(.comb-calculator-dialog),

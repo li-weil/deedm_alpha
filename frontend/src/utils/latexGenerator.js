@@ -1188,5 +1188,294 @@ export const generateLaTeXCode = (result) => {
     }
   }
 
+  // 处理不定方程非负整数解计数结果
+  if (result.type === 'count-equation-solver') {
+    latexCode += `\\begin{array}{c}\n\\text{不定方程非负整数解计数结果:}\n\\end{array}\n\n`
+
+    // 方程信息
+    latexCode += `\\begin{array}{c}\n\\text{方程:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 约束条件
+    if (result.filterLaTeX) {
+      latexCode += `\\begin{array}{c}\n\\text{约束条件:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.filterLaTeX}\n\\end{array}\n\n`
+    } else {
+      latexCode += `\\begin{array}{c}\n\\text{约束条件: 无}\n\\end{array}\n\n`
+    }
+
+    // 统计结果
+    latexCode += `\\begin{array}{c}\n\\text{统计结果:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{总解数:} ${result.totalCount} \\quad \\text{符合条件的解数:} ${result.acceptedCount}\n\\end{array}\n\n`
+
+    // 组合数学公式
+    latexCode += `\\begin{array}{c}\n\\text{组合数学公式:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.combinationFormula}\n\\end{array}\n\n`
+
+    // 详细解列表
+    if (result.solutions && result.solutions.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{解列表:}\n\\end{array}\n\n`
+
+      // 最多显示前10个解，避免LaTeX过长
+      const maxDisplay = 10
+      const displayCount = Math.min(result.solutions.length, maxDisplay)
+
+      latexCode += `\\begin{array}{l}\n`
+      for (let i = 0; i < displayCount; i++) {
+        const solution = result.solutions[i]
+        const solutionLaTeX = solution.solutionLaTeX.replace(/\s+/g, '\\ ') // 替换空格为LaTeX空格
+        const statusText = solution.accepted ? '' : ', \\text{不符合条件}'
+        latexCode += `\\quad \\text{No.}${solution.number}: ${solutionLaTeX}${statusText} \\\\\n`
+      }
+      latexCode += `\\end{array}\n\n`
+
+      // 如果有更多解未显示，添加省略号
+      if (result.solutions.length > maxDisplay) {
+        latexCode += `\\begin{array}{c}\n\\vdots \\\\\n\\text{${result.solutions.length - maxDisplay} 个解未显示}\n\\end{array}\n\n`
+      }
+    }
+  }
+
+  // 处理不同性质的函数计数结果
+  if (result.type === 'countFunction') {
+    latexCode += `\\begin{array}{c}\n\\text{不同性质的函数计数分析结果:}\n\\end{array}\n\n`
+
+    // 集合信息
+    latexCode += `\\begin{array}{c}\n\\text{输入集合:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\nA = ${result.setALaTeX}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\nB = ${result.setBLaTeX}\n\\end{array}\n\n`
+
+    // 统计信息
+    latexCode += `\\begin{array}{c}\n\\text{函数统计:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n|B|^{|A|} = ${result.bSize}^\\{${result.aSize}\\} = ${result.totalCount}\n\\end{array}\n\n`
+
+    latexCode += `\\begin{array}{l}\n`
+    latexCode += `\\quad \\text{总函数个数:} ${result.totalCount} \\\\\n`
+    latexCode += `\\quad \\text{双射函数个数:} ${result.bijectionCount} \\\\\n`
+    latexCode += `\\quad \\text{满射函数个数:} ${result.surjectionCount} \\\\\n`
+    latexCode += `\\quad \\text{单射函数个数:} ${result.injectionCount} \\\\\n`
+    latexCode += `\\end{array}\n\n`
+
+    // 具体函数列表
+    if (result.functionList && result.functionList.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{具体函数列表:}\n\\end{array}\n\n`
+
+      const maxDisplay = 20
+      const displayCount = Math.min(result.functionList.length, maxDisplay)
+
+      latexCode += `\\begin{array}{l}\n`
+      for (let i = 0; i < displayCount; i++) {
+        const func = result.functionList[i]
+        const funcLaTeX = func.laTeX.replace(/\s+/g, '\\ ') // 替换空格为LaTeX空格
+        let label = ''
+
+        if (func.type === 'bijection') {
+          label = `\\text{第 ${func.totalNumber} 个函数，双射第 ${func.countNumber} 个:}`
+        } else if (func.type === 'injection') {
+          label = `\\text{第 ${func.totalNumber} 个函数，单射第 ${func.countNumber} 个:}`
+        } else if (func.type === 'surjection') {
+          label = `\\text{第 ${func.totalNumber} 个函数，满射第 ${func.countNumber} 个:}`
+        } else {
+          label = `\\text{第 ${func.totalNumber} 个函数:}`
+        }
+
+        latexCode += `\\quad ${label} \\\\\n`
+        latexCode += `\\quad ${funcLaTeX} \\\\\n\n`
+      }
+      latexCode += `\\end{array}\n\n`
+
+      // 如果有更多函数未显示，添加省略号
+      if (result.functionList.length > maxDisplay) {
+        latexCode += `\\begin{array}{c}\n\\vdots \\\\\n\\text{${result.functionList.length - maxDisplay} 个函数未显示}\n\\end{array}\n\n`
+      }
+    }
+  }
+
+  // 排列生成结果处理
+  if (result.type === 'gen-permutation') {
+    latexCode += `\\begin{array}{c}\n\\text{排列生成分析结果:}\n\\end{array}\n\n`
+
+    // 基本信息
+    latexCode += `\\begin{array}{c}\n\\text{生成参数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 详细参数信息
+    latexCode += `\\begin{array}{l}\n`
+    latexCode += `\\quad \\text{集合 B:} ${result.baseSet} \\\\\n`
+    latexCode += `\\quad \\text{排列长度:} ${result.length} \\\\\n`
+    latexCode += `\\quad \\text{起始排列:} ${result.startString || '从第一个开始'} \\\\\n`
+    latexCode += `\\quad \\text{生成个数:} ${result.number} \\\\\n`
+    latexCode += `\\quad \\text{总排列数:} ${result.totalCount} \\\\\n`
+    latexCode += `\\end{array}\n\n`
+
+    // 生成结果
+    if (result.permutations && result.permutations.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{生成的排列序列:}\n\\end{array}\n\n`
+
+      // 按行显示排列，每行最多8个
+      const maxPerLine = 8
+      const permutations = result.permutations.slice(0, result.number)
+
+      latexCode += `\\begin{array}{l}\n`
+      for (let i = 0; i < permutations.length; i++) {
+        if (i > 0 && i % maxPerLine === 0) {
+          latexCode += `\\\\\n`
+        } else if (i > 0) {
+          latexCode += `\\quad \\longrightarrow \\quad `
+        }
+
+        if (i % maxPerLine === 0) {
+          latexCode += `\\quad`
+        }
+
+        latexCode += `${permutations[i]}`
+
+        if (i === permutations.length - 1 && permutations.length >= result.number) {
+          latexCode += ` \\quad \\cdots \\cdots`
+        }
+      }
+      latexCode += `\n\\end{array}\n\n`
+    }
+
+    // 警告信息
+    if (!result.startStringFound) {
+      latexCode += `\\begin{array}{c}\n\\text{警告: 起始字符串 ${result.startString} 不在生成的排列之中!}\n\\end{array}\n\n`
+    }
+
+    // 统计信息
+    if (result.message) {
+      latexCode += `\\begin{array}{c}\n\\text{统计信息:}\n\\end{array}\n\n`
+
+      // 将消息转换为LaTeX格式
+      const message = result.message
+        .replace(/集合 B = ([^,]+)/, '集合 B = $1$')
+        .replace(/P\((\d+),\s*(\d+)\) = (\d+)/, 'P($1, $2) = $3')
+        .replace(/(\d+) 个排列/, '$1$ 个排列')
+        .replace(/(\d+) 个/, '$1$ 个')
+
+      latexCode += `\\begin{array}{c}\n${message}\n\\end{array}\n\n`
+    }
+  }
+
+  // 组合生成结果处理
+  if (result.type === 'genCombination') {
+    latexCode += `\\begin{array}{c}\n\\text{组合生成分析结果:}\n\\end{array}\n\n`
+
+    // 基本信息
+    latexCode += `\\begin{array}{c}\n\\text{生成参数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.latexDescription}\n\\end{array}\n\n`
+
+    // 详细参数信息
+    latexCode += `\\begin{array}{l}\n`
+    latexCode += `\\quad \\text{基础集 B:} ${result.baseSet} \\\\\n`
+    latexCode += `\\quad \\text{组合长度:} ${result.length} \\\\\n`
+    latexCode += `\\quad \\text{起始组合:} ${result.startString || '从第一个开始'} \\\\\n`
+    latexCode += `\\quad \\text{生成个数:} ${result.number} \\\\\n`
+    latexCode += `\\quad \\text{总组合数:} ${result.totalCombinations} \\\\\n`
+    latexCode += `\\end{array}\n\n`
+
+    // 生成结果
+    if (result.generatedCombinations && result.generatedCombinations.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{生成的组合序列:}\n\\end{array}\n\n`
+
+      // 按行显示组合，每行最多8个
+      const maxPerLine = 8
+      const combinations = result.generatedCombinations.slice(0, result.number)
+
+      latexCode += `\\begin{array}{l}\n`
+      for (let i = 0; i < combinations.length; i++) {
+        if (i > 0 && i % maxPerLine === 0) {
+          latexCode += `\\\\\n`
+        } else if (i > 0) {
+          latexCode += `\\quad \\longrightarrow \\quad `
+        }
+
+        if (i % maxPerLine === 0) {
+          latexCode += `\\quad`
+        }
+
+        latexCode += `${combinations[i]}`
+
+        if (i === combinations.length - 1 && combinations.length >= result.number) {
+          latexCode += ` \\quad \\cdots \\cdots`
+        }
+      }
+      latexCode += `\n\\end{array}\n\n`
+    }
+
+    // 警告信息
+    if (result.errorMessage && result.errorMessage.includes('警告')) {
+      latexCode += `\\begin{array}{c}\n\\text{警告: ${result.errorMessage}}\n\\end{array}\n\n`
+    }
+
+    // 统计信息
+    latexCode += `\\begin{array}{c}\n\\text{统计信息:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{总组合数} = ${result.latexFormula}\n\\end{array}\n\n`
+
+    // 添加描述信息
+    const description = `从基础集 ${result.baseSet} 中取 ${result.length} 个元素进行组合，总共有 ${result.totalCombinations} 种不同的组合。`
+    latexCode += `\\begin{array}{c}\n${description}\n\\end{array}\n\n`
+  }
+
+  // 处理允许重复组合的生成结果
+  if (result.type === 'gen-rep-comb') {
+    latexCode += `\\begin{array}{c}\n\\text{允许重复组合的生成分析结果:}\n\\end{array}\n\n`
+
+    // 基本信息
+    latexCode += `\\begin{array}{c}\n\\text{生成参数:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\nB = ${result.baseSetLaTeX}, \\quad n = ${result.length}, \\quad \\text{从} \\, ${result.startString} \\, \\text{开始生成} \\, ${result.number} \\, \\text{个组合}\n\\end{array}\n\n`
+
+    // 详细参数信息
+    latexCode += `\\begin{array}{l}\n`
+    latexCode += `\\quad \\text{基础集 B:} ${result.baseSetLaTeX} \\\\\n`
+    latexCode += `\\quad \\text{组合长度:} ${result.length} \\\\\n`
+    latexCode += `\\quad \\text{起始组合:} ${result.startString || '从第一个开始'} \\\\\n`
+    latexCode += `\\quad \\text{生成个数:} ${result.number} \\\\\n`
+    latexCode += `\\quad \\text{总组合数:} ${result.totalCombinations} \\\\\n`
+    latexCode += `\\end{array}\n\n`
+
+    // 生成结果
+    if (result.generatedCombinations && result.generatedCombinations.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{生成的组合序列:}\n\\end{array}\n\n`
+
+      // 按行显示组合，每行最多8个
+      const maxPerLine = 8
+      const combinations = result.generatedCombinations.slice(0, result.number)
+
+      latexCode += `\\begin{array}{l}\n`
+      for (let i = 0; i < combinations.length; i++) {
+        if (i > 0 && i % maxPerLine === 0) {
+          latexCode += `\\\\\n`
+        } else if (i > 0) {
+          latexCode += `\\quad \\longrightarrow \\quad `
+        }
+
+        if (i % maxPerLine === 0) {
+          latexCode += `\\quad`
+        }
+
+        latexCode += `${combinations[i]}`
+
+        if (i === combinations.length - 1 && combinations.length >= result.number) {
+          latexCode += ` \\quad \\cdots \\cdots`
+        }
+      }
+      latexCode += `\n\\end{array}\n\n`
+    }
+
+    // 错误信息
+    if (result.errorMessage) {
+      latexCode += `\\begin{array}{c}\n\\text{错误信息: ${result.errorMessage}}\n\\end{array}\n\n`
+    }
+
+    // 统计信息
+    latexCode += `\\begin{array}{c}\n\\text{统计信息:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.combinationCountLaTeX}\n\\end{array}\n\n`
+
+    // 添加描述信息
+    const description = `从基础集 ${result.baseSetLaTeX} 中允许重复地取 ${result.length} 个元素进行组合，总共有 ${result.totalCombinations} 种不同的组合。`
+    latexCode += `\\begin{array}{c}\n${description}\n\\end{array}\n\n`
+  }
+
   return latexCode
 }

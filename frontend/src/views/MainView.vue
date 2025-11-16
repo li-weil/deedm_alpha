@@ -164,7 +164,7 @@
       @recu-expr-calculator="onRecuExprCalculatorResult"
       @count-string="onCountStringResult"
       @count-integer-result="onCountIntegerResult"
-      @count-solver-result="onCountSolverResult"
+      @count-equation-solver-result="onCountEquationSolverResult"
       @count-function-result="onCountFunctionResult"
       @generate-permutation-result="onGeneratePermutationResult"
       @generate-combination-result="onGenerateCombinationResult"
@@ -529,29 +529,37 @@ const onCountIntegerResult = (data) => {
   console.log('MainView: handleResultWithLatex 调用完成')
 }
 
-const onCountSolverResult = (result) => {
-  console.log('不定方程求解结果:', result)
-  ElMessage.success('不定方程求解完成')
+const onCountEquationSolverResult = (data) => {
+  console.log('MainView: 接收到不定方程求解结果事件', data)
+  const { result, latexString } = data
+  console.log('MainView: 解构后的结果', { result, latexString })
+
+  handleResultWithLatex(result, latexString, '不定方程求解结果已添加到主界面')
+  console.log('MainView: handleResultWithLatex 调用完成')
 }
 
 const onCountFunctionResult = (result) => {
-  console.log('函数计数结果:', result)
-  ElMessage.success('函数计数完成')
+  console.log('MainView: 处理函数计数结果', result)
+  handleResultWithLatex(result.result, result.latexString, '函数计数结果已添加到主界面')
+  console.log('MainView: handleResultWithLatex 调用完成')
 }
 
 const onGeneratePermutationResult = (result) => {
-  console.log('排列生成结果:', result)
-  ElMessage.success('排列生成完成')
+  console.log('MainView: 处理排列生成结果', result)
+  handleResultWithLatex(result.result, result.latexString, '排列生成结果已添加到主界面')
+  console.log('MainView: handleResultWithLatex 调用完成')
 }
 
 const onGenerateCombinationResult = (result) => {
-  console.log('组合生成结果:', result)
-  ElMessage.success('组合生成完成')
+  console.log('MainView: 处理组合生成结果', result)
+  handleResultWithLatex(result.result, result.latexString, '组合生成结果已添加到主界面')
+  console.log('MainView: handleResultWithLatex 调用完成')
 }
 
 const onGenerateRepcombResult = (result) => {
-  console.log('重复组合生成结果:', result)
-  ElMessage.success('重复组合生成完成')
+  console.log('MainView: 接收到允许重复组合生成结果', result)
+  handleResultWithLatex(result.result, result.latexString, '允许重复组合生成结果已添加到主界面')
+  console.log('MainView: handleResultWithLatex 调用完成')
 }
 
 // 图论结果处理函数

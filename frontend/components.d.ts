@@ -8,6 +8,8 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     CombCalculatorInterface: typeof import('./src/components/counting/CombCalculatorInterface.vue')['default']
+    CountEquationSolverInterface: typeof import('./src/components/counting/CountEquationSolverInterface.vue')['default']
+    CountFunctionInterface: typeof import('./src/components/counting/CountFunctionInterface.vue')['default']
     CountIntegerInterface: typeof import('./src/components/counting/CountIntegerInterface.vue')['default']
     CountStringInterface: typeof import('./src/components/counting/CountStringInterface.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
@@ -44,6 +46,9 @@ declare module 'vue' {
     ExpressionCalculatorInterface: typeof import('./src/components/counting/ExpressionCalculatorInterface.vue')['default']
     FormulaSyntaxInterface: typeof import('./src/components/logic/FormulaSyntaxInterface.vue')['default']
     FunctionPropertyInterface: typeof import('./src/components/setrelfun/FunctionPropertyInterface.vue')['default']
+    GenCombinationInterface: typeof import('./src/components/counting/GenCombinationInterface.vue')['default']
+    GenPermutationInterface: typeof import('./src/components/counting/GenPermutationInterface.vue')['default']
+    GenRepCombInterface: typeof import('./src/components/counting/GenRepCombInterface.vue')['default']
     GraphTravelInterface: typeof import('./src/components/graph/GraphTravelInterface.vue')['default']
     HuffmanTreeInterface: typeof import('./src/components/graph/HuffmanTreeInterface.vue')['default']
     LeftPanel: typeof import('./src/components/common/LeftPanel.vue')['default']

@@ -2166,6 +2166,362 @@
             </div>
           </div>
 
+          <!-- 显示不定方程非负整数解计数结果 -->
+          <div v-else-if="result.type === 'count-equation-solver'" class="count-equation-solver-result">
+            <h5 class="result-title">不定方程非负整数解计数结果：</h5>
+
+            <!-- 方程信息 -->
+            <div class="result-basic">
+              <h6>方程：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 约束条件 -->
+            <div v-if="result.filterLaTeX" class="filter-condition">
+              <h6>约束条件：</h6>
+              <math-renderer
+                :formula="result.filterLaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="filter-formula"
+              />
+            </div>
+
+            <!-- 统计结果 -->
+            <div class="result-statistics">
+              <h6>统计结果：</h6>
+              <div class="statistics-grid">
+                <div class="stat-item">
+                  <span class="stat-label">总解数：</span>
+                  <span class="stat-value">{{ result.totalCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">符合条件的解数：</span>
+                  <span class="stat-value">{{ result.acceptedCount }}</span>
+                </div>
+              </div>
+              <div class="combination-formula">
+                <math-renderer
+                  :formula="result.combinationFormula"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="combination-formula-content"
+                />
+              </div>
+            </div>
+
+            <!-- 详细解列表 -->
+            <div v-if="result.solutions && result.solutions.length > 0" class="solutions-display">
+              <h6>解列表：</h6>
+              <div class="solutions-list">
+                <div
+                  v-for="solution in result.solutions"
+                  :key="solution.number"
+                  class="solution-item"
+                  :class="{ 'accepted': solution.accepted, 'not-accepted': !solution.accepted }"
+                >
+                  <div class="solution-header">
+                    <span class="solution-number">No.{{ solution.number }}</span>
+                    <span class="solution-status" v-if="solution.accepted">
+                      , accepted {{ getAcceptedNumber(solution.number, result.solutions) }} solver:
+                    </span>
+                    <span class="solution-status" v-else>
+                      , NOT accepted solver:
+                    </span>
+                  </div>
+                  <div class="solution-content">
+                    <math-renderer
+                      :formula="solution.solutionLaTeX"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                      class="solution-formula"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 显示不同性质的函数计数结果 -->
+          <div v-else-if="result.type === 'countFunction'" class="count-function-result">
+            <h5 class="result-title">不同性质的函数计数结果：</h5>
+
+            <!-- 集合信息 -->
+            <div class="result-basic">
+              <h6>输入集合：</h6>
+              <div class="set-info">
+                <math-renderer
+                  :formula="'A = ' + result.setALaTeX"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="result-formula"
+                />
+                <math-renderer
+                  :formula="'B = ' + result.setBLaTeX"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="result-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="result-statistics">
+              <h6>函数统计：</h6>
+              <div class="statistics-grid">
+                <div class="stat-item">
+                  <span class="stat-label">总数：</span>
+                  <span class="stat-value">{{ result.totalCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">双射：</span>
+                  <span class="stat-value bijection">{{ result.bijectionCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">满射：</span>
+                  <span class="stat-value surjection">{{ result.surjectionCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">单射：</span>
+                  <span class="stat-value injection">{{ result.injectionCount }}</span>
+                </div>
+              </div>
+
+              <!-- 统计公式 -->
+              <div class="count-formula">
+                <math-renderer
+                  :formula="'|B|^{|A|} = ' + result.bSize + '^{' + result.aSize + '} = ' + result.totalCount"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="result-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 函数列表 -->
+            <div v-if="result.functionList && result.functionList.length > 0" class="functions-display">
+              <h6>具体函数列表：</h6>
+              <div class="functions-list">
+                <div
+                  v-for="func in result.functionList"
+                  :key="'func-' + func.totalNumber"
+                  class="function-item"
+                >
+                  <span class="function-label">
+                    {{ getFunctionLabel(func) }}
+                  </span>
+                  <math-renderer
+                    :formula="func.laTeX"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="function-formula"
+                  />
+                </div>
+                <div v-if="result.hasMoreFunctions" class="more-functions">
+                  <span class="ellipsis-text">... 还有更多函数未显示 ...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 排列生成结果 -->
+          <div v-else-if="result.type === 'gen-permutation'" class="gen-permutation-result">
+            <h5 class="result-title">排列生成分析结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>生成参数：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div class="parameter-info">
+                <p><strong>集合 B：</strong> {{ result.baseSet }}</p>
+                <p><strong>排列长度：</strong> {{ result.length }}</p>
+                <p><strong>起始排列：</strong> {{ result.startString || '从第一个开始' }}</p>
+                <p><strong>生成个数：</strong> {{ result.number }}</p>
+                <p><strong>总排列数：</strong> {{ result.totalCount }}</p>
+              </div>
+            </div>
+
+            <!-- 生成结果 -->
+            <div v-if="result.permutations && result.permutations.length > 0" class="permutations-result">
+              <h6>生成的排列序列：</h6>
+              <div class="permutations-grid">
+                <div
+                  v-for="(perm, permIndex) in result.permutations"
+                  :key="'perm-' + permIndex"
+                  class="permutation-item"
+                >
+                  <math-renderer
+                    :formula="perm"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="permutation-formula"
+                  />
+                  <span v-if="permIndex < result.permutations.length - 1" class="arrow">→</span>
+                </div>
+                <div v-if="result.permutations.length >= result.number" class="continuation">
+                  <span>··· ···</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 警告信息 -->
+            <div v-if="!result.startStringFound" class="warning-section">
+              <el-alert
+                title="起始字符串警告"
+                :description="'要生成的起始字符串 ' + result.startString + ' 不在生成的排列之中！'"
+                type="warning"
+                :closable="false"
+                show-icon
+              />
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="statistics-section">
+              <h6>统计信息：</h6>
+              <p>{{ result.message }}</p>
+            </div>
+          </div>
+
+          <!-- 组合生成结果 -->
+          <div v-else-if="result.type === 'genCombination'" class="gen-combination-result">
+            <h5 class="result-title">组合生成分析结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>生成参数：</h6>
+              <math-renderer
+                :formula="result.latexDescription"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div class="parameter-info">
+                <p><strong>基础集 B：</strong> {{ result.baseSet }}</p>
+                <p><strong>组合长度：</strong> {{ result.length }}</p>
+                <p><strong>起始组合：</strong> {{ result.startString || '从第一个开始' }}</p>
+                <p><strong>生成个数：</strong> {{ result.number }}</p>
+                <p><strong>总组合数：</strong> {{ result.totalCombinations }}</p>
+              </div>
+            </div>
+
+            <!-- 生成结果 -->
+            <div v-if="result.generatedCombinations && result.generatedCombinations.length > 0" class="combinations-result">
+              <h6>生成的组合序列：</h6>
+              <div class="combinations-grid">
+                <div
+                  v-for="(combination, combIndex) in result.generatedCombinations"
+                  :key="'combination-' + combIndex"
+                  class="combination-item"
+                >
+                  <math-renderer
+                    :formula="combination"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="combination-formula"
+                  />
+                  <span v-if="combIndex < result.generatedCombinations.length - 1" class="arrow">→</span>
+                </div>
+              </div>
+              <div v-if="result.generatedCombinations.length >= result.number" class="continuation">
+                ... (更多组合)
+              </div>
+            </div>
+
+            <!-- 警告信息 -->
+            <div v-if="result.errorMessage && result.errorMessage.includes('警告')" class="warning-section">
+              <el-alert
+                :title="result.errorMessage"
+                type="warning"
+                :closable="false"
+                show-icon
+              />
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="statistics-section">
+              <h6>统计信息：</h6>
+              <math-renderer
+                :formula="`总组合数 = ${result.latexFormula}`"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="statistics-formula"
+              />
+              <p>从基础集 {{ result.baseSet }} 中取 {{ result.length }} 个元素进行组合，总共有 {{ result.totalCombinations }} 种不同的组合。</p>
+            </div>
+          </div>
+
+          <!-- 允许重复组合的生成结果 -->
+          <div v-else-if="result.type === 'gen-rep-comb'" class="gen-rep-comb-result">
+            <h5 class="result-title">允许重复组合的生成分析结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>生成参数：</h6>
+              <math-renderer
+                :formula="`B = ${result.baseSetLaTeX}, \\quad n = ${result.length}, \\quad \\text{从} \\, ${result.startString} \\, \\text{开始生成} \\, ${result.number} \\, \\text{个组合}`"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div class="parameter-info">
+                <p><strong>基础集 B：</strong> {{ result.baseSetLaTeX }}</p>
+                <p><strong>组合长度：</strong> {{ result.length }}</p>
+                <p><strong>起始组合：</strong> {{ result.startString || '从第一个开始' }}</p>
+                <p><strong>生成个数：</strong> {{ result.number }}</p>
+                <p><strong>总组合数：</strong> {{ result.totalCombinations }}</p>
+              </div>
+            </div>
+
+            <!-- 生成结果 -->
+            <div v-if="result.generatedCombinations && result.generatedCombinations.length > 0" class="combinations-result">
+              <h6>生成的组合序列：</h6>
+              <div class="combinations-grid">
+                <div v-for="(combo, index) in result.generatedCombinations" :key="index" class="combination-item">
+                  <math-renderer
+                    :formula="combo"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="combination-formula"
+                  />
+                  <span v-if="index < result.generatedCombinations.length - 1 && index < result.number" class="arrow">→</span>
+                  <span v-if="index === result.number - 1" class="continuation">⋯⋯</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 警告信息 -->
+            <div v-if="result.errorMessage" class="warning-section">
+              <el-alert
+                :title="result.errorMessage"
+                type="error"
+                :closable="false"
+                show-icon
+              />
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="statistics-section">
+              <h6>统计信息：</h6>
+              <math-renderer
+                :formula="result.combinationCountLaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="statistics-formula"
+              />
+              <p>从基础集 {{ result.baseSetLaTeX }} 中允许重复地取 {{ result.length }} 个元素进行组合，总共有 {{ result.totalCombinations }} 种不同的组合。</p>
+            </div>
+          </div>
+
           </div>
       </div>
     </div>
@@ -2275,11 +2631,40 @@ const handleWheel = (event) => {
   content.value.smoothScrolling = requestAnimationFrame(animateScroll)
 }
 
+// 计算到指定位置为止被接受的解的数量
+const getAcceptedNumber = (currentNumber, solutions) => {
+  let acceptedCount = 0
+  for (let i = 0; i < solutions.length; i++) {
+    if (solutions[i].number === currentNumber) {
+      if (solutions[i].accepted) {
+        acceptedCount++
+      }
+      break
+    }
+    if (solutions[i].accepted) {
+      acceptedCount++
+    }
+  }
+  return acceptedCount
+}
+
 // 处理清空按钮点击
 const handleClear = () => {
   emit('clear')
 }
 
+// 生成函数标签
+const getFunctionLabel = (func) => {
+  if (func.type === 'bijection') {
+    return `第 ${func.totalNumber} 个函数，双射第 ${func.countNumber} 个：`
+  } else if (func.type === 'injection') {
+    return `第 ${func.totalNumber} 个函数，单射第 ${func.countNumber} 个：`
+  } else if (func.type === 'surjection') {
+    return `第 ${func.totalNumber} 个函数，满射第 ${func.countNumber} 个：`
+  } else {
+    return `第 ${func.totalNumber} 个函数：`
+  }
+}
 
 // AST图片加载成功处理
 const handleASTImageLoad = (event) => {
@@ -4623,5 +5008,613 @@ h6 {
   margin: 0.5rem 0;
   font-size: 1rem;
   font-weight: 600;
+}
+
+/* 不定方程非负整数解计数结果样式 */
+.count-equation-solver-result {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.count-equation-solver-result .result-basic {
+  margin-bottom: 1rem;
+}
+
+.count-equation-solver-result .filter-condition {
+  margin-bottom: 1rem;
+}
+
+.count-equation-solver-result .result-formula,
+.count-equation-solver-result .filter-formula {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.count-equation-solver-result .result-statistics {
+  margin-bottom: 1rem;
+}
+
+.count-equation-solver-result .statistics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.count-equation-solver-result .stat-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.count-equation-solver-result .stat-label {
+  font-weight: 600;
+  color: #6b7280;
+  margin-right: 0.5rem;
+}
+
+.count-equation-solver-result .stat-value {
+  font-weight: bold;
+  color: #1f2937;
+  font-size: 1.1rem;
+}
+
+.count-equation-solver-result .combination-formula {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+}
+
+.count-equation-solver-result .combination-formula-content {
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.count-equation-solver-result .solutions-display {
+  margin-top: 1rem;
+}
+
+.count-equation-solver-result .solutions-list {
+  margin-top: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.count-equation-solver-result .solution-item {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.count-equation-solver-result .solution-item:last-child {
+  margin-bottom: 0;
+}
+
+.count-equation-solver-result .solution-item.accepted {
+  border-color: #10b981;
+  background: #ecfdf5;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.1);
+}
+
+.count-equation-solver-result .solution-item.not-accepted {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  opacity: 0.8;
+}
+
+.count-equation-solver-result .solution-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.count-equation-solver-result .solution-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.count-equation-solver-result .solution-number {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.count-equation-solver-result .solution-status {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.count-equation-solver-result .solution-content {
+  display: flex;
+  align-items: center;
+}
+
+.count-equation-solver-result .solution-formula {
+  font-size: 0.9rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.5rem;
+  background: #f9fafb;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  flex: 1;
+}
+
+/* 滚动条样式 */
+.count-equation-solver-result .solutions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.count-equation-solver-result .solutions-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.count-equation-solver-result .solutions-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.count-equation-solver-result .solutions-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.count-equation-solver-result h5 {
+  color: #374151;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.count-equation-solver-result h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 不同性质的函数计数结果样式 */
+.count-function-result {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.count-function-result .result-basic {
+  margin-bottom: 1rem;
+}
+
+.count-function-result .set-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.count-function-result .result-statistics {
+  margin-bottom: 1rem;
+}
+
+.count-function-result .statistics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.count-function-result .stat-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.count-function-result .stat-label {
+  font-weight: 600;
+  color: #6b7280;
+  margin-right: 0.5rem;
+}
+
+.count-function-result .stat-value {
+  font-weight: bold;
+  color: #1f2937;
+  font-size: 1.1rem;
+}
+
+.count-function-result .stat-value.bijection {
+  color: #8b5cf6; /* 紫色 */
+}
+
+.count-function-result .stat-value.surjection {
+  color: #10b981; /* 绿色 */
+}
+
+.count-function-result .stat-value.injection {
+  color: #f59e0b; /* 橙色 */
+}
+
+.count-function-result .count-formula {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+}
+
+.count-function-result .functions-display {
+  margin-top: 1rem;
+}
+
+.count-function-result .functions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.count-function-result .functions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.count-function-result .functions-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.count-function-result .functions-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.count-function-result .functions-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.count-function-result .function-item {
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.count-function-result .function-item:hover {
+  background: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.count-function-result .function-label {
+  font-weight: bold;
+  color: #2196f3;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.count-function-result .function-formula {
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.count-function-result .more-functions {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.count-function-result .ellipsis-text {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.count-function-result h5 {
+  color: #374151;
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.count-function-result h6 {
+  color: #374151;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 组合生成结果样式 */
+.gen-combination-result {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.gen-combination-result .result-basic {
+  margin: 1rem 0;
+}
+
+.gen-combination-result .parameter-info {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.gen-combination-result .parameter-info p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.gen-combination-result .combinations-result {
+  margin: 1rem 0;
+}
+
+.gen-combination-result .combinations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.gen-combination-result .combination-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gen-combination-result .combination-formula {
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.gen-combination-result .arrow {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: bold;
+}
+
+.gen-combination-result .continuation {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: bold;
+  padding: 0.5rem;
+}
+
+.gen-combination-result .warning-section {
+  margin: 1.5rem 0;
+}
+
+.gen-combination-result .statistics-section {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.gen-combination-result .statistics-formula {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.gen-combination-result .statistics-section p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* 排列生成结果样式 */
+.gen-permutation-result {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.gen-permutation-result .result-basic {
+  margin-bottom: 1rem;
+}
+
+.gen-permutation-result .parameter-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.gen-permutation-result .parameter-info p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.gen-permutation-result .permutations-result {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.gen-permutation-result .permutations-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.gen-permutation-result .permutation-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gen-permutation-result .permutation-formula {
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.gen-permutation-result .arrow {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: bold;
+}
+
+.gen-permutation-result .continuation {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: bold;
+  padding: 0.5rem;
+}
+
+.gen-permutation-result .warning-section {
+  margin: 1.5rem 0;
+}
+
+.gen-permutation-result .statistics-section {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.gen-permutation-result .statistics-section p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* 允许重复组合的生成结果样式 */
+.gen-rep-comb-result {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.gen-rep-comb-result .result-basic {
+  margin: 1rem 0;
+}
+
+.gen-rep-comb-result .parameter-info {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.gen-rep-comb-result .parameter-info p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.gen-rep-comb-result .combinations-result {
+  margin: 1rem 0;
+}
+
+.gen-rep-comb-result .combinations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.gen-rep-comb-result .combination-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gen-rep-comb-result .combination-formula {
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.gen-rep-comb-result .arrow {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: bold;
+}
+
+.gen-rep-comb-result .continuation {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: bold;
+  padding: 0.5rem;
+}
+
+.gen-rep-comb-result .warning-section {
+  margin: 1.5rem 0;
+}
+
+.gen-rep-comb-result .statistics-section {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.gen-rep-comb-result .statistics-section p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 </style>
