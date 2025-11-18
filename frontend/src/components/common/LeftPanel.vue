@@ -2923,7 +2923,7 @@
                 </div>
               </div>
               <div v-if="result.generatedCombinations.length >= result.number" class="continuation">
-                ... (更多组合)
+                ... 
               </div>
             </div>
 
@@ -2946,7 +2946,7 @@
                 :display-mode="true"
                 class="statistics-formula"
               />
-              <p>从基础集 {{ result.baseSet }} 中取 {{ result.length }} 个元素进行组合，总共有 {{ result.totalCombinations }} 种不同的组合。</p>
+              <p>从基础集中取 {{ result.length }} 个元素进行组合，总共有 {{ result.totalCombinations }} 种不同的组合。</p>
             </div>
           </div>
 
@@ -2963,13 +2963,6 @@
                 :display-mode="true"
                 class="result-formula"
               />
-              <div class="parameter-info">
-                <p><strong>基础集 B：</strong> {{ result.baseSetLaTeX }}</p>
-                <p><strong>组合长度：</strong> {{ result.length }}</p>
-                <p><strong>起始组合：</strong> {{ result.startString || '从第一个开始' }}</p>
-                <p><strong>生成个数：</strong> {{ result.number }}</p>
-                <p><strong>总组合数：</strong> {{ result.totalCombinations }}</p>
-              </div>
             </div>
 
             <!-- 生成结果 -->
@@ -3003,12 +2996,12 @@
             <div class="statistics-section">
               <h6>统计信息：</h6>
               <math-renderer
-                :formula="result.combinationCountLaTeX"
+                :formula="`总组合数 ${result.combinationCountLaTeX}`"
                 :type="'mathjax'"
                 :display-mode="true"
                 class="statistics-formula"
               />
-              <p>从基础集 {{ result.baseSetLaTeX }} 中允许重复地取 {{ result.length }} 个元素进行组合，总共有 {{ result.totalCombinations }} 种不同的组合。</p>
+              <p>从基础集中允许重复地取 {{ result.length }} 个元素进行组合，总共有 {{ result.totalCombinations }} 种不同的组合。</p>
             </div>
           </div>
 
@@ -6435,10 +6428,14 @@ h6 {
 }
 
 .gen-combination-result .combinations-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
   align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  overflow-x: auto;
 }
 
 .gen-combination-result .combination-item {
@@ -6607,6 +6604,13 @@ h6 {
   border-radius: 8px;
   border: 1px solid #dee2e6;
 }
+.gen-rep-comb-result .statistics-formula {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
 
 .gen-rep-comb-result .result-basic {
   margin: 1rem 0;
@@ -6630,10 +6634,14 @@ h6 {
 }
 
 .gen-rep-comb-result .combinations-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
   align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  overflow-x: auto;
 }
 
 .gen-rep-comb-result .combination-item {

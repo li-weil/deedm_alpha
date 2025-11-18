@@ -154,26 +154,22 @@
             <!-- 组合序列显示 -->
             <div v-if="result.generatedCombinations && result.generatedCombinations.length > 0" class="combination-result">
               <h4>生成的组合序列：</h4>
-              <div class="combination-sequence">
-                <div class="combination-grid">
-                  <div
-                    v-for="(combination, idx) in result.generatedCombinations"
-                    :key="idx"
-                    class="combination-item"
-                  >
-                    <math-renderer
-                      :formula="combination"
-                      :type="'mathjax'"
-                      :display-mode="false"
-                      class="combination-formula"
-                    />
-                    <span v-if="idx < result.generatedCombinations.length - 1" class="arrow">
-                      →
-                    </span>
-                  </div>
+              <div class="combination-grid">
+                <div
+                  v-for="(combination, idx) in result.generatedCombinations"
+                  :key="idx"
+                  class="combination-item"
+                >
+                  <math-renderer
+                    :formula="combination"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="combination-formula"
+                  />
+                  <span v-if="idx < result.generatedCombinations.length - 1" class="arrow">→</span>
                 </div>
                 <div v-if="result.generatedCombinations.length >= result.number" class="continuation">
-                  ... (更多组合)
+                  <span>··· ···</span>
                 </div>
               </div>
             </div>
@@ -187,10 +183,7 @@
                 :display-mode="true"
                 class="statistics-formula"
               />
-              <el-text type="info" class="statistics-text">
-                从基础集 {{ result.baseSet }} 中取 {{ result.length }} 个元素进行组合，
-                总共有 {{ result.totalCombinations }} 种不同的组合。
-              </el-text>
+              <p>从基础集 {{ result.baseSetLaTeX }} 中允许重复地取 {{ result.length }} 个元素进行组合，总共有 {{ result.totalCombinations }} 种不同的组合。</p>
             </div>
 
             <!-- 警告信息 -->
@@ -301,29 +294,31 @@ const checkInput = async () => {
   try {
     const request = {
       baseSet: baseSetInput.value.trim(),
-      length: lengthInput.value?.toString() || '5',
+      length: lengthInput.value,
       startString: startStringInput.value.trim(),
-      number: numberInput.value?.toString() || '20'
+      number: numberInput.value || 20
     }
 
-    const response = await callBackendApi('/gen-combination/validate', {
+    // 调用生成API获取完整的LaTeX公式描述
+    const response = await callBackendApi('/gen-combination/generate', {
       method: 'POST',
       body: JSON.stringify(request)
     })
 
-    if (response.valid) {
-      ElMessage.success('输入验证通过')
-      feedback.value = [{
-        formula: '输入格式正确',
-        message: response.message,
-        type: 'success'
-      }]
-    } else {
+    if (response.errorMessage) {
       ElMessage.error('输入验证失败')
       feedback.value = [{
         formula: '输入格式错误',
-        message: response.message,
+        message: response.errorMessage,
         type: 'error'
+      }]
+    } else {
+      ElMessage.success('输入验证通过')
+      // 只显示LaTeX公式，不显示"输入格式正确"文本
+      feedback.value = [{
+        formula: response.latexDescription,
+        message: null,
+        type: 'success'
       }]
     }
   } catch (error) {
@@ -402,19 +397,46 @@ const callBackendApi = async (endpoint, options = {}) => {
 </script>
 
 <style scoped>
+
 .gen-combination-interface {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
-  overflow: hidden;
+  width: 100%;
 }
+
+/* 在大屏幕上完全自适应，无最大宽度限制 */
+@media (min-width: 1200px) {
+  .gen-combination-interface {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* 在中等屏幕上设置合理的最大宽度 */
+@media (max-width: 1199px) and (min-width: 900px) {
+  .gen-combination-interface {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* 在小屏幕上固定宽度，支持水平滚动 */
+@media (max-width: 899px) {
+  .gen-combination-interface {
+    width: 900px;
+    min-width: 900px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+}
+
+
 
 /* 按钮区域样式 */
 .button-section {
   padding: 1rem;
   background: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
 
@@ -435,7 +457,6 @@ const callBackendApi = async (endpoint, options = {}) => {
 .input-section {
   padding: 1rem;
   background: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
 
@@ -522,32 +543,30 @@ const callBackendApi = async (endpoint, options = {}) => {
   border: 1px solid #dee2e6;
 }
 
-.combination-sequence {
-  margin: 1rem 0;
-}
-
 .combination-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
   align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  overflow-x: auto;
 }
 
 .combination-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 60px;
+  gap: 0.5rem;
 }
 
 .combination-formula {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 1rem;
   padding: 0.25rem 0.5rem;
-  background: #f8f9fa;
+  background: white;
   border-radius: 4px;
-  border: 1px solid #e9ecef;
-  text-align: center;
+  border: 1px solid #dee2e6;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .arrow {
@@ -561,7 +580,6 @@ const callBackendApi = async (endpoint, options = {}) => {
   text-align: center;
   color: #6b7280;
   font-style: italic;
-  margin-top: 0.5rem;
 }
 
 /* 统计信息样式 */
@@ -637,11 +655,6 @@ h4 {
   }
 
   .combination-grid {
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-    gap: 0.25rem;
-  }
-
-  .combination-formula {
     font-size: 0.9rem;
   }
 }
@@ -651,12 +664,9 @@ h4 {
     padding: 1rem;
   }
 
-  .combination-item {
-    min-width: 50px;
-  }
-
-  .arrow {
-    font-size: 0.8rem;
+  .combination-grid {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

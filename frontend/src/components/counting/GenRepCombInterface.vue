@@ -151,14 +151,22 @@
             <!-- 生成结果 -->
             <div v-if="result.generatedCombinations && result.generatedCombinations.length > 0" class="combinations-result">
               <h4>生成的组合序列：</h4>
-              <div class="combinations-display">
-                <div v-for="(combo, idx) in getFormattedCombinations(result.generatedCombinations)" :key="idx" class="combination-line">
+              <div class="combination-grid">
+                <div
+                  v-for="(combination, idx) in result.generatedCombinations"
+                  :key="idx"
+                  class="combination-item"
+                >
                   <math-renderer
-                    :formula="combo.formula"
+                    :formula="combination"
                     :type="'mathjax'"
-                    :display-mode="true"
+                    :display-mode="false"
                     class="combination-formula"
                   />
+                  <span v-if="idx < result.generatedCombinations.length - 1" class="arrow">→</span>
+                </div>
+                <div v-if="result.generatedCombinations.length >= result.number" class="continuation">
+                  <span>··· ···</span>
                 </div>
               </div>
             </div>
@@ -398,19 +406,6 @@ const loadExample = (exampleKey) => {
   }
 }
 
-// 格式化组合显示，每行8个
-const getFormattedCombinations = (combinations) => {
-  const numberPerLine = 8
-  const lines = []
-
-  for (let i = 0; i < combinations.length; i += numberPerLine) {
-    const lineCombinations = combinations.slice(i, i + numberPerLine)
-    const formula = lineCombinations.join(' \\quad \\longrightarrow \\quad ')
-    lines.push({ formula })
-  }
-
-  return lines
-}
 
 // 通用API调用函数
 const callBackendApi = async (endpoint, options = {}) => {
@@ -577,19 +572,45 @@ const callBackendApi = async (endpoint, options = {}) => {
   border: 1px solid #dee2e6;
 }
 
-.combinations-display {
-  margin: 1rem 0;
-}
-
-.combination-line {
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
+.combination-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
   background: #f8f9fa;
   border-radius: 4px;
-  border: 1px solid #e9ecef;
+  overflow-x: auto;
 }
 
-.combination-formula,
+.combination-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.combination-formula {
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.arrow {
+  margin: 0 0.25rem;
+  color: #6b7280;
+  font-weight: bold;
+}
+
+.continuation {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+
 .statistics-formula {
   margin: 1rem 0;
   font-size: 1.1rem;
@@ -638,7 +659,10 @@ h4 {
     font-size: 0.8rem;
   }
 
-  .combination-formula,
+  .combination-grid {
+    font-size: 0.9rem;
+  }
+
   .statistics-formula {
     font-size: 0.9rem;
   }
@@ -651,6 +675,11 @@ h4 {
 
   .result-item {
     padding: 1rem;
+  }
+
+  .combination-grid {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
