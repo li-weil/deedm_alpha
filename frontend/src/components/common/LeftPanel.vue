@@ -2481,15 +2481,14 @@
                 <p><strong>基础字符集：</strong> {{ result.baseSet }}</p>
                 <p><strong>字符串长度：</strong> {{ result.length }}</p>
                 <p><strong>重复允许：</strong> {{ result.allowRepetition ? '允许重复' : '不允许重复' }}</p>
-                <div class="filter-condition">
-                  <strong>过滤条件：</strong>
+                <p><strong>过滤条件：</strong></p>
+                  
                   <math-renderer
                     :formula="result.filterDescription"
                     :type="'mathjax'"
                     :display-mode="true"
                     class="filter-formula"
                   />
-                </div>
               </div>
             </div>
 
@@ -2598,15 +2597,15 @@
               <div class="parameter-info">
                 <p><strong>计数范围：</strong> [{{ result.start }}, {{ result.end }}]</p>
                 <p><strong>总整数个数：</strong> {{ result.totalCount }}</p>
-                <div class="filter-condition">
-                  <strong>过滤条件：</strong>
-                  <math-renderer
-                    :formula="result.filterDescription"
-                    :type="'mathjax'"
-                    :display-mode="true"
-                    class="filter-formula"
-                  />
-                </div>
+                <p><strong>过滤条件：</strong></p>
+                  
+                <math-renderer
+                  :formula="result.filterDescription"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="filter-formula"
+                />
+
               </div>
             </div>
 
@@ -5795,7 +5794,7 @@ h6 {
   margin-top: 0.5rem;
   font-size: 1rem;
   padding: 0.5rem;
-  background: #f8f9fa;
+  background: #f9f9f9;
   border-radius: 4px;
   border: 1px solid #e9ecef;
   overflow-x: auto;
@@ -5941,7 +5940,7 @@ h6 {
   margin: 0.5rem 0;
   font-size: 1rem;
   padding: 0.5rem;
-  background: #f8f9fa;
+  background: #ffffff;
   border-radius: 4px;
   border: 1px solid #e9ecef;
   overflow-x: auto;

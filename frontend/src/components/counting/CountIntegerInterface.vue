@@ -188,7 +188,7 @@
       <el-card class="output-card" header="选择计数结果的展示方式">
         <el-radio-group v-model="outputOption" class="output-options">
           <el-radio label="ONLY_RESULT">只显示统计结果</el-radio>
-          <el-radio label="ACCEPT_50">显示前50个接受的整数</el-radio>
+          <el-radio label="ACCEPT_50">显示到前50个接受的整数</el-radio>
           <el-radio label="PARTIAL_100">显示前100个整数的详细信息</el-radio>
           <el-radio label="ONLY_ACCEPTED">只显示接受的整数</el-radio>
           <el-radio label="ALL_INTEGERS">显示范围内所有整数</el-radio>
@@ -251,10 +251,10 @@
             </div>
 
             <!-- 详细结果 -->
-            <div v-if="result.detailedResults && result.detailedResults.length > 0" class="detailed-results">
+            <div v-if="getFilteredDetailedResults(result).length > 0" class="detailed-results">
               <h4>详细结果：</h4>
               <div class="results-table">
-                <el-table :data="result.detailedResults" stripe size="small" max-height="400">
+                <el-table :data="getFilteredDetailedResults(result)" stripe size="small" max-height="400">
                   <el-table-column prop="index" label="序号" width="80" />
                   <el-table-column prop="value" label="整数值" width="100" />
                   <el-table-column prop="acceptMessage" label="接受状态" />
@@ -416,7 +416,8 @@ const startCounting = async () => {
     if (response.success) {
       const result = {
         ...response,
-        index: counter.value + 1
+        index: counter.value + 1,
+        outputOption: outputOption.value  // 确保包含输出选项信息
       }
 
       results.value.push(result)
@@ -578,6 +579,21 @@ const buildRequest = () => {
   })
 
   return request
+}
+
+// 根据输出选项过滤详细结果
+const getFilteredDetailedResults = (result) => {
+  if (!result.detailedResults || result.detailedResults.length === 0) {
+    return []
+  }
+
+  // 如果选择了"只显示接受的整数"，则只返回接受的整数
+  if (result.outputOption === 'ONLY_ACCEPTED') {
+    return result.detailedResults.filter(item => item.accepted)
+  }
+
+  // 其他选项返回所有详细结果
+  return result.detailedResults
 }
 
 // 通用API调用函数
