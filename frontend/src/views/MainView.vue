@@ -197,7 +197,7 @@
       @group-um-result="onGroupUmResult"
       @group-perm-result="onGroupPermResult"
       @lattice-result="onLatticeResult"
-      @boolean-result="onBooleanResult"
+      @bool-algebra-result="onBoolAlgebraResult"
       @update-current-formula="updateCurrentFormula"
       @update-latex-code="updateLatexCode"
       ref="algebraStructureModalRef"
@@ -595,27 +595,66 @@ const onSpecialGraphResult = ({ result, latexString }) => {
 // 代数结构结果处理函数
 const onBinaryOperatorResult = (result) => {
   console.log('运算性质判断结果:', result)
-  ElMessage.success('运算性质判断完成')
+
+  if (result.latexString) {
+    // 如果结果中已包含LaTeX代码，直接使用
+    handleResultWithLatex(result, result.latexString, '运算性质判断结果已添加到主界面')
+  } else {
+    // 否则生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    handleResultWithLatex(result, latexString, '运算性质判断结果已添加到主界面')
+  }
 }
 
 const onGroupUmResult = (result) => {
   console.log('群U(m)分析结果:', result)
-  ElMessage.success('群U(m)分析完成')
+
+  if (result.latexString) {
+    // 如果结果中已包含LaTeX代码，直接使用
+    handleResultWithLatex(result, result.latexString, '群U(m)分析结果已添加到主界面')
+  } else {
+    // 否则生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    handleResultWithLatex(result, latexString, '群U(m)分析结果已添加到主界面')
+  }
 }
 
 const onGroupPermResult = (result) => {
   console.log('置换群分析结果:', result)
-  ElMessage.success('置换群分析完成')
+
+  if (result.latexString) {
+    // 如果结果中已包含LaTeX代码，直接使用
+    handleResultWithLatex(result, result.latexString, '置换群分析结果已添加到主界面')
+  } else {
+    // 否则生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    handleResultWithLatex(result, latexString, '置换群分析结果已添加到主界面')
+  }
 }
 
 const onLatticeResult = (result) => {
   console.log('格判断结果:', result)
-  ElMessage.success('格判断完成')
+
+  if (result.latexString) {
+    // 如果结果中已包含LaTeX代码，直接使用
+    handleResultWithLatex(result, result.latexString, '格判断结果已添加到主界面')
+  } else {
+    // 否则生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    handleResultWithLatex(result, latexString, '格判断结果已添加到主界面')
+  }
 }
 
-const onBooleanResult = (result) => {
+const onBoolAlgebraResult = (result) => {
   console.log('布尔代数判断结果:', result)
-  ElMessage.success('布尔代数判断完成')
+  if (result.latexString) {
+    // 如果结果中已包含LaTeX代码，直接使用
+    handleResultWithLatex(result, result.latexString, '布尔代数判断结果已添加到主界面')
+  } else {
+    // 否则生成LaTeX代码
+    const latexString = generateLaTeXCode(result)
+    handleResultWithLatex(result, latexString, '布尔代数判断结果已添加到主界面')
+  }
 }
 
 // 更新当前公式和LaTeX代码

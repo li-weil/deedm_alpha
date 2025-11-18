@@ -315,7 +315,9 @@ const renderKaTeX = () => {
       mathContainer.value.innerHTML = ''
 
       // 检查 表格内部是否需要 KaTeX 渲染
-      const needsKaTeX = /\\(fbox|textrm|quad|qquad|mathbf|infty|times|checkmark)/.test(tableFormula) || /\$[^$]+\$/.test(tableFormula)
+      // 如果包含集合符号，优先使用HTML渲染以正确处理花括号
+      const needsKaTeX = !/\\\{[^}]*f_[^}]*\\\}/.test(tableFormula) &&
+        (/\\(fbox|textrm|quad|qquad|mathbf|infty|times|checkmark)/.test(tableFormula) || /\$[^$]+\$/.test(tableFormula))
 
       let table
       if (needsKaTeX) {
@@ -473,6 +475,21 @@ const processCellContentWithKaTeX = (content, isHeader) => {
   processedContent = processedContent.replace(/\\times/g, '×')
   processedContent = processedContent.replace(/\\checkmark/g, '✓')
 
+  // 处理f_1、f_2等形式的下标 - 转换为带下标的HTML，避免KaTeX解析问题
+  processedContent = processedContent.replace(/([a-zA-Z]+)_(\{[^}]+\}|\w+|\d+)/g, (match, letter, subscript) => {
+    // 移除可能存在的大括号
+    const cleanSubscript = subscript.replace(/[{}]/g, '')
+    return `${letter}<sub>${cleanSubscript}</sub>`
+  })
+
+  // 处理带空格的函数名，如"cos a"、"sin b"等
+  processedContent = processedContent.replace(/(\w+)\s+(\d+)/g, '$1<sub>$2</sub>')
+
+  // 处理\otimes_7或\otimes_{7}形式 - 转换为带下标的HTML，避免KaTeX解析问题
+  processedContent = processedContent.replace(/\\otimes_\{?(\d+)\}?/g, '⊗<sub>$1</sub>')
+  processedContent = processedContent.replace(/\\otimes([^_])/g, '⊗$1')
+  processedContent = processedContent.replace(/\\otimes$/, '⊗')
+
   // 处理空单元格指示符
   processedContent = processedContent.replace(/\\quad/g, ' ')
 
@@ -591,8 +608,14 @@ const processCellContentWithKaTeX = (content, isHeader) => {
           container.style.fontSize = '16px'
         }
       } else {
-        // 普通文本
-        container.appendChild(document.createTextNode(processedContent))
+        // 检查是否包含HTML标签（特别是<sub>标签）
+        if (processedContent.includes('<sub>')) {
+          // 如果包含HTML标签，使用innerHTML
+          container.innerHTML = processedContent
+        } else {
+          // 普通文本
+          container.appendChild(document.createTextNode(processedContent))
+        }
       }
     }
   }
@@ -604,13 +627,16 @@ const createBeautifulHTMLTable = (latexTable) => {
   try {
     // 调试信息
     console.log('创建HTML表格输入:', JSON.stringify(latexTable))
+    console.log('表格原始内容:', latexTable)
 
     // 解析LaTeX表格结构
     let arrayMatch = latexTable.match(/\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/)
+    console.log('array匹配结果:', arrayMatch)
 
     // 尝试tabular格式
     if (!arrayMatch) {
       arrayMatch = latexTable.match(/\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}/)
+      console.log('tabular匹配结果:', arrayMatch)
     }
 
     // 备用匹配模式
@@ -618,7 +644,11 @@ const createBeautifulHTMLTable = (latexTable) => {
       console.log('尝试备用正则模式...')
       const pattern1 = latexTable.match(/\\begin\{(?:array|tabular)\}\{([^}]*)\}([\\s\\S]*?)\\end\{(?:array|tabular)\}/)
       console.log('备用模式结果:', pattern1)
-      return pattern1 || null
+      if (!pattern1) {
+        console.log('所有匹配都失败，表格内容为:', latexTable)
+        return null
+      }
+      arrayMatch = pattern1
     }
     if (!arrayMatch) return null
 
@@ -680,11 +710,43 @@ const createBeautifulHTMLTable = (latexTable) => {
           .replace(/\\wedge/g, '∧')
           .replace(/\\vee/g, '∨')
           .replace(/\\neg/g, '¬')
-          // 移除不包含LaTeX命令的花括号
+          .replace(/\\circ/g, '∘')
+
+          // 特别处理商群集合符号 \{f_1, f_5, f_6\} - 必须在下标处理之前
+          .replace(/\\\{([^}]+)\\\}/g, (match, content) => {
+            // 先处理集合内的下标
+            let processedInner = content
+              .replace(/([a-zA-Z]+)_(\{[^}]+\}|\w+|\d+)/g, (match, letter, subscript) => {
+                const cleanSubscript = subscript.replace(/[{}]/g, '')
+                return `${letter}<sub>${cleanSubscript}</sub>`
+              })
+            return `{${processedInner}}`
+          })
+
+          // 处理f_1、f_2等形式的下标 - 转换为带下标的HTML
+          .replace(/([a-zA-Z]+)_(\{[^}]+\}|\w+|\d+)/g, (match, letter, subscript) => {
+            // 移除可能存在的大括号
+            const cleanSubscript = subscript.replace(/[{}]/g, '')
+            return `${letter}<sub>${cleanSubscript}</sub>`
+          })
+
+          // 处理带空格的函数名，如"cos a"、"sin b"等
+          .replace(/(\w+)\s+(\d+)/g, '$1<sub>$2</sub>')
+          // 处理\otimes_7或\otimes_{7}形式 - 转换为带下标的HTML
+          .replace(/\\otimes_\{?(\d+)\}?/g, '⊗<sub>$1</sub>')
+          .replace(/\\otimes([^_])/g, '⊗$1')
+          .replace(/\\otimes$/, '⊗')
+
+          // 处理其他花括号（不是集合符号的）
           .replace(/\{([^{}\\]+)\}/g, (match, content) => {
             // 只有内容不包含LaTeX命令时才移除花括号
             return content.includes('\\') ? match : content;
           })
+
+        // 调试输出处理前后的内容（只对包含f_的单元格，减少日志）
+        if (actualRowIndex > 0 && cleanCellContent.includes('f_')) {
+          console.log(`处理单元格内容: "${cleanCellContent}" -> "${processedContent}"`)
+        }
 
         // 标题行使用斜体
         if (actualRowIndex === 0) {

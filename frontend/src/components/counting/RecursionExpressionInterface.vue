@@ -136,7 +136,7 @@
 
     <!-- 内容显示区域 -->
     <div class="content-display-area">
-      <!-- 反馈信息区域 -->
+      <!-- 反馈信息区域
       <div v-if="feedback.length > 0" class="feedback-section">
         <el-divider content-position="left">反馈信息</el-divider>
         <div class="feedback-content">
@@ -152,7 +152,7 @@
             </el-text>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- 运算结果区域 -->
       <div v-if="results.length > 0" class="results-section">

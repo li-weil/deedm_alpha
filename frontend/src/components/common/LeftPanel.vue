@@ -12,7 +12,18 @@
       <!-- 显示所有公式和真值表 -->
       <div v-if="formulaResults.length > 0" class="formula-results">
         <div v-for="(result, index) in formulaResults" :key="index" class="result-item">
-          <div class="result-formula">
+          <!-- 群U(m)类型使用独立容器，不进行公式清理 -->
+          <div v-if="result.type === 'groupUm'" class="result-formula group-um-formula">
+            <strong>公式 {{ index + 1 }}: </strong>
+            <math-renderer
+              :formula="result.formula"
+              :type="'katex'"
+              :display-mode="true"
+            />
+          </div>
+
+          <!-- 其他类型使用原有容器 -->
+          <div v-else class="result-formula">
             <strong>公式 {{ index + 1 }}: </strong>
             <math-renderer
               :formula="cleanFormulaForDisplay(result.formula)"
@@ -294,6 +305,339 @@
                   :display-mode="true"
                   class="power-set-formula"
                 />
+              </div>
+            </div>
+          </div>
+
+          <!-- 格判断结果 -->
+          <div v-else-if="result.type === 'lattice-judge'" class="lattice-judge-result">
+            <h5 class="result-title">格判断分析结果：</h5>
+
+            <!-- 输入信息 -->
+            <div class="result-basic">
+              <h6>输入信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 哈斯图 -->
+            <div v-if="result.hasseDiagramUrl" class="hasse-diagram-result">
+              <h6>哈斯图：</h6>
+              <div class="diagram-container">
+                <img :src="result.hasseDiagramUrl" alt="哈斯图" class="diagram-image" />
+              </div>
+            </div>
+
+            <!-- 偏序关系判断 -->
+            <div class="partial-order-result">
+              <h6>偏序关系判断：</h6>
+              <el-tag :type="result.isPartialOrder ? 'success' : 'danger'">
+                {{ result.isPartialOrder ? '是偏序关系' : '不是偏序关系' }}
+              </el-tag>
+              <div v-if="result.partialOrderReason" class="reason-text">
+                原因：{{ result.partialOrderReason }}
+              </div>
+              <div v-if="result.partialOrderCounterexample" class="counterexample-text">
+                反例：
+                <math-renderer
+                  :formula="result.partialOrderCounterexample"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="counterexample-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 格判断结果 -->
+            <div v-if="result.isPartialOrder" class="lattice-result">
+              <h6>格判断：</h6>
+              <el-tag :type="result.isLattice ? 'success' : 'danger'">
+                {{ result.isLattice ? '是格' : '不是格' }}
+              </el-tag>
+              <div v-if="result.latticeReason" class="reason-text">
+                原因：{{ result.latticeReason }}
+              </div>
+              <div v-if="result.latticeCounterexample" class="counterexample-text">
+                反例：
+                <math-renderer
+                  :formula="result.latticeCounterexample"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="counterexample-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 格运算表 -->
+            <div v-if="result.isLattice && result.supOperatorTable" class="operator-tables-result">
+              <h6>格运算表：</h6>
+              <div class="operator-table">
+                <h6>最小上界运算：</h6>
+                <math-renderer
+                  :formula="result.supOperatorTable"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="operator-formula"
+                />
+              </div>
+              <div class="operator-table">
+                <h6>最大下界运算：</h6>
+                <math-renderer
+                  :formula="result.subOperatorTable"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="operator-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 分配格判断 -->
+            <div v-if="result.isLattice && result.isDistributive !== null" class="distributive-result">
+              <h6>分配格判断：</h6>
+              <el-tag :type="result.isDistributive ? 'success' : 'danger'">
+                {{ result.isDistributive ? '是分配格' : '不是分配格' }}
+              </el-tag>
+              <div v-if="result.distributiveReason" class="reason-text">
+                原因：
+                <math-renderer
+                  :formula="result.distributiveReason"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="reason-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 有界格判断 -->
+            <div v-if="result.isLattice && result.isBounded !== null" class="bounded-result">
+              <h6>有界格判断：</h6>
+              <el-tag :type="result.isBounded ? 'success' : 'danger'">
+                {{ result.isBounded ? '是有界格' : '不是有界格' }}
+              </el-tag>
+              <div v-if="result.boundedReason" class="reason-text">
+                原因：{{ result.boundedReason }}
+              </div>
+              <div v-if="result.isBounded && result.greatestElement && result.leastElement" class="bounded-elements">
+                最大元：<math-renderer :formula="result.greatestElement" :type="'mathjax'" :display-mode="false" />
+                ，最小元：<math-renderer :formula="result.leastElement" :type="'mathjax'" :display-mode="false" />
+              </div>
+            </div>
+
+            <!-- 有补格判断 -->
+            <div v-if="result.isLattice && result.isComplemented !== null" class="complemented-result">
+              <h6>有补格判断：</h6>
+              <el-tag :type="result.isComplemented ? 'success' : 'danger'">
+                {{ result.isComplemented ? '是有补格' : '不是有补格' }}
+              </el-tag>
+              <div v-if="result.complementedReason" class="reason-text">
+                原因：{{ result.complementedReason }}
+              </div>
+              <div v-if="result.isComplemented && result.complements" class="complements-list">
+                <h6>元素补元列表：</h6>
+                <div v-for="(complement, idx) in result.complements" :key="idx" class="complement-item">
+                  元素 <math-renderer :formula="complement.element" :type="'mathjax'" :display-mode="false" />
+                  的补元：<math-renderer :formula="complement.complementElements" :type="'mathjax'" :display-mode="false" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 布尔代数判断 -->
+            <div v-if="result.isLattice && result.isBooleanAlgebra !== null" class="boolean-result">
+              <h6>布尔代数判断：</h6>
+              <el-tag :type="result.isBooleanAlgebra ? 'success' : 'danger'">
+                {{ result.isBooleanAlgebra ? '是布尔代数' : '不是布尔代数' }}
+              </el-tag>
+              <div v-if="result.booleanAlgebraReason" class="reason-text">
+                原因：{{ result.booleanAlgebraReason }}
+              </div>
+            </div>
+          </div>
+
+          <!-- 置换群分析结果 -->
+          <div v-else-if="result.type === 'group-perm'" class="group-perm-result">
+            <h5 class="result-title">置换群分析结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>置换群信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- 元素表格和运算表格 -->
+            <div v-if="result.elementTable || result.operatorTable" class="operation-result">
+              <h6>群元素和运算表：</h6>
+              <div v-if="result.elementTable">
+                <math-renderer
+                  :formula="result.elementTable"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+              <div v-if="result.operatorTable">
+                <math-renderer
+                  :formula="result.operatorTable"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 循环群分析 -->
+            <div v-if="result.showCycleGroup && result.cycleGroup !== undefined" class="operation-result">
+              <h6>循环群分析：</h6>
+              <div v-if="result.cycleGroup">
+                <math-renderer
+                  :formula="'置换群 S(' + result.m + ') 是循环群，生成元为：' + result.generators"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+              <div v-else>
+                <math-renderer
+                  :formula="'置换群 S(' + result.m + ') 不是循环群'"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 群元素的幂 -->
+            <div v-if="result.elementPowers && result.elementPowers.length > 0" class="operation-result">
+              <h6>群元素的幂（包括群元素的逆）：</h6>
+              <div v-for="(power, idx) in result.elementPowers" :key="idx" class="power-item">
+                <math-renderer
+                  :formula="power"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 群元素的阶 -->
+            <div v-if="result.elementOrders && result.elementOrders.length > 0" class="operation-result">
+              <h6>群元素的阶：</h6>
+              <div class="orders-container">
+                <math-renderer
+                  :formula="result.elementOrders.join('')"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 子群分析 -->
+            <div v-if="result.subgroups && result.subgroups.length > 0" class="operation-result">
+              <h6>群的所有非平凡子群：</h6>
+              <div v-for="(subgroup, idx) in result.subgroups" :key="idx" class="subgroup-item">
+                <h6>子群 {{ idx + 1 }}：</h6>
+                <math-renderer
+                  :formula="'\\{' + subgroup.subgroupElements + '\\}'"
+                  :type="'mathjax'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+                <div v-if="subgroup.cycleSubgroup">
+                  <math-renderer
+                    :formula="'是循环子群，生成元为：' + subgroup.generators"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="operation-formula"
+                  />
+                </div>
+                <div v-else>
+                  <math-renderer
+                    :formula="'不是循环子群'"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="operation-formula"
+                  />
+                </div>
+                <div v-if="subgroup.operatorTable">
+                  <math-renderer
+                    :formula="subgroup.operatorTable"
+                    :type="'katex'"
+                    :display-mode="true"
+                    class="operation-formula"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 陪集分析 -->
+            <div v-if="result.cosets && result.cosets.length > 0" class="operation-result">
+              <h6>群的所有非平凡子群的陪集：</h6>
+              <div v-for="(coset, idx) in result.cosets" :key="idx" class="coset-item">
+                <h6>
+                <span>子群 {{ idx + 1 }}：</span>
+                <math-renderer
+                  :formula="'\\{' + coset.subgroupElements + '\\}'"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="inline-formula"
+                />
+                <span>的陪集：</span>
+              </h6>
+                <div class="coset-section">
+                  <h6>左陪集包括：</h6>
+                  <math-renderer
+                    :formula="coset.leftCosets.join('')"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="operation-formula"
+                  />
+                </div>
+                <div class="coset-section">
+                  <h6>右陪集包括：</h6>
+                  <math-renderer
+                    :formula="coset.rightCosets.join('')"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="operation-formula"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 正规子群分析 -->
+            <div v-if="result.normalSubgroups && result.normalSubgroups.length > 0" class="operation-result">
+              <h6>群的正规子群分析：</h6>
+              <div v-for="(normal, idx) in result.normalSubgroups" :key="idx" class="normal-item">
+                <h6>
+                <span>子群 {{ idx + 1 }}：</span>
+                <math-renderer
+                  :formula="'\\{' + normal.subgroupElements + '\\}'"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="inline-formula"
+                />
+              </h6>
+                <div v-if="normal.normal">
+                  <h6>是正规子群，其商群的运算表如下：</h6>
+                  <math-renderer
+                    :formula="normal.quotientGroupTable"
+                    :type="'katex'"
+                    :display-mode="true"
+                    class="operation-formula"
+                  />
+                </div>
+                <div v-else>
+                  <h6>不是正规子群</h6>
+                </div>
               </div>
             </div>
           </div>
@@ -1609,6 +1953,108 @@
 
           </div>
 
+          <!-- 显示运算性质判断结果 -->
+          <div v-else-if="result.type === 'operation-property'" class="operation-property-result">
+            <h5 class="result-title">运算性质分析结果：</h5>
+
+            <!-- 基本信息 -->
+            <div class="operation-basic-info">
+              <h6>输入信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="basic-formula"
+              />
+            </div>
+
+            <!-- 运算符表格 -->
+            <div v-if="result.operator1Table || result.operator2Table" class="operation-tables">
+              <h6>运算表格：</h6>
+              <div v-if="result.operator1Table" class="operator-table">
+                <math-renderer
+                  :formula="result.operator1Table"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+              <div v-if="result.operator2Table" class="operator-table">
+                <math-renderer
+                  :formula="result.operator2Table"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="operation-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 运算符一的性质 -->
+            <div v-if="result.operator1Properties && result.operator1Properties.length > 0" class="operator-properties">
+              <h6>运算符一(∘)的性质：</h6>
+              <div v-for="property in result.operator1Properties" :key="property.propertyType" class="property-item">
+                <div class="property-header">
+                  <strong>{{ getPropertyDisplayName(property.propertyType) }}：</strong>
+                  <el-tag :type="property.hasProperty ? 'success' : 'danger'" size="small">
+                    {{ property.hasProperty ? '满足' : '不满足' }}
+                  </el-tag>
+                </div>
+                <div class="property-reason">
+                  <math-renderer
+                    :formula="formatMathExpression(property.reason)"
+                    :type="'katex'"
+                    :display-mode="false"
+                    :inline="true"
+                  />
+                </div>
+                <div v-if="property.details" class="property-details">{{ property.details }}</div>
+              </div>
+            </div>
+
+            <!-- 运算符二的性质 -->
+            <div v-if="result.operator2Properties && result.operator2Properties.length > 0" class="operator-properties">
+              <h6>运算符二(*)的性质：</h6>
+              <div v-for="property in result.operator2Properties" :key="property.propertyType" class="property-item">
+                <div class="property-header">
+                  <strong>{{ getPropertyDisplayName(property.propertyType) }}：</strong>
+                  <el-tag :type="property.hasProperty ? 'success' : 'danger'" size="small">
+                    {{ property.hasProperty ? '满足' : '不满足' }}
+                  </el-tag>
+                </div>
+                <div class="property-reason">
+                  <math-renderer
+                    :formula="formatMathExpression(property.reason)"
+                    :type="'katex'"
+                    :display-mode="false"
+                    :inline="true"
+                  />
+                </div>
+                <div v-if="property.details" class="property-details">{{ property.details }}</div>
+              </div>
+            </div>
+
+            <!-- 运算符之间的关系性质 -->
+            <div v-if="result.relationProperties && result.relationProperties.length > 0" class="relation-properties">
+              <h6>运算符之间的关系性质：</h6>
+              <div v-for="relation in result.relationProperties" :key="`${relation.relationType}_${relation.direction}`" class="relation-item">
+                <div class="relation-header">
+                  <strong>{{ getRelationDisplayName(relation.relationType) }} - {{ relation.direction }}：</strong>
+                  <el-tag :type="relation.hasRelation ? 'success' : 'danger'" size="small">
+                    {{ relation.hasRelation ? '满足' : '不满足' }}
+                  </el-tag>
+                </div>
+                <div class="relation-reason">
+                  <math-renderer
+                    :formula="formatMathExpression(relation.reason)"
+                    :type="'katex'"
+                    :display-mode="false"
+                    :inline="true"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- 显示最小生成树计算结果 -->
           <div v-else-if="result.type === 'spanning-tree'" class="spanning-tree-result">
             <h5 class="result-title">带权图最小生成树计算结果：</h5>
@@ -2522,6 +2968,225 @@
             </div>
           </div>
 
+          <!-- 群U(m)分析结果 -->
+          <div v-else-if="result.type === 'groupUm'" class="group-um-result">
+            <!-- 基本信息 -->
+            <div class="result-basic">
+              <h6>群的基本信息：</h6>
+              <math-renderer
+                :formula="result.formula"
+                :type="'katex'"
+                :display-mode="true"
+                class="result-formula"
+              />
+            </div>
+
+            <!-- U(m)运算表 -->
+            <div v-if="result.operatorTable" class="operator-table-result">
+              <h6>群U({{ result.m }})的运算表：</h6>
+              <div class="operator-table-container">
+                <math-renderer
+                  :formula="result.operatorTable"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="operator-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 循环群信息 -->
+            <div v-if="result.showCycleGroup" class="cycle-group-result">
+              <h6>循环群分析：</h6>
+              <div v-if="result.cycleGroup" class="cycle-group-info">
+                <p>群 U({{ result.m }}) 是循环群，生成元：{{ result.generators }}</p>
+              </div>
+              <div v-else class="cycle-group-info">
+                <p>群 U({{ result.m }}) 不是循环群</p>
+              </div>
+            </div>
+
+            <!-- 群元素的幂 -->
+            <div v-if="result.showPower && result.elementPowers" class="power-result">
+              <h6>群元素的幂：</h6>
+              <div v-for="(powerInfo, idx) in result.elementPowers" :key="idx" class="power-item">
+                <div class="power-item-container">
+                  <p><strong>元素 {{ powerInfo.element }} 的幂：</strong></p>
+                  <div class="power-list">
+                    <math-renderer
+                      v-for="(power, powerIdx) in powerInfo.powers"
+                      :key="powerIdx"
+                      :formula="power"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                      class="power-formula-inline"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 群元素的阶 -->
+            <div v-if="result.showOrder && result.elementOrders" class="order-result">
+              <h6>群元素的阶：</h6>
+              <div class="order-grid">
+                <math-renderer
+                  v-for="(orderInfo, idx) in result.elementOrders"
+                  :key="idx"
+                  :formula="orderInfo.formula"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="order-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 子群信息 -->
+            <div v-if="result.showSubgroups && result.subgroups" class="subgroup-result">
+              <h6>群的非平凡子群：</h6>
+              <div v-for="(subgroup, idx) in result.subgroups" :key="idx" class="subgroup-item">
+                <div class="subgroup-info">
+                  <p><strong>子群：</strong> { {{ subgroup.elements }} }</p>
+                  <div v-if="subgroup.isCycleSubgroup">
+                    <p>它是循环子群，生成元：{{ subgroup.generators }}</p>
+                  </div>
+                  <div v-else>
+                    <p>它不是循环子群</p>
+                  </div>
+                  <div class="subgroup-operator">
+                    <math-renderer
+                      :formula="subgroup.operatorTable"
+                      :type="'katex'"
+                      :display-mode="true"
+                      class="operator-formula"
+                    />
+                  </div>
+                </div>
+
+                <!-- 陪集信息 -->
+                <div v-if="result.showCosets && subgroup.cosets && subgroup.cosets.length > 0" class="coset-info">
+                  <p><strong>子群 { {{ subgroup.elements }} } 的陪集包括：</strong></p>
+                  <div class="coset-grid">
+                    <math-renderer
+                      v-for="(coset, cosetIdx) in subgroup.cosets"
+                      :key="cosetIdx"
+                      :formula="coset"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                      class="coset-formula"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 布尔代数判断结果 -->
+          <div v-else-if="result.type === 'bool-algebra'" class="bool-algebra-result">
+            <h4 class="result-title">{{ result.index }}: 布尔代数分析结果 - F({{ result.m }})</h4>
+
+            <!-- 格的基本信息 -->
+            <div class="lattice-basic-info">
+              <h5>格的基本信息：</h5>
+              <math-renderer
+                :formula="result.formula"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div class="boolean-judgment">
+                <el-tag :type="result.booleanAlgebra ? 'success' : 'warning'" size="large">
+                  {{ result.booleanAlgebra ? '该格是布尔代数' : '该格不是布尔代数' }}
+                </el-tag>
+              </div>
+            </div>
+
+            <!-- 最大元和最小元 -->
+            <div v-if="result.greatestElement && result.leastElement" class="extreme-elements">
+              <h5>极值元素：</h5>
+              <div class="elements-display">
+                <span>最大元：</span>
+                <math-renderer
+                  :formula="result.greatestElement"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="element-formula"
+                />
+                <span>，最小元：</span>
+                <math-renderer
+                  :formula="result.leastElement"
+                  :type="'mathjax'"
+                  :display-mode="false"
+                  class="element-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 哈斯图 -->
+            <div v-if="result.hasseDiagramUrl" class="hasse-diagram-display">
+              <h5>哈斯图：</h5>
+              <div class="diagram-container">
+                <img
+                  :src="result.hasseDiagramUrl"
+                  alt="哈斯图"
+                  class="hasse-image"
+                  @error="onImageError"
+                />
+              </div>
+            </div>
+
+            <!-- 运算表 -->
+            <div v-if="result.supOperatorTable && result.subOperatorTable" class="operation-tables-display">
+              <h5>运算表（上确界和下确界运算）：</h5>
+
+              <div class="operation-table">
+                <h6>上确界运算表：</h6>
+                <math-renderer
+                  :formula="result.supOperatorTable"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="table-formula"
+                />
+              </div>
+
+              <div class="operation-table">
+                <h6>下确界运算表：</h6>
+                <math-renderer
+                  :formula="result.subOperatorTable"
+                  :type="'katex'"
+                  :display-mode="true"
+                  class="table-formula"
+                />
+              </div>
+            </div>
+
+            <!-- 补元信息 -->
+            <div v-if="result.complementInfos && result.complementInfos.length > 0" class="complements-display">
+              <h5>补元信息：</h5>
+              <div class="complements-list">
+                <div v-for="(compInfo, compIndex) in result.complementInfos" :key="compIndex" class="complement-item">
+                  <div class="element-info">
+                    元素
+                    <math-renderer
+                      :formula="compInfo.element"
+                      :type="'mathjax'"
+                      :display-mode="false"
+                      class="element-formula"
+                    />
+                    <span v-if="compInfo.hasComplement"> 的补元：</span>
+                    <span v-else> 没有补元</span>
+                  </div>
+                  <div v-if="compInfo.hasComplement" class="complement-formula">
+                    <math-renderer
+                      :formula="compInfo.complements"
+                      :type="'mathjax'"
+                      :display-mode="true"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
       </div>
     </div>
@@ -2683,6 +3348,13 @@ const handleGraphImageError = (event) => {
   ElMessage.error('图形可视化加载失败')
 }
 
+// 哈斯图图片加载失败处理
+const onImageError = (event) => {
+  console.error('LeftPanel: 哈斯图加载失败:', event.target.src)
+  ElMessage.error('哈斯图加载失败')
+  event.target.style.display = 'none'
+}
+
 // 获取公式类型标签样式
 const getFormulaTypeTag = (type) => {
   switch (type) {
@@ -2758,6 +3430,47 @@ const cleanFormulaForDisplay = (formula) => {
       }
       return commandMap[command] || match
     })
+}
+
+// 辅助函数：获取性质显示名称
+const getPropertyDisplayName = (propertyType) => {
+  const names = {
+    commutative: '交换律',
+    associative: '结合律',
+    idempotent: '幂等律',
+    cancellation: '消去律',
+    identity: '单位元',
+    zero: '零元',
+    inverse: '逆元'
+  }
+  return names[propertyType] || propertyType
+}
+
+// 辅助函数：获取关系显示名称
+const getRelationDisplayName = (relationType) => {
+  const names = {
+    distributive: '分配律',
+    absorption: '吸收律'
+  }
+  return names[relationType] || relationType
+}
+
+// 辅助函数：格式化数学表达式，添加适当的空格
+const formatMathExpression = (formula) => {
+  if (!formula) return formula
+
+  return formula
+    // 在运算符周围添加空格
+    .replace(/([a-zA-Z0-9\)}])(\\circ|\\times|\\neq|=|≠|\\leq|\\geq|<|>)([a-zA-Z0-9\({])/g, '$1 $2 $3')
+    // 在\circ后特别添加空格
+    .replace(/\\circ(?!\s)/g, '\\circ ')
+    // 在\neq前后添加空格
+    .replace(/\\neq(?!\s)/g, ' \\neq ')
+    // 在=前后添加空格
+    .replace(/=(?!\s)/g, ' = ')
+    // 清理多余的空格
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 </script>
 
@@ -2845,12 +3558,30 @@ const cleanFormulaForDisplay = (formula) => {
   color: #2c3e50;
   overflow-x: auto;
   padding: 0.5rem;
-  background: #f8f9fa;
+  background: #ffffff;
   border-radius: 4px;
   border: 1px solid #e9ecef;
 }
 
 .result-formula :deep(.math-renderer) {
+  white-space: nowrap;
+  max-width: none;
+}
+
+/* 群U(m)专用公式容器样式 - 保持与原来一致 */
+.result-formula.group-um-formula {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #2c3e50;
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.result-formula.group-um-formula :deep(.math-renderer) {
   white-space: nowrap;
   max-width: none;
 }
@@ -3868,6 +4599,111 @@ const cleanFormulaForDisplay = (formula) => {
   border-radius: 4px;
   border: 1px solid #e9ecef;
   overflow-x: auto;
+}
+
+/* 置换群分析结果样式 */
+.group-perm-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+  border-left: 4px solid #fd7e14;
+  overflow-x: auto;
+}
+
+.group-perm-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.group-perm-result .operation-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.group-perm-result .operation-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05rem;
+  padding: 0.5rem;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.group-perm-result .power-item,
+.group-perm-result .subgroup-item,
+.group-perm-result .coset-item,
+.group-perm-result .normal-item {
+  margin: 1rem 0;
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.group-perm-result .coset-section {
+  margin: 0.8rem 0;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 3px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+}
+
+.group-perm-result .orders-container {
+  overflow-x: auto;
+}
+
+/* 置换群结果中的内联公式样式 */
+.group-perm-result .inline-formula {
+  display: inline;
+  vertical-align: baseline;
+  margin: 0 0.2rem;
+  font-size: inherit;
+  line-height: 1;
+}
+
+/* 针对 h6 标签中的内联公式进行特殊对齐 */
+.group-perm-result h6 .inline-formula {
+  vertical-align: baseline;
+  margin: 0 0.15rem;
+}
+
+/* h6标签中的所有元素统一对齐 */
+.group-perm-result h6 span,
+.group-perm-result h6 .inline-formula {
+  display: inline;
+  vertical-align: baseline;
+}
+
+/* 深度修复MathJax内联公式的对齐问题 */
+.group-perm-result .inline-formula :deep(.MathJax) {
+  vertical-align: baseline !important;
+  display: inline !important;
+  margin: 0 !important;
+}
+
+.group-perm-result .inline-formula :deep(.MathJax > mjx-container) {
+  vertical-align: baseline !important;
+  display: inline !important;
+  margin: 0 !important;
+  font-size: inherit !important;
+}
+
+.group-perm-result .inline-formula :deep(.MathJax > mjx-container > svg) {
+  vertical-align: baseline !important;
+  display: inline !important;
 }
 
 /* 等价关系计算结果样式 */
@@ -5616,5 +6452,620 @@ h6 {
   margin: 0.5rem 0;
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+/* 运算性质判断结果样式 */
+.operation-property-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+.operation-basic-info {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.basic-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05em;
+  overflow-x: auto;
+}
+
+.operation-tables {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.operator-table {
+  margin: 0.5rem 0;
+}
+
+.operation-formula {
+  margin: 0.5rem 0;
+  font-size: 1.05em;
+  overflow-x: auto;
+}
+
+.operator-properties,
+.relation-properties {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.property-item,
+.relation-item {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.property-header,
+.relation-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95em;
+}
+
+.property-reason,
+.relation-reason {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.property-reason .math-renderer,
+.relation-reason .math-renderer {
+  display: inline-flex;
+  align-items: center;
+}
+
+.property-details {
+  font-size: 0.85rem;
+  color: #374151;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+/* 群U(m)分析结果样式 */
+.group-um-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+/* 置换群分析结果样式 */
+.group-perm-result {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+.group-um-result .result-basic {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.group-um-result .cycle-group-result,
+.group-um-result .power-result,
+.group-um-result .order-result,
+.group-um-result .subgroup-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.group-um-result .cycle-group-info p {
+  margin: 0.5rem 0;
+  color: #374151;
+  font-weight: 500;
+}
+
+.group-um-result .power-item {
+  margin: 0.5rem 0;
+}
+
+.group-um-result .power-item-container {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.group-um-result .power-formula {
+  margin: 0;
+  font-size: 1.05em;
+  min-width: max-content;
+}
+
+.group-um-result .power-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.3rem 0;
+}
+
+.group-um-result .power-formula-inline {
+  padding: 0.2rem 0.4rem;
+  background: #f8f9fa;
+  border-radius: 3px;
+  border: 1px solid #e9ecef;
+  font-size: 0.85em;
+}
+
+.group-um-result .order-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.group-um-result .order-formula {
+  padding: 0.25rem 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.group-um-result .subgroup-item {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.group-um-result .subgroup-info {
+  margin-bottom: 0.75rem;
+}
+
+.group-um-result .subgroup-info p {
+  margin: 0.5rem 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.group-um-result .subgroup-operator {
+  margin: 0.75rem 0;
+}
+
+.group-um-result .operator-table-result {
+  margin: 1rem 0;
+}
+
+.group-um-result .operator-table-container {
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.group-um-result .operator-formula {
+  margin: 0.5rem 0;
+  font-size: 1em;
+  overflow-x: auto;
+  min-width: max-content;
+  background: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.group-um-result .coset-info {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.group-um-result .coset-info p {
+  margin: 0.5rem 0;
+  color: #374151;
+  font-weight: 500;
+}
+
+.group-perm-result .result-basic,
+.group-perm-result .element-operator-result,
+.group-perm-result .cycle-group-result,
+.group-perm-result .power-result,
+.group-perm-result .order-result,
+.group-perm-result .subgroup-result,
+.group-perm-result .coset-result,
+.group-perm-result .normal-subgroup-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.group-perm-result .cycle-group-info p,
+.group-perm-result .normal-subgroup-info p {
+  margin: 0.5rem 0;
+  color: #374151;
+  font-weight: 500;
+}
+
+.group-perm-result .power-item {
+  margin: 0.5rem 0;
+}
+
+.group-perm-result .power-item-container {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.group-perm-result .power-formula {
+  margin: 0;
+  font-size: 1.05em;
+  min-width: max-content;
+}
+
+.group-perm-result .order-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.group-perm-result .order-formula,
+.group-perm-result .coset-formula {
+  padding: 0.25rem 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.group-perm-result .subgroup-item,
+.group-perm-result .coset-item,
+.group-perm-result .normal-subgroup-item {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.group-perm-result .subgroup-info,
+.group-perm-result .coset-info,
+.group-perm-result .normal-subgroup-info {
+  margin-bottom: 0.75rem;
+}
+
+.group-perm-result .subgroup-info p,
+.group-perm-result .coset-info p {
+  margin: 0.5rem 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.group-perm-result .subgroup-operator,
+.group-perm-result .quotient-group-table {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.group-perm-result .operator-formula {
+  margin: 0.5rem 0;
+  font-size: 1em;
+  overflow-x: auto;
+}
+
+.group-perm-result .coset-section {
+  margin: 0.75rem 0;
+}
+
+.group-perm-result .coset-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.group-um-result .coset-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.group-um-result .coset-item {
+  padding: 0.25rem 0.5rem;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.group-um-result .coset-formula {
+  padding: 0.25rem 0.5rem;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.group-um-result h6 {
+  color: #374151;
+  margin: 0.75rem 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.group-um-result strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+/* 格判断结果样式 */
+.lattice-judge-result .result-basic {
+  margin-bottom: 1rem;
+}
+
+.lattice-judge-result .hasse-diagram-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.lattice-judge-result .diagram-container {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.lattice-judge-result .diagram-image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+}
+
+.lattice-judge-result .partial-order-result,
+.lattice-judge-result .lattice-result,
+.lattice-judge-result .distributive-result,
+.lattice-judge-result .bounded-result,
+.lattice-judge-result .complemented-result,
+.lattice-judge-result .boolean-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.lattice-judge-result .reason-text {
+  margin: 0.5rem 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.lattice-judge-result .counterexample-text {
+  margin: 0.5rem 0;
+  color: #dc2626;
+  font-size: 0.9rem;
+}
+
+.lattice-judge-result .counterexample-formula,
+.lattice-judge-result .reason-formula {
+  display: inline-block;
+  margin: 0.2rem 0;
+  padding: 0.2rem 0.5rem;
+  background: #fef2f2;
+  border-radius: 4px;
+  border: 1px solid #fecaca;
+}
+
+.lattice-judge-result .operator-tables-result {
+  margin: 1rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.lattice-judge-result .operator-table {
+  margin: 1rem 0;
+}
+
+.lattice-judge-result .operator-formula {
+  margin: 1rem 0;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.lattice-judge-result .bounded-elements {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.lattice-judge-result .complements-list {
+  margin-top: 1rem;
+}
+
+.lattice-judge-result .complement-item {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.lattice-judge-result h6 {
+  color: #374151;
+  margin: 1rem 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 布尔代数结果样式 */
+.bool-algebra-result {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.bool-algebra-result .lattice-basic-info {
+  margin-bottom: 1.5rem;
+}
+
+.bool-algebra-result .boolean-judgment {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.bool-algebra-result .extreme-elements {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.bool-algebra-result .elements-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bool-algebra-result .element-formula {
+  font-size: 1.1rem;
+  margin: 0 0.25rem;
+}
+
+.bool-algebra-result .hasse-diagram-display {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.bool-algebra-result .diagram-container {
+  text-align: center;
+}
+
+.bool-algebra-result .hasse-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bool-algebra-result .operation-tables-display {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.bool-algebra-result .operation-table {
+  margin: 1rem 0;
+}
+
+.bool-algebra-result .table-formula {
+  font-size: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow-x: auto;
+}
+
+.bool-algebra-result .complements-display {
+  margin: 1.5rem 0;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.bool-algebra-result .complements-list {
+  margin-top: 1rem;
+}
+
+.bool-algebra-result .complement-item {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.bool-algebra-result .element-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.bool-algebra-result .complement-formula {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.bool-algebra-result h5 {
+  color: #374151;
+  margin: 1rem 0 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.bool-algebra-result h6 {
+  color: #6b7280;
+  margin: 0.75rem 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 500;
 }
 </style>

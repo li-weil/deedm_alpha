@@ -1477,5 +1477,424 @@ export const generateLaTeXCode = (result) => {
     latexCode += `\\begin{array}{c}\n${description}\n\\end{array}\n\n`
   }
 
+  // 处理运算性质判断结果
+  if (result.type === 'operation-property') {
+    latexCode += `\\begin{array}{c}\n\\text{运算性质分析结果:}\n\\end{array}\n\n`
+
+    // 显示基本信息
+    latexCode += `\\begin{array}{c}\n\\text{集合和运算符:} ${result.formula}\n\\end{array}\n\n`
+
+    // 显示运算符表格
+    if (result.operator1Table) {
+      latexCode += `\\begin{array}{c}\n\\text{运算符一(∘)的运算表:}\n\\end{array}\n\n`
+      latexCode += result.operator1Table + '\n\n'
+    }
+
+    if (result.operator2Table) {
+      latexCode += `\\begin{array}{c}\n\\text{运算符二(*)的运算表:}\n\\end{array}\n\n`
+      latexCode += result.operator2Table + '\n\n'
+    }
+
+    // 显示运算符一的性质
+    if (result.operator1Properties && result.operator1Properties.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{运算符一(∘)的性质:}\n\\end{array}\n\n`
+
+      result.operator1Properties.forEach(property => {
+        const propertyName = getPropertyNameChinese(property.propertyType)
+        const resultText = property.hasProperty ? '✓ 满足' : '✗ 不满足'
+        latexCode += `\\begin{array}{c}\n\\text{${propertyName}:} ${resultText}\n\\end{array}\n\n`
+
+        if (property.reason) {
+          latexCode += `\\begin{array}{c}\n\\text{原因:} ${property.reason}\n\\end{array}\n\n`
+        }
+
+        if (property.details) {
+          latexCode += `\\begin{array}{c}\n\\text{详细信息:} ${property.details}\n\\end{array}\n\n`
+        }
+      })
+    }
+
+    // 显示运算符二的性质
+    if (result.operator2Properties && result.operator2Properties.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{运算符二(*)的性质:}\n\\end{array}\n\n`
+
+      result.operator2Properties.forEach(property => {
+        const propertyName = getPropertyNameChinese(property.propertyType)
+        const resultText = property.hasProperty ? '✓ 满足' : '✗ 不满足'
+        latexCode += `\\begin{array}{c}\n\\text{${propertyName}:} ${resultText}\n\\end{array}\n\n`
+
+        if (property.reason) {
+          latexCode += `\\begin{array}{c}\n\\text{原因:} ${property.reason}\n\\end{array}\n\n`
+        }
+
+        if (property.details) {
+          latexCode += `\\begin{array}{c}\n\\text{详细信息:} ${property.details}\n\\end{array}\n\n`
+        }
+      })
+    }
+
+    // 显示运算符之间的关系性质
+    if (result.relationProperties && result.relationProperties.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{运算符之间的关系性质:}\n\\end{array}\n\n`
+
+      result.relationProperties.forEach(relation => {
+        const relationName = getRelationNameChinese(relation.relationType)
+        const resultText = relation.hasRelation ? '✓ 满足' : '✗ 不满足'
+        latexCode += `\\begin{array}{c}\n\\text{${relationName} - ${relation.direction}:} ${resultText}\n\\end{array}\n\n`
+
+        if (relation.reason) {
+          latexCode += `\\begin{array}{c}\n\\text{原因:} ${relation.reason}\n\\end{array}\n\n`
+        }
+      })
+    }
+  }
+
+  // 处理群U(m)分析结果
+  if (result.type === 'groupUm') {
+    latexCode += `\\begin{array}{c}\n\\text{群U(${result.m})分析结果:}\n\\end{array}\n\n`
+
+    // 基本信息
+    latexCode += `\\begin{array}{c}\n\\text{群的基本信息:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 循环群信息
+    if (result.showCycleGroup) {
+      latexCode += `\\begin{array}{c}\n\\text{循环群分析:}\n\\end{array}\n\n`
+      if (result.cycleGroup) {
+        latexCode += `\\begin{array}{c}\n\\text{群 U(${result.m}) 是循环群，生成元: ${result.generators}}\n\\end{array}\n\n`
+      } else {
+        latexCode += `\\begin{array}{c}\n\\text{群 U(${result.m}) 不是循环群}\n\\end{array}\n\n`
+      }
+    }
+
+    // 群元素的幂
+    if (result.showPower && result.elementPowers) {
+      latexCode += `\\begin{array}{c}\n\\text{群元素的幂:}\n\\end{array}\n\n`
+      result.elementPowers.forEach(powerInfo => {
+        latexCode += `\\begin{array}{c}\n\\text{元素 ${powerInfo.element} 的幂:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n`
+        powerInfo.powers.forEach(power => {
+          latexCode += `${power} \\quad `
+        })
+        latexCode += `\n\\end{array}\n\n`
+      })
+    }
+
+    // 群元素的阶
+    if (result.showOrder && result.elementOrders) {
+      latexCode += `\\begin{array}{c}\n\\text{群元素的阶:}\n\\end{array}\n\n`
+      let orderString = ''
+      result.elementOrders.forEach((orderInfo, index) => {
+        orderString += orderInfo.formula
+        if ((index + 1) % 5 === 0) {
+          orderString += ' \\\\\n'
+        }
+      })
+      latexCode += `\\begin{array}{c}\n${orderString}\n\\end{array}\n\n`
+    }
+
+    // 子群信息
+    if (result.showSubgroups && result.subgroups) {
+      latexCode += `\\begin{array}{c}\n\\text{群的非平凡子群:}\n\\end{array}\n\n`
+
+      result.subgroups.forEach((subgroup, index) => {
+        latexCode += `\\begin{array}{c}\n\\text{子群${index + 1}: \\{${subgroup.elements}\\}}\n\\end{array}\n\n`
+
+        if (subgroup.isCycleSubgroup) {
+          latexCode += `\\begin{array}{c}\n\\text{它是循环子群，生成元: ${subgroup.generators}}\n\\end{array}\n\n`
+        } else {
+          latexCode += `\\begin{array}{c}\n\\text{它不是循环子群}\n\\end{array}\n\n`
+        }
+
+        latexCode += `\\begin{array}{c}\n\\text{子群运算表:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${subgroup.operatorTable}\n\\end{array}\n\n`
+
+        // 陪集信息
+        if (result.showCosets && subgroup.cosets && subgroup.cosets.length > 0) {
+          latexCode += `\\begin{array}{c}\n\\text{子群 \\{${subgroup.elements}\\} 的陪集包括:}\n\\end{array}\n\n`
+
+          let cosetString = ''
+          subgroup.cosets.forEach((coset, cosetIndex) => {
+            cosetString += coset
+            if ((cosetIndex + 1) % 3 === 0) {
+              cosetString += ' \\\\\n'
+            } else {
+              cosetString += '\\quad'
+            }
+          })
+          latexCode += `\\begin{array}{c}\n${cosetString}\n\\end{array}\n\n`
+        }
+      })
+    }
+  }
+
+  // 处理置换群分析结果
+  if (result.type === 'group-perm') {
+    latexCode += `\\begin{array}{c}\n\\text{置换群分析结果:}\n\\end{array}\n\n`
+
+    // 基本信息
+    latexCode += `\\begin{array}{c}\n\\text{置换群基本信息:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n${result.formula}\n\\end{array}\n\n`
+
+    // 元素表格和运算表格
+    if (result.elementTable || result.operatorTable) {
+      latexCode += `\\begin{array}{c}\n\\text{群元素和运算表:}\n\\end{array}\n\n`
+      if (result.elementTable) {
+        latexCode += `\\begin{array}{c}\n\\text{元素表格:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.elementTable}\n\\end{array}\n\n`
+      }
+      if (result.operatorTable) {
+        latexCode += `\\begin{array}{c}\n\\text{运算表格:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.operatorTable}\n\\end{array}\n\n`
+      }
+    }
+
+    // 循环群分析
+    if (result.showCycleGroup !== undefined) {
+      latexCode += `\\begin{array}{c}\n\\text{循环群分析:}\n\\end{array}\n\n`
+      if (result.isCycleGroup) {
+        latexCode += `\\begin{array}{c}\n\\text{置换群 S(${result.m}) 是循环群，生成元为: ${result.generators}}\n\\end{array}\n\n`
+      } else {
+        latexCode += `\\begin{array}{c}\n\\text{置换群 S(${result.m}) 不是循环群}\n\\end{array}\n\n`
+      }
+    }
+
+    // 群元素的幂
+    if (result.elementPowers && result.elementPowers.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{群元素的幂（包括群元素的逆）:}\n\\end{array}\n\n`
+      result.elementPowers.forEach(power => {
+        latexCode += `\\begin{array}{c}\n${power}\n\\end{array}\n\n`
+      })
+    }
+
+    // 群元素的阶
+    if (result.elementOrders && result.elementOrders.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{群元素的阶:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.elementOrders.join('')}\n\\end{array}\n\n`
+    }
+
+    // 子群分析
+    if (result.subgroups && result.subgroups.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{群的所有非平凡子群:}\n\\end{array}\n\n`
+
+      result.subgroups.forEach((subgroup, index) => {
+        latexCode += `\\begin{array}{c}\n\\text{子群${index + 1}: \\{${subgroup.subgroupElements}\\}}\n\\end{array}\n\n`
+
+        if (subgroup.isCycleSubgroup) {
+          latexCode += `\\begin{array}{c}\n\\text{是循环子群，生成元为: ${subgroup.generators}}\n\\end{array}\n\n`
+        } else {
+          latexCode += `\\begin{array}{c}\n\\text{不是循环子群}\n\\end{array}\n\n`
+        }
+
+        if (subgroup.operatorTable) {
+          latexCode += `\\begin{array}{c}\n\\text{子群运算表:}\n\\end{array}\n\n`
+          latexCode += `\\begin{array}{c}\n${subgroup.operatorTable}\n\\end{array}\n\n`
+        }
+      })
+    }
+
+    // 陪集分析
+    if (result.cosets && result.cosets.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{群的所有非平凡子群的陪集:}\n\\end{array}\n\n`
+
+      result.cosets.forEach((coset, index) => {
+        latexCode += `\\begin{array}{c}\n\\text{子群${index + 1}: \\{${coset.subgroupElements}\\} 的陪集:}\n\\end{array}\n\n`
+
+        latexCode += `\\begin{array}{c}\n\\text{左陪集包括:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${coset.leftCosets.join('')}\n\\end{array}\n\n`
+
+        latexCode += `\\begin{array}{c}\n\\text{右陪集包括:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${coset.rightCosets.join('')}\n\\end{array}\n\n`
+      })
+    }
+
+    // 正规子群分析
+    if (result.normalSubgroups && result.normalSubgroups.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{群的正规子群分析:}\n\\end{array}\n\n`
+
+      result.normalSubgroups.forEach((normal, index) => {
+        latexCode += `\\begin{array}{c}\n\\text{子群${index + 1}: \\{${normal.subgroupElements}\\}}\n\\end{array}\n\n`
+
+        if (normal.isNormal) {
+          latexCode += `\\begin{array}{c}\n\\text{是正规子群，其商群的运算表如下:}\n\\end{array}\n\n`
+          latexCode += `\\begin{array}{c}\n${normal.quotientGroupTable}\n\\end{array}\n\n`
+        } else {
+          latexCode += `\\begin{array}{c}\n\\text{不是正规子群}\n\\end{array}\n\n`
+        }
+      })
+    }
+  }
+
+  // 处理格判断结果
+  if (result.type === 'lattice-judge') {
+    latexCode += `\\begin{array}{c}\n\\text{格判断分析结果:}\n\\end{array}\n\n`
+
+    // 基本输入信息
+    latexCode += `\\begin{array}{c}\n\\text{输入信息:}\n${result.formula}\n\\end{array}\n\n`
+
+    // 哈斯图
+    if (result.hasseDiagramUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{哈斯图已生成 (图片路径: ${result.hasseDiagramUrl})}\n\\end{array}\n\n`
+    }
+
+    // 偏序关系判断
+    latexCode += `\\begin{array}{c}\n\\text{偏序关系判断:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{${result.isPartialOrder ? '是偏序关系' : '不是偏序关系'}}\n\\end{array}\n\n`
+
+    if (result.partialOrderReason) {
+      latexCode += `\\begin{array}{c}\n\\text{原因: ${result.partialOrderReason}}\n\\end{array}\n\n`
+    }
+
+    if (result.partialOrderCounterexample) {
+      latexCode += `\\begin{array}{c}\n\\text{反例: ${result.partialOrderCounterexample}}\n\\end{array}\n\n`
+    }
+
+    // 格判断（仅当是偏序关系时）
+    if (result.isPartialOrder) {
+      latexCode += `\\begin{array}{c}\n\\text{格判断:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{${result.isLattice ? '是格' : '不是格'}}\n\\end{array}\n\n`
+
+      if (result.latticeReason) {
+        latexCode += `\\begin{array}{c}\n\\text{原因: ${result.latticeReason}}\n\\end{array}\n\n`
+      }
+
+      if (result.latticeCounterexample) {
+        latexCode += `\\begin{array}{c}\n\\text{反例: ${result.latticeCounterexample}}\n\\end{array}\n\n`
+      }
+
+      // 格运算表（仅当是格时）
+      if (result.isLattice && result.supOperatorTable) {
+        latexCode += `\\begin{array}{c}\n\\text{格运算表:}\n\\end{array}\n\n`
+
+        latexCode += `\\begin{array}{c}\n\\text{最小上界运算:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.supOperatorTable}\n\\end{array}\n\n`
+
+        latexCode += `\\begin{array}{c}\n\\text{最大下界运算:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n${result.subOperatorTable}\n\\end{array}\n\n`
+      }
+
+      // 分配格判断（仅当是格且需要判断时）
+      if (result.isLattice && result.isDistributive !== null) {
+        latexCode += `\\begin{array}{c}\n\\text{分配格判断:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n\\text{${result.isDistributive ? '是分配格' : '不是分配格'}}\n\\end{array}\n\n`
+
+        if (result.distributiveReason) {
+          latexCode += `\\begin{array}{c}\n\\text{原因: ${result.distributiveReason}}\n\\end{array}\n\n`
+        }
+      }
+
+      // 有界格判断（仅当是格且需要判断时）
+      if (result.isLattice && result.isBounded !== null) {
+        latexCode += `\\begin{array}{c}\n\\text{有界格判断:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n\\text{${result.isBounded ? '是有界格' : '不是有界格'}}\n\\end{array}\n\n`
+
+        if (result.boundedReason) {
+          latexCode += `\\begin{array}{c}\n\\text{原因: ${result.boundedReason}}\n\\end{array}\n\n`
+        }
+
+        if (result.isBounded && result.greatestElement && result.leastElement) {
+          latexCode += `\\begin{array}{c}\n\\text{最大元: ${result.greatestElement}，最小元: ${result.leastElement}}\n\\end{array}\n\n`
+        }
+      }
+
+      // 有补格判断（仅当是格且需要判断时）
+      if (result.isLattice && result.isComplemented !== null) {
+        latexCode += `\\begin{array}{c}\n\\text{有补格判断:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n\\text{${result.isComplemented ? '是有补格' : '不是有补格'}}\n\\end{array}\n\n`
+
+        if (result.complementedReason) {
+          latexCode += `\\begin{array}{c}\n\\text{原因: ${result.complementedReason}}\n\\end{array}\n\n`
+        }
+
+        if (result.isComplemented && result.complements) {
+          latexCode += `\\begin{array}{c}\n\\text{元素补元列表:}\n\\end{array}\n\n`
+          result.complements.forEach((complement, idx) => {
+            latexCode += `\\begin{array}{c}\n\\text{元素 ${complement.element} 的补元: ${complement.complementElements}}\n\\end{array}\n\n`
+          })
+        }
+      }
+
+      // 布尔代数判断（仅当是格且需要判断时）
+      if (result.isLattice && result.isBooleanAlgebra !== null) {
+        latexCode += `\\begin{array}{c}\n\\text{布尔代数判断:}\n\\end{array}\n\n`
+        latexCode += `\\begin{array}{c}\n\\text{${result.isBooleanAlgebra ? '是布尔代数' : '不是布尔代数'}}\n\\end{array}\n\n`
+
+        if (result.booleanAlgebraReason) {
+          latexCode += `\\begin{array}{c}\n\\text{原因: ${result.booleanAlgebraReason}}\n\\end{array}\n\n`
+        }
+      }
+    }
+  }
+
+  // 布尔代数判断结果处理
+  if (result.type === 'bool-algebra') {
+    latexCode += `\\begin{array}{c}\n\\text{整除与布尔代数分析结果:}\n\\end{array}\n\n`
+
+    // 基本输入信息
+    latexCode += `\\begin{array}{c}\n\\text{输入信息:} F(${result.m}) = ${result.latticeDescription}\n\\end{array}\n\n`
+
+    // 布尔代数判断
+    latexCode += `\\begin{array}{c}\n\\text{布尔代数判断:}\n\\end{array}\n\n`
+    latexCode += `\\begin{array}{c}\n\\text{${result.booleanAlgebra ? '该格是布尔代数' : '该格不是布尔代数'}}\n\\end{array}\n\n`
+
+    // 最大元和最小元
+    if (result.greatestElement && result.leastElement) {
+      latexCode += `\\begin{array}{c}\n\\text{极值元素:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n\\text{最大元: ${result.greatestElement}，最小元: ${result.leastElement}}\n\\end{array}\n\n`
+    }
+
+    // 哈斯图
+    if (result.hasseDiagramUrl) {
+      latexCode += `\\begin{array}{c}\n\\text{哈斯图: (图片路径: ${result.hasseDiagramUrl})}\n\\end{array}\n\n`
+    }
+
+    // 运算表
+    if (result.supOperatorTable && result.subOperatorTable) {
+      latexCode += `\\begin{array}{c}\n\\text{运算表（上确界和下确界运算）:}\n\\end{array}\n\n`
+
+      latexCode += `\\begin{array}{c}\n\\text{上确界运算表:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.supOperatorTable}\n\\end{array}\n\n`
+
+      latexCode += `\\begin{array}{c}\n\\text{下确界运算表:}\n\\end{array}\n\n`
+      latexCode += `\\begin{array}{c}\n${result.subOperatorTable}\n\\end{array}\n\n`
+    }
+
+    // 补元信息
+    if (result.complementInfos && result.complementInfos.length > 0) {
+      latexCode += `\\begin{array}{c}\n\\text{补元信息:}\n\\end{array}\n\n`
+
+      result.complementInfos.forEach((compInfo, idx) => {
+        if (compInfo.hasComplement) {
+          latexCode += `\\begin{array}{c}\n\\text{元素 ${compInfo.element} 的补元: ${compInfo.complements}}\n\\end{array}\n\n`
+        } else {
+          latexCode += `\\begin{array}{c}\n\\text{元素 ${compInfo.element} 没有补元}\n\\end{array}\n\n`
+        }
+      })
+    }
+  }
+
   return latexCode
+}
+
+// 辅助函数：获取性质中文名称
+function getPropertyNameChinese(propertyType) {
+  const names = {
+    commutative: '交换律',
+    associative: '结合律',
+    idempotent: '幂等律',
+    cancellation: '消去律',
+    identity: '单位元',
+    zero: '零元',
+    inverse: '逆元'
+  }
+  return names[propertyType] || propertyType
+}
+
+// 辅助函数：获取关系中文名称
+function getRelationNameChinese(relationType) {
+  const names = {
+    distributive: '分配律',
+    absorption: '吸收律'
+  }
+  return names[relationType] || relationType
 }

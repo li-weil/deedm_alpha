@@ -1,0 +1,14 @@
+graph HasseD {
+    nodea[label = "a"];
+    nodeb[label = "b"];
+    nodec[label = "c"];
+    noded[label = "d"];
+    nodee[label = "e"];
+    nodea--nodeb;
+    nodea--nodec;
+    nodea--noded;
+    nodeb--nodee;
+    nodec--nodee;
+    noded--nodee;
+}
+

@@ -8,11 +8,10 @@
       :before-close="handleBinaryOperatorClose"
       class="binary-operator-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showBinaryOperator = false">返回</el-button>
-        </el-empty>
-      </div>
+      <operation-property-interface
+        @close="handleBinaryOperatorClose"
+        @operation-property-result="onOperationPropertyResult"
+      />
     </el-dialog>
 
     <!-- 群U(m)分析界面模态框 -->
@@ -23,11 +22,10 @@
       :before-close="handleGroupUmClose"
       class="group-um-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showGroupUm = false">返回</el-button>
-        </el-empty>
-      </div>
+      <group-um-interface
+        @close="handleGroupUmClose"
+        @group-um-result="onGroupUmResult"
+      />
     </el-dialog>
 
     <!-- 置换群分析界面模态框 -->
@@ -38,11 +36,10 @@
       :before-close="handleGroupPermClose"
       class="group-perm-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showGroupPerm = false">返回</el-button>
-        </el-empty>
-      </div>
+      <group-perm-interface
+        @close="handleGroupPermClose"
+        @group-perm-result="onGroupPermResult"
+      />
     </el-dialog>
 
     <!-- 格判断界面模态框 -->
@@ -53,11 +50,10 @@
       :before-close="handleLatticeClose"
       class="lattice-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showLattice = false">返回</el-button>
-        </el-empty>
-      </div>
+      <lattice-judge-interface
+        @close="handleLatticeClose"
+        @lattice-judge-result="onLatticeJudgeResult"
+      />
     </el-dialog>
 
     <!-- 布尔代数判断界面模态框 -->
@@ -68,17 +64,22 @@
       :before-close="handleBooleanClose"
       class="boolean-dialog"
     >
-      <div class="coming-soon">
-        <el-empty description="功能开发中，敬请期待">
-          <el-button type="primary" @click="showBoolean = false">返回</el-button>
-        </el-empty>
-      </div>
+      <bool-algebra-interface
+        @close="handleBooleanClose"
+        @bool-algebra-result="onBoolAlgebraResult"
+      />
     </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { generateLaTeXCode } from '@/utils/latexGenerator'
+import OperationPropertyInterface from '@/components/algebra/OperationPropertyInterface.vue'
+import GroupUmInterface from '@/components/algebra/GroupUmInterface.vue'
+import GroupPermInterface from '@/components/algebra/GroupPermInterface.vue'
+import LatticeJudgeInterface from '@/components/algebra/LatticeJudgeInterface.vue'
+import BoolAlgebraInterface from '@/components/algebra/BoolAlgebraInterface.vue'
 
 // 定义 props 和 emits
 const props = defineProps({
@@ -101,7 +102,7 @@ const emit = defineEmits([
   'group-um-result',
   'group-perm-result',
   'lattice-result',
-  'boolean-result',
+  'bool-algebra-result',
   'update-current-formula',
   'update-latex-code'
 ])
@@ -139,20 +140,99 @@ const handleBinaryOperatorClose = () => {
   showBinaryOperator.value = false
 }
 
+// 处理运算性质判断结果
+const onOperationPropertyResult = (result) => {
+  console.log('AlgebraStructureView: 收到运算性质判断结果', result)
+
+  // 生成LaTeX代码
+  const latexString = generateLaTeXCode(result)
+
+  // 发送结果到主界面
+  emit('binary-operator-result', {
+    ...result,
+    latexString
+  })
+
+  emit('update-latex-code', latexString)
+}
+
 const handleGroupUmClose = () => {
   showGroupUm.value = false
+}
+
+// 处理群U(m)分析结果
+const onGroupUmResult = (result) => {
+  console.log('AlgebraStructureView: 收到群U(m)分析结果', result)
+
+  // 生成LaTeX代码
+  const latexString = generateLaTeXCode(result)
+
+  // 发送结果到主界面
+  emit('group-um-result', {
+    ...result,
+    latexString
+  })
+
+  emit('update-latex-code', latexString)
 }
 
 const handleGroupPermClose = () => {
   showGroupPerm.value = false
 }
 
+// 处理置换群分析结果
+const onGroupPermResult = (result) => {
+  console.log('AlgebraStructureView: 收到置换群分析结果', result)
+
+  // 生成LaTeX代码
+  const latexString = generateLaTeXCode(result)
+
+  // 发送结果到主界面
+  emit('group-perm-result', {
+    ...result,
+    latexString
+  })
+
+  emit('update-latex-code', latexString)
+}
+
 const handleLatticeClose = () => {
   showLattice.value = false
 }
 
+// 处理格判断结果
+const onLatticeJudgeResult = (result) => {
+  console.log('AlgebraStructureView: 收到格判断结果', result)
+
+  // 生成LaTeX代码
+  const latexString = generateLaTeXCode(result)
+
+  // 发送结果到主界面
+  emit('lattice-result', {
+    ...result,
+    latexString
+  })
+
+  emit('update-latex-code', latexString)
+}
+
 const handleBooleanClose = () => {
   showBoolean.value = false
+}
+
+const onBoolAlgebraResult = (result) => {
+  console.log('AlgebraStructureView: 收到布尔代数分析结果', result)
+
+    // 生成LaTeX代码
+  const latexString = generateLaTeXCode(result)
+
+  // 发送结果到主界面
+  emit('bool-algebra-result', {
+    ...result,
+    latexString
+  })
+
+  emit('update-latex-code', latexString)
 }
 
 // 暴露方法给父组件

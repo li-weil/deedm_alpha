@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BoolAlgebraInterface: typeof import('./src/components/algebra/BoolAlgebraInterface.vue')['default']
     CombCalculatorInterface: typeof import('./src/components/counting/CombCalculatorInterface.vue')['default']
     CountEquationSolverInterface: typeof import('./src/components/counting/CountEquationSolverInterface.vue')['default']
     CountFunctionInterface: typeof import('./src/components/counting/CountFunctionInterface.vue')['default']
@@ -50,11 +51,15 @@ declare module 'vue' {
     GenPermutationInterface: typeof import('./src/components/counting/GenPermutationInterface.vue')['default']
     GenRepCombInterface: typeof import('./src/components/counting/GenRepCombInterface.vue')['default']
     GraphTravelInterface: typeof import('./src/components/graph/GraphTravelInterface.vue')['default']
+    GroupPermInterface: typeof import('./src/components/algebra/GroupPermInterface.vue')['default']
+    GroupUmInterface: typeof import('./src/components/algebra/GroupUmInterface.vue')['default']
     HuffmanTreeInterface: typeof import('./src/components/graph/HuffmanTreeInterface.vue')['default']
+    LatticeJudgeInterface: typeof import('./src/components/algebra/LatticeJudgeInterface.vue')['default']
     LeftPanel: typeof import('./src/components/common/LeftPanel.vue')['default']
     LeftPanel_backup: typeof import('./src/components/common/LeftPanel_backup.vue')['default']
     MathRenderer: typeof import('./src/components/common/MathRenderer.vue')['default']
     NormalFormulaExpansionInterface: typeof import('./src/components/logic/NormalFormulaExpansionInterface.vue')['default']
+    OperationPropertyInterface: typeof import('./src/components/algebra/OperationPropertyInterface.vue')['default']
     PartialOrderInterface: typeof import('./src/components/setrelfun/PartialOrderInterface.vue')['default']
     PrincipalNormalFormInterface: typeof import('./src/components/logic/PrincipalNormalFormInterface.vue')['default']
     ReasonArgumentCheckInterface: typeof import('./src/components/logic/ReasonArgumentCheckInterface.vue')['default']
