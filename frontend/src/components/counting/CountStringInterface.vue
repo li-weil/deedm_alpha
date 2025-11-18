@@ -127,7 +127,6 @@
               <div class="logic-separator">
                 <el-select v-model="conditions[0].innerLogic" size="small" class="logic-select">
                   <el-option label="而且" value="而且" />
-                  <el-option label="或者" value="或者" />
                 </el-select>
               </div>
 
@@ -171,7 +170,6 @@
               <div class="logic-separator">
                 <el-select v-model="conditions[1].innerLogic" size="small" class="logic-select">
                   <el-option label="而且" value="而且" />
-                  <el-option label="或者" value="或者" />
                 </el-select>
               </div>
 
@@ -215,7 +213,6 @@
               <div class="logic-separator">
                 <el-select v-model="conditions[2].innerLogic" size="small" class="logic-select">
                   <el-option label="而且" value="而且" />
-                  <el-option label="或者" value="或者" />
                 </el-select>
               </div>
 
@@ -243,7 +240,7 @@
       <el-card class="options-card" header="选择计数结果的展示方式：">
         <el-radio-group v-model="displayMode" class="display-mode-group">
           <el-radio :label="'onlyResult'">只给出计数结果</el-radio>
-          <el-radio :label="'accept50'">给出至多50个接受的字符串</el-radio>
+          <el-radio :label="'accept50'">给出至多50个满足条件的字符串</el-radio>
           <el-radio :label="'part100'">给出至多100个字符串的情况</el-radio>
           <el-radio :label="'onlyAccept'">只给出满足条件的串</el-radio>
           <el-radio :label="'allString'">给出所有的字符串</el-radio>
@@ -425,6 +422,7 @@ const loadExample = (exampleId) => {
       conditions[0].location = 0
       conditions[0].locationFlag = '不能'
       conditions[0].locationChars = '0'
+      conditions[0].innerLogic = '而且'
       conditions[0].substringFlag = '至少'
       conditions[0].substringCount = 1
       conditions[0].substrings = '5'
@@ -436,6 +434,7 @@ const loadExample = (exampleId) => {
       conditions[0].location = 0
       conditions[0].locationFlag = '不能'
       conditions[0].locationChars = '0'
+      conditions[0].innerLogic = '而且'
       conditions[0].substringFlag = '不能'
       conditions[0].substringCount = 1
       conditions[0].substrings = '12'
@@ -479,6 +478,7 @@ const loadExample = (exampleId) => {
       conditions[0].location = 0
       conditions[0].locationFlag = '不能'
       conditions[0].locationChars = '0'
+      conditions[0].innerLogic = '而且'
       conditions[0].substringFlag = '至少'
       conditions[0].substringCount = 1
       conditions[0].substrings = '1, 3, 5, 7, 9'
@@ -490,6 +490,7 @@ const loadExample = (exampleId) => {
       conditions[0].location = 0
       conditions[0].locationFlag = '不能'
       conditions[0].locationChars = '0'
+      conditions[0].innerLogic = '而且'
       conditions[0].substringFlag = '至少'
       conditions[0].substringCount = 1
       conditions[0].substrings = '0, 2, 4, 6, 8'
@@ -501,6 +502,7 @@ const loadExample = (exampleId) => {
       conditions[0].location = 0
       conditions[0].locationFlag = '不能'
       conditions[0].locationChars = '0'
+      conditions[0].innerLogic = '而且'
       conditions[0].substringFlag = '至少'
       conditions[0].substringCount = 2
       conditions[0].substrings = '1, 3, 5, 7, 9'
@@ -512,6 +514,7 @@ const loadExample = (exampleId) => {
       conditions[0].location = 0
       conditions[0].locationFlag = '不能'
       conditions[0].locationChars = '0'
+      conditions[0].innerLogic = '而且'
       conditions[0].substringFlag = '至少'
       conditions[0].substringCount = 2
       conditions[0].substrings = '0, 2, 4, 6, 8'
@@ -707,20 +710,32 @@ const startCounting = async () => {
     const baseUrl = window.location.origin
     // 尝试调用后端API，如果失败则使用模拟数据
     let result
+
+    // 添加调试信息
+    console.log('=== 发送到后端的数据 ===')
+    const requestData = {
+      baseSet: baseSetInput.value,
+      length: stringLength.value,
+      allowRepetition: allowRepetition.value,
+      filterConditions: processedFilterConditions,
+      logicOperators: logicOperators,
+      outputOption: outputOption
+    }
+    console.log('请求参数:', JSON.stringify(requestData, null, 2))
+    console.log('基集输入:', baseSetInput.value)
+    console.log('字符串长度:', stringLength.value)
+    console.log('允许重复:', allowRepetition.value)
+    console.log('处理后的过滤条件:', processedFilterConditions)
+    console.log('逻辑操作符:', logicOperators)
+    console.log('输出选项:', outputOption)
+
     try {
-      const response = await fetch(`${baseUrl}/api/counting/count-string/count`, {
+      const response = await fetch(`${baseUrl}/api/count-string/count`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          baseSet: baseSetInput.value,
-          length: stringLength.value,
-          allowRepetition: allowRepetition.value,
-          filterConditions: processedFilterConditions,
-          logicOperators: logicOperators,
-          outputOption: outputOption
-        })
+        body: JSON.stringify(requestData)
       })
 
       if (!response.ok) {
@@ -728,6 +743,12 @@ const startCounting = async () => {
       }
 
       result = await response.json()
+
+      console.log('=== 后端返回结果 ===')
+      console.log('总数:', result.totalCount)
+      console.log('接受数:', result.acceptedCount)
+      console.log('详情数量:', result.stringDetails ? result.stringDetails.length : 0)
+
     } catch (error) {
       console.warn('后端API不可用，使用模拟数据:', error.message)
 
@@ -758,7 +779,8 @@ const startCounting = async () => {
       const finalResult = {
         ...result,
         index: counter.value + 1,
-        type: 'count-string'
+        type: 'count-string',
+        displayMode: displayMode.value
       }
 
       console.log('CountStringInterface: 准备发送结果', finalResult)
@@ -895,7 +917,36 @@ const handleClose = () => {
 <style scoped>
 /* 通用样式 */
 .count-string-interface {
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* 在大屏幕上完全自适应，无最大宽度限制 */
+@media (min-width: 1200px) {
+  .count-string-interface {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* 在中等屏幕上设置合理的最大宽度 */
+@media (max-width: 1199px) and (min-width: 900px) {
+  .count-string-interface {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* 在小屏幕上固定宽度，支持水平滚动 */
+@media (max-width: 899px) {
+  .count-string-interface {
+    width: 900px;
+    min-width: 900px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
 }
 
 /* 按钮区域样式 - 与其他子界面保持一致 */
@@ -1045,13 +1096,22 @@ const handleClose = () => {
 .result-basic,
 .basic-info,
 .filter-info,
-.count-result,
+.count-result {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
 .string-details {
   margin: 1rem 0;
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 4px;
   border: 1px solid #e9ecef;
+  max-height: 400px;
+  overflow: hidden;
 }
 
 .result-basic h4,
@@ -1072,7 +1132,7 @@ const handleClose = () => {
   color: #2c3e50;
   overflow-x: auto;
   padding: 0.5rem;
-  background: #f8f9fa;
+  background: #ffffff;
   border-radius: 4px;
   border: 1px solid #e9ecef;
 }
@@ -1127,6 +1187,33 @@ const handleClose = () => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e4e7ed;
+}
+
+/* 自定义滚动条样式 */
+.details-table::-webkit-scrollbar {
+  width: 8px;
+}
+
+.details-table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.details-table::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  border: 1px solid #f1f1f1;
+}
+
+.details-table::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.details-table::-webkit-scrollbar-thumb:active {
+  background: #999999;
 }
 
 /* 反馈区域 */
@@ -1180,6 +1267,20 @@ const handleClose = () => {
 
   .example-buttons {
     justify-content: center;
+  }
+
+  /* 移动端滚动优化 */
+  .string-details {
+    max-height: 250px;
+  }
+
+  .details-table {
+    max-height: 200px;
+  }
+
+  /* 移动端触摸滚动优化 */
+  .details-table {
+    -webkit-overflow-scrolling: touch;
   }
 }
 </style>

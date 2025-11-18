@@ -2519,9 +2519,19 @@
 
             <!-- 详细结果 -->
             <div v-if="result.stringDetails && result.stringDetails.length > 0" class="result-details">
-              <h6>字符串详情：</h6>
+              <h6>字符串详情：
+                <el-text type="info" size="small">
+                  ({{ getDisplayModeDescription(result.displayMode) }})
+                </el-text>
+              </h6>
               <div class="string-details-table">
-                <el-table :data="result.stringDetails.slice(0, 20)" stripe size="small" class="details-table">
+                <el-table
+                  :data="getTableData(result)"
+                  stripe
+                  size="small"
+                  class="details-table"
+                  :max-height="getMaxHeight()"
+                >
                   <el-table-column prop="index" label="序号" width="70" />
                   <el-table-column prop="content" label="字符串" width="120" />
                   <el-table-column prop="accepted" label="是否接受" width="90">
@@ -2533,10 +2543,42 @@
                   </el-table-column>
                   <el-table-column prop="acceptedCount" label="接受计数" width="90" />
                 </el-table>
-                <div v-if="result.stringDetails.length > 20" class="more-indicator">
-                  <el-text type="info" size="small">... 还有 {{ result.stringDetails.length - 20 }} 个字符串 ...</el-text>
+                <div v-if="hasMoreResults(result)" class="more-indicator">
+                  <el-text type="info" size="small">
+                    {{ getMoreIndicatorText(result) }}
+                  </el-text>
                 </div>
               </div>
+            </div>
+            <!-- 当选择了只显示结果时显示提示 -->
+            <div v-else-if="result.type === 'count-string' && (result.displayMode === 'ONLY_RESULT' || result.displayMode === 'onlyResult')" class="result-details">
+              <h6>字符串详情：
+                <el-text type="info" size="small">
+                  ({{ getDisplayModeDescription(result.displayMode) }})
+                </el-text>
+              </h6>
+              <el-alert
+                title="当前显示模式为'只给出计数结果'"
+                description="如需查看字符串详情，请选择其他显示模式"
+                type="info"
+                :closable="false"
+                show-icon
+              />
+            </div>
+            <!-- 当没有详细数据但显示模式需要数据时显示提示 -->
+            <div v-else-if="result.type === 'count-string' && result.displayMode && result.displayMode !== 'ONLY_RESULT' && result.displayMode !== 'onlyResult'" class="result-details">
+              <h6>字符串详情：
+                <el-text type="info" size="small">
+                  ({{ getDisplayModeDescription(result.displayMode) }})
+                </el-text>
+              </h6>
+              <el-alert
+                title="字符串详情数据不可用"
+                description="当前没有可显示的字符串详情数据"
+                type="warning"
+                :closable="false"
+                show-icon
+              />
             </div>
           </div>
 
@@ -3471,6 +3513,132 @@ const formatMathExpression = (formula) => {
     // 清理多余的空格
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+// 字符串计数相关方法
+const getDisplayModeDescription = (displayMode) => {
+  const modeMap = {
+    'ONLY_RESULT': '只显示结果',
+    'ACCEPT_50': '前50个接受的字符串',
+    'PARTIAL_100': '前100个字符串',
+    'ONLY_ACCEPTED': '所有接受的字符串',
+    'ALL_STRINGS': '所有字符串',
+    // 支持小写版本
+    'onlyResult': '只显示结果',
+    'accept50': '前50个接受的字符串',
+    'part100': '前100个字符串',
+    'onlyAccept': '所有接受的字符串',
+    'allString': '所有字符串'
+  }
+  return modeMap[displayMode] || '未知模式'
+}
+
+const getTableData = (result) => {
+  // 调试信息
+  console.log('LeftPanel getTableData - result:', {
+    type: result.type,
+    hasStringDetails: !!result.stringDetails,
+    stringDetailsLength: result.stringDetails?.length,
+    displayMode: result.displayMode,
+    totalCount: result.totalCount,
+    acceptedCount: result.acceptedCount
+  })
+
+  if (!result.stringDetails || !result.displayMode) {
+    console.log('LeftPanel getTableData - 返回空数组，原因：stringDetails或displayMode缺失')
+    return []
+  }
+
+  let tableData = []
+
+  switch (result.displayMode) {
+    case 'ACCEPT_50':
+    case 'accept50':
+      // 显示前50个被接受的字符串
+      tableData = result.stringDetails.filter(item => item.accepted).slice(0, 50)
+      console.log('LeftPanel getTableData - accept50模式，返回', tableData.length, '个数据')
+      break
+    case 'PARTIAL_100':
+    case 'part100':
+      // 显示前100个字符串
+      tableData = result.stringDetails.slice(0, 100)
+      console.log('LeftPanel getTableData - part100模式，返回', tableData.length, '个数据')
+      break
+    case 'ONLY_ACCEPTED':
+    case 'onlyAccept':
+      // 只显示被接受的字符串
+      tableData = result.stringDetails.filter(item => item.accepted)
+      console.log('LeftPanel getTableData - onlyAccept模式，返回', tableData.length, '个数据')
+      break
+    case 'ALL_STRINGS':
+    case 'allString':
+      // 显示所有字符串
+      tableData = result.stringDetails
+      console.log('LeftPanel getTableData - allString模式，返回', tableData.length, '个数据')
+      break
+    case 'ONLY_RESULT':
+    case 'onlyResult':
+      console.log('LeftPanel getTableData - onlyResult模式，不显示详细数据')
+      break
+    default:
+      console.log('LeftPanel getTableData - 未知模式', result.displayMode)
+      break
+  }
+
+  return tableData
+}
+
+const getMaxHeight = () => {
+  // 返回表格的最大高度，与子界面保持一致
+  return 300
+}
+
+const hasMoreResults = (result) => {
+  const totalData = result.stringDetails || []
+
+  if (!result.displayMode) {
+    return false
+  }
+
+  switch (result.displayMode) {
+    case 'ACCEPT_50':
+    case 'accept50':
+      // 如果被接受的字符串超过50个
+      const acceptedCount = totalData.filter(item => item.accepted).length
+      return acceptedCount > 50
+    case 'PARTIAL_100':
+    case 'part100':
+      // 如果总字符串超过100个
+      return totalData.length > 100
+    case 'ONLY_ACCEPTED':
+    case 'onlyAccept':
+    case 'ALL_STRINGS':
+    case 'allString':
+      // 显示全部，没有更多
+      return false
+    default:
+      return false
+  }
+}
+
+const getMoreIndicatorText = (result) => {
+  if (!result.stringDetails || !result.displayMode) {
+    return ''
+  }
+
+  const totalData = result.stringDetails
+
+  switch (result.displayMode) {
+    case 'ACCEPT_50':
+    case 'accept50':
+      const acceptedCount = totalData.filter(item => item.accepted).length
+      return `... 还有 ${acceptedCount - 50} 个被接受的字符串 ...`
+    case 'PARTIAL_100':
+    case 'part100':
+      return `... 还有 ${totalData.length - 100} 个字符串 ...`
+    default:
+      return ''
+  }
 }
 </script>
 
@@ -5563,6 +5731,21 @@ h6 {
     padding: 1rem;
   }
 
+  /* 字符串计数结果移动端优化 */
+  .count-string-result .string-details-table {
+    max-height: 250px;
+  }
+
+  .count-string-result .details-table {
+    max-height: 230px;
+    font-size: 0.8rem;
+  }
+
+  /* 移动端触摸滚动优化 */
+  .count-string-result .details-table {
+    -webkit-overflow-scrolling: touch;
+  }
+
   .calculation-formula,
   .result-formula-detail {
     font-size: 0.9rem;
@@ -5667,11 +5850,41 @@ h6 {
 
 .count-string-result .string-details-table {
   margin-top: 1rem;
+  max-height: 300px;
+  overflow: hidden;
 }
 
 .count-string-result .details-table {
   width: 100%;
   font-size: 0.85rem;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+}
+
+/* 自定义滚动条样式 */
+.count-string-result .details-table::-webkit-scrollbar {
+  width: 6px;
+}
+
+.count-string-result .details-table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.count-string-result .details-table::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+  border: 1px solid #f1f1f1;
+}
+
+.count-string-result .details-table::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.count-string-result .details-table::-webkit-scrollbar-thumb:active {
+  background: #999999;
 }
 
 .count-string-result .more-indicator {

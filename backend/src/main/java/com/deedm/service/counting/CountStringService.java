@@ -97,61 +97,61 @@ public class CountStringService {
                     response.setBaseSet("\\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\\}");
                     response.setLength(3);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{第0位不为0，且至少包含1个5}");
+                    response.setFilterDescription("s[0] \\neq \\{0\\} \\land |\\{s : s \\text{包含} \\{5\\} \\text{中串}\\}| \\geq 1");
                     break;
                 case "example8_22":
                     response.setBaseSet("\\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\\}");
                     response.setLength(6);
                     response.setAllowRepetition(false);
-                    response.setFilterDescription("\\text{第0位不为0，且不包含12}");
+                    response.setFilterDescription("s[0] \\neq \\{0\\} \\land |\\{s : s \\text{包含} \\{12\\} \\text{中串}\\}| \\neq 1");
                     break;
                 case "example8_23_1":
                     response.setBaseSet("\\{0, 1\\}");
                     response.setLength(10);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{恰好包含3个1}");
+                    response.setFilterDescription("|\\{s : s \\text{包含} \\{1\\} \\text{中串}\\}| = 3");
                     break;
                 case "example8_23_2":
                     response.setBaseSet("\\{0, 1\\}");
                     response.setLength(10);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{至少包含3个1}");
+                    response.setFilterDescription("|\\{s : s \\text{包含} \\{1\\} \\text{中串}\\}| \\geq 3");
                     break;
                 case "example8_23_3":
                     response.setBaseSet("\\{0, 1\\}");
                     response.setLength(10);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{最多包含3个1}");
+                    response.setFilterDescription("|\\{s : s \\text{包含} \\{1\\} \\text{中串}\\}| \\leq 3");
                     break;
                 case "example8_23_4":
                     response.setBaseSet("\\{0, 1\\}");
                     response.setLength(10);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{1比0多，且至少包含6个1}");
+                    response.setFilterDescription("|\\{s : s \\text{包含} \\{1\\} \\text{中串}\\}| \\geq 6");
                     break;
                 case "example8_26_1":
                     response.setBaseSet("\\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\\}");
                     response.setLength(6);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{第0位不为0，且至少包含1个奇数}");
+                    response.setFilterDescription("s[0] \\neq \\{0\\} \\land |\\{s : s \\text{包含} \\{1, 3, 5, 7, 9\\} \\text{中串}\\}| \\geq 1");
                     break;
                 case "example8_26_2":
                     response.setBaseSet("\\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\\}");
                     response.setLength(6);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{第0位不为0，且至少包含1个偶数}");
+                    response.setFilterDescription("s[0] \\neq \\{0\\} \\land |\\{s : s \\text{包含} \\{0, 2, 4, 6, 8\\} \\text{中串}\\}| \\geq 1");
                     break;
                 case "example8_26_3":
                     response.setBaseSet("\\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\\}");
                     response.setLength(6);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{第0位不为0，且至少包含2个奇数}");
+                    response.setFilterDescription("s[0] \\neq \\{0\\} \\land |\\{s : s \\text{包含} \\{1, 3, 5, 7, 9\\} \\text{中串}\\}| \\geq 2");
                     break;
                 case "example8_26_4":
                     response.setBaseSet("\\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\\}");
                     response.setLength(6);
                     response.setAllowRepetition(true);
-                    response.setFilterDescription("\\text{第0位不为0，且至少包含2个偶数}");
+                    response.setFilterDescription("s[0] \\neq \\{0\\} \\land |\\{s : s \\text{包含} \\{0, 2, 4, 6, 8\\} \\text{中串}\\}| \\geq 2");
                     break;
                 default:
                     response.setErrorMessage("未知的示例类型: " + exampleType);
@@ -284,11 +284,19 @@ public class CountStringService {
     }
 
     private void generateAndCountStrings(CountStringResponse response, char[] elements, int length, boolean allowRepetition, StringFilter filter, CountStringRequest.OutputOption outputOption) {
+        System.out.println("=== 字符串计数调试信息 ===");
+        System.out.println("基集元素: " + new String(elements) + " (长度: " + elements.length + ")");
+        System.out.println("字符串长度: " + length);
+        System.out.println("是否允许重复: " + allowRepetition);
+        System.out.println("过滤器: " + (filter == null ? "无" : filter.toString()));
+
         StringGenerator generator;
         if (allowRepetition) {
             generator = new StringGenerator(elements, length);
+            System.out.println("使用StringGenerator，预期总数: " + Math.pow(elements.length, length));
         } else {
             generator = new PermutationGenerator(elements, length);
+            System.out.println("使用PermutationGenerator，预期总数: P(" + elements.length + ", " + length + ")");
         }
 
         generator.first();
@@ -304,46 +312,70 @@ public class CountStringService {
         if (outputOption != null) {
             switch (outputOption) {
                 case ONLY_RESULT:
-                    // 不显示详情
+                    // 只给出计数结果，不显示字符串详情
                     break;
                 case ACCEPT_50:
+                    // 给出至多50个接受的字符串（只显示被接受的，最多50个）
                     accept50 = true;
                     break;
                 case PARTIAL_100:
+                    // 给出至多100个字符串的情况（显示前100个字符串，包括接受和不接受的）
                     part100 = true;
                     break;
                 case ONLY_ACCEPTED:
+                    // 只给出满足条件的串（显示所有被接受的字符串）
                     onlyAccept = true;
                     break;
                 case ALL_STRINGS:
+                    // 给出所有的字符串（显示所有生成的字符串，包括接受和不接受的）
                     detailed = true;
                     break;
             }
         }
 
+        System.out.println("输出选项: " + (outputOption != null ? outputOption.toString() : "null"));
+        System.out.println("detailed=" + detailed + ", onlyAccept=" + onlyAccept + ", accept50=" + accept50 + ", part100=" + part100);
+        System.out.println("开始生成字符串...");
+
+        int debugCounter = 0;
         while (true) {
             char[] string = generator.current();
             totalCount++;
+            debugCounter++;
+
+            String currentStr = StringGenerator.convertToString(string);
             boolean accepted = (filter == null) || filter.accept(string);
 
             if (accepted) {
                 acceptedCount++;
             }
 
+            // 调试输出前20个字符串
+            if (debugCounter <= 20) {
+                System.out.println(String.format("第%3d个字符串: %s, 接受: %s, 累计接受: %d",
+                    totalCount, currentStr, accepted ? "是" : "否", acceptedCount));
+            }
+
             // 根据输出选项决定是否记录详情
             boolean shouldRecord = false;
-            if (detailed || onlyAccept) {
+            if (detailed) {
+                // 显示所有字符串
                 shouldRecord = true;
-            } else if (part100 && totalCount <= 100) {
-                shouldRecord = true;
-            } else if (accept50 && acceptedCount <= 50) {
-                shouldRecord = true;
+            } else if (onlyAccept) {
+                // 只显示满足条件的字符串
+                shouldRecord = accepted;
+            } else if (part100) {
+                // 显示至多100个字符串（包括接受和不接受的）
+                shouldRecord = totalCount <= 100;
+            } else if (accept50) {
+                // 只显示前50个被接受的字符串
+                shouldRecord = accepted && acceptedCount <= 50;
             }
 
             if (shouldRecord) {
                 details.add(new CountStringResponse.StringResultDetail(
                     totalCount,
-                    StringGenerator.convertToString(string),
+                    currentStr,
                     accepted,
                     acceptedCount
                 ));
@@ -354,6 +386,12 @@ public class CountStringService {
             }
             generator.next();
         }
+
+        System.out.println("字符串生成完成:");
+        System.out.println("实际生成总数: " + totalCount);
+        System.out.println("接受总数: " + acceptedCount);
+        System.out.println("详情记录数: " + details.size());
+        System.out.println("=== 调试信息结束 ===");
 
         // 设置结果
         response.setTotalCount(totalCount);
