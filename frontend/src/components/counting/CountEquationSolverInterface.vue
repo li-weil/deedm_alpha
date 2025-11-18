@@ -63,7 +63,7 @@
           <el-radio-group v-model="outputMode" size="large">
             <el-radio label="onlyResult">只显示结果数</el-radio>
             <el-radio label="onlyAccept">只显示符合条件的解</el-radio>
-            <el-radio label="allSolver">显示所有解</el-radio>
+            <el-radio label="allSolver">显示所有搜索解</el-radio>
           </el-radio-group>
         </el-col>
       </el-row>
@@ -120,8 +120,9 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <div class="input-row">
-              <label>第一组约束条件 ①：</label>
+              <label>第一组约束条件 </label>
               <div class="constraint-inputs">
+                <span style="margin: 0 5px;">第</span>
                 <el-input
                   v-model.number="index11"
                   placeholder="变量下标"
@@ -129,17 +130,17 @@
                   min="1"
                   style="width: 100px; margin-right: 5px;"
                 />
-                <span style="margin: 0 5px;">变量 ≥</span>
+                <span style="margin: 0 5px;">个变量 ≥</span>
                 <el-input
                   v-model.number="min11"
-                  placeholder="最小值(-1表示无限制)"
+                  placeholder="最小值"
                   type="number"
                   style="width: 120px; margin-right: 5px;"
                 />
                 <span style="margin: 0 5px;">且 ≤</span>
                 <el-input
                   v-model.number="max11"
-                  placeholder="最大值(-1表示无限制)"
+                  placeholder="最大值"
                   type="number"
                   style="width: 120px;"
                 />
@@ -148,7 +149,8 @@
           </el-col>
           <el-col :span="12">
             <div class="input-row">
-              <label>  ②：</label>
+              <label> 而且 </label>
+              <span style="margin: 0 5px;">第</span>
               <div class="constraint-inputs">
                 <el-input
                   v-model.number="index12"
@@ -157,17 +159,17 @@
                   min="1"
                   style="width: 100px; margin-right: 5px;"
                 />
-                <span style="margin: 0 5px;">变量 ≥</span>
+                <span style="margin: 0 5px;">个变量 ≥</span>
                 <el-input
                   v-model.number="min12"
-                  placeholder="最小值(-1表示无限制)"
+                  placeholder="最小值"
                   type="number"
                   style="width: 120px; margin-right: 5px;"
                 />
                 <span style="margin: 0 5px;">且 ≤</span>
                 <el-input
                   v-model.number="max12"
-                  placeholder="最大值(-1表示无限制)"
+                  placeholder="最大值"
                   type="number"
                   style="width: 120px;"
                 />
@@ -182,8 +184,9 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <div class="input-row">
-              <label>第二组约束条件 ①：</label>
+              <label>第二组约束条件 </label>
               <div class="constraint-inputs">
+                <span style="margin: 0 5px;">第</span>
                 <el-input
                   v-model.number="index21"
                   placeholder="变量下标"
@@ -191,17 +194,17 @@
                   min="1"
                   style="width: 100px; margin-right: 5px;"
                 />
-                <span style="margin: 0 5px;">变量 ≥</span>
+                <span style="margin: 0 5px;">个变量 ≥</span>
                 <el-input
                   v-model.number="min21"
-                  placeholder="最小值(-1表示无限制)"
+                  placeholder="最小值"
                   type="number"
                   style="width: 120px; margin-right: 5px;"
                 />
                 <span style="margin: 0 5px;">且 ≤</span>
                 <el-input
                   v-model.number="max21"
-                  placeholder="最大值(-1表示无限制)"
+                  placeholder="最大值"
                   type="number"
                   style="width: 120px;"
                 />
@@ -210,8 +213,9 @@
           </el-col>
           <el-col :span="12">
             <div class="input-row">
-              <label>  ②：</label>
+              <label>  而且</label>
               <div class="constraint-inputs">
+                <span style="margin: 0 5px;">第</span>
                 <el-input
                   v-model.number="index22"
                   placeholder="变量下标"
@@ -219,17 +223,17 @@
                   min="1"
                   style="width: 100px; margin-right: 5px;"
                 />
-                <span style="margin: 0 5px;">变量 ≥</span>
+                <span style="margin: 0 5px;">个变量 ≥</span>
                 <el-input
                   v-model.number="min22"
-                  placeholder="最小值(-1表示无限制)"
+                  placeholder="最小值"
                   type="number"
                   style="width: 120px; margin-right: 5px;"
                 />
                 <span style="margin: 0 5px;">且 ≤</span>
                 <el-input
                   v-model.number="max22"
-                  placeholder="最大值(-1表示无限制)"
+                  placeholder="最大值"
                   type="number"
                   style="width: 120px;"
                 />
@@ -244,8 +248,9 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <div class="input-row">
-              <label>第三组约束条件 ①：</label>
+              <label>第三组约束条件 </label>
               <div class="constraint-inputs">
+                <span style="margin: 0 5px;">第</span>
                 <el-input
                   v-model.number="index31"
                   placeholder="变量下标"
@@ -253,17 +258,17 @@
                   min="1"
                   style="width: 100px; margin-right: 5px;"
                 />
-                <span style="margin: 0 5px;">变量 ≥</span>
+                <span style="margin: 0 5px;">个变量 ≥</span>
                 <el-input
                   v-model.number="min31"
-                  placeholder="最小值(-1表示无限制)"
+                  placeholder="最小值"
                   type="number"
                   style="width: 120px; margin-right: 5px;"
                 />
                 <span style="margin: 0 5px;">且 ≤</span>
                 <el-input
                   v-model.number="max31"
-                  placeholder="最大值(-1表示无限制)"
+                  placeholder="最大值"
                   type="number"
                   style="width: 120px;"
                 />
@@ -272,8 +277,9 @@
           </el-col>
           <el-col :span="12">
             <div class="input-row">
-              <label>  ②：</label>
+              <label>  而且</label>
               <div class="constraint-inputs">
+                <span style="margin: 0 5px;">第</span>
                 <el-input
                   v-model.number="index32"
                   placeholder="变量下标"
@@ -281,17 +287,17 @@
                   min="1"
                   style="width: 100px; margin-right: 5px;"
                 />
-                <span style="margin: 0 5px;">变量 ≥</span>
+                <span style="margin: 0 5px;">个变量 ≥</span>
                 <el-input
                   v-model.number="min32"
-                  placeholder="最小值(-1表示无限制)"
+                  placeholder="最小值"
                   type="number"
                   style="width: 120px; margin-right: 5px;"
                 />
                 <span style="margin: 0 5px;">且 ≤</span>
                 <el-input
                   v-model.number="max32"
-                  placeholder="最大值(-1表示无限制)"
+                  placeholder="最大值"
                   type="number"
                   style="width: 120px;"
                 />

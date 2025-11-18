@@ -47,12 +47,12 @@
 
     <!-- 输入参数区域 -->
     <div class="input-section">
-      <el-divider content-position="left">排列生成的输入字符串、长度，以及起始字符串和生成个数（通过起始字符串开始，避免结果太长而太多重，起始字符串可以任意指定，将从找到的第一个开始）</el-divider>
+      <el-divider content-position="left">排列生成数据输入（未给定起始排列则从第一个开始）</el-divider>
 
       <el-row :gutter="20">
         <el-col :span="12">
           <div class="input-group">
-            <label>集合字符串(B)：</label>
+            <label>基集字符(B)：</label>
             <el-input
               v-model="baseSet"
               placeholder="例如：1, 2, 3, 4, 5"
@@ -77,7 +77,7 @@
       <el-row :gutter="20" style="margin-top: 1rem;">
         <el-col :span="12">
           <div class="input-group">
-            <label>排列起始(S)：</label>
+            <label>起始排列(S)：</label>
             <el-input
               v-model="startString"
               placeholder="起始排列（可选）"
@@ -101,7 +101,7 @@
 
       <div class="input-hint">
         <el-text type="info" size="small">
-          集合格式：element1, element2, element3（用逗号分隔）
+          基集字符格式：element1, element2, element3（用逗号分隔）
           <br>
           排列长度不能超过集合元素数量
           <br>
@@ -145,7 +145,15 @@
                 class="result-formula"
               />
               <div class="parameter-info">
-                <p><strong>集合 B：</strong> {{ result.baseSet }}</p>
+                <div class="parameter-item">
+                  <strong>基集 B：</strong>
+                  <math-renderer
+                    :formula="result.baseSet"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="parameter-formula"
+                  />
+                </div>
                 <p><strong>排列长度：</strong> {{ result.length }}</p>
                 <p><strong>起始排列：</strong> {{ result.startString || '从第一个开始' }}</p>
                 <p><strong>生成个数：</strong> {{ result.number }}</p>
@@ -187,11 +195,7 @@
               />
             </div>
 
-            <!-- 统计信息 -->
-            <div class="statistics-section">
-              <h4>统计信息：</h4>
-              <p>{{ result.message }}</p>
-            </div>
+
           </div>
         </div>
       </div>
@@ -555,6 +559,19 @@ const callBackendApi = async (endpoint, options = {}) => {
 
 .parameter-info p {
   margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.parameter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.parameter-formula {
+  display: inline-block;
   font-size: 0.9rem;
 }
 

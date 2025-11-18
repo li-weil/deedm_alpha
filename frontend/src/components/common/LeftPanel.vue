@@ -2830,7 +2830,15 @@
                 class="result-formula"
               />
               <div class="parameter-info">
-                <p><strong>集合 B：</strong> {{ result.baseSet }}</p>
+                <div class="parameter-item">
+                  <strong>集合 B：</strong>
+                  <math-renderer
+                    :formula="result.baseSet"
+                    :type="'mathjax'"
+                    :display-mode="false"
+                    class="parameter-formula"
+                  />
+                </div>
                 <p><strong>排列长度：</strong> {{ result.length }}</p>
                 <p><strong>起始排列：</strong> {{ result.startString || '从第一个开始' }}</p>
                 <p><strong>生成个数：</strong> {{ result.number }}</p>
@@ -2872,11 +2880,6 @@
               />
             </div>
 
-            <!-- 统计信息 -->
-            <div class="statistics-section">
-              <h6>统计信息：</h6>
-              <p>{{ result.message }}</p>
-            </div>
           </div>
 
           <!-- 组合生成结果 -->
@@ -6120,8 +6123,8 @@ h6 {
 .count-equation-solver-result .combination-formula {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
+  background: #ffffff;
+  border: 1px solid #dbdbdb;
   border-radius: 6px;
 }
 
@@ -6515,6 +6518,19 @@ h6 {
 
 .gen-permutation-result .parameter-info p {
   margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.gen-permutation-result .parameter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.gen-permutation-result .parameter-formula {
+  display: inline-block;
   font-size: 0.9rem;
 }
 
