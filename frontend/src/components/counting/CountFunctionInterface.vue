@@ -194,20 +194,21 @@
             <!-- 具体函数列表 -->
             <div v-if="result.functionList && result.functionList.length > 0" class="function-list">
               <h4>具体函数列表：</h4>
-              <div v-for="(func, funcIndex) in result.functionList" :key="funcIndex" class="function-item">
-                <el-text class="function-label">
-                  {{ getFunctionLabel(func) }}
+              <div class="function-scroll-container">
+                <div v-for="(func, funcIndex) in result.functionList" :key="funcIndex" class="function-item">
+                  <p>{{ getFunctionLabel(func) }}</p>
+
+                  <math-renderer
+                    :formula="func.laTeX"
+                    :type="'mathjax'"
+                    :display-mode="true"
+                    class="function-formula"
+                  />
+                </div>
+                <el-text v-if="result.hasMoreFunctions" type="info" class="more-functions">
+                  ... 还有更多函数未显示 ...
                 </el-text>
-                <math-renderer
-                  :formula="func.laTeX"
-                  :type="'mathjax'"
-                  :display-mode="true"
-                  class="function-formula"
-                />
               </div>
-              <el-text v-if="result.hasMoreFunctions" type="info" class="more-functions">
-                ... 还有更多函数未显示 ...
-              </el-text>
             </div>
           </div>
         </div>
@@ -545,88 +546,163 @@ const closeInterface = () => {
   margin-bottom: 2rem;
 }
 
+/* 反馈信息样式优化 */
 .feedback-content {
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-  border-left: 4px solid #409eff;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #6c757d;
 }
 
 .feedback-item {
   margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
 }
 
 .feedback-formula {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
 }
 
 .feedback-message {
   font-size: 14px;
+  line-height: 1.6;
+  color: #495057;
 }
 
+/* 结果展示区域样式优化 */
 .results-content {
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-  border-left: 4px solid #67c23a;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
 }
 
 .result-item {
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
 }
 
 .result-basic h4,
 .statistics-result h4,
 .function-list h4 {
   margin-bottom: 1rem;
-  color: #333;
-  font-weight: bold;
+  color: #212529;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .result-formula {
   margin-bottom: 1rem;
-  padding: 0.5rem;
-  background-color: white;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+/* 统计结果样式优化 */
+.summary-text {
+  font-size: 15px;
+  color: #212529;
+  margin: 1rem 0;
+  line-height: 1.6;
+  padding: 1rem;
+  background-color: #f8f9fa;
   border-radius: 4px;
 }
 
-.summary-text {
-  font-size: 16px;
-  color: #333;
-  margin: 1rem 0;
-  line-height: 1.5;
-}
-
+/* 函数列表样式优化 */
 .function-list {
   margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.function-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  background-color: white;
+  padding: 1rem;
 }
 
 .function-item {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   padding: 1rem;
-  background-color: white;
+  background-color: #f8f9fa;
   border-radius: 4px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #e9ecef;
+}
+
+.function-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 滚动条样式美化 */
+.function-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.function-scroll-container::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 4px;
+}
+
+.function-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  border: 2px solid #f1f3f4;
+}
+
+.function-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.function-scroll-container::-webkit-scrollbar-thumb:active {
+  background: #959595;
 }
 
 .function-label {
-  font-weight: bold;
-  color: #409eff;
-  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.8rem;
   display: block;
+  font-size: 14px;
+  padding: 0.5rem;
+  background-color: #ffffff;
+  border-radius: 4px;
 }
 
 .function-formula {
-  padding: 0.5rem;
-  background-color: #f8f8f8;
+  padding: 1rem;
+  background-color: #ffffff;
   border-radius: 4px;
+  border: 1px solid #e9ecef;
+  font-family: 'Courier New', monospace;
+  line-height: 1.5;
+  color: #495057;
 }
 
 .more-functions {
   display: block;
   text-align: center;
-  margin-top: 1rem;
-  color: #909399;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  color: #6c757d;
   font-style: italic;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px dashed #ced4da;
 }
 </style>

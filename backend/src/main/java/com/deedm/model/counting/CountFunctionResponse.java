@@ -13,10 +13,10 @@ public class CountFunctionResponse {
     private int surjectionCount;
     private int bijectionCount;
     private List<Map<String, Object>> functionList;
-    private String resultType;
+    private String type;
 
     public CountFunctionResponse() {
-        this.resultType = "countFunction";
+        this.type = "countFunction";
     }
 
     // Getters and Setters
@@ -92,11 +92,11 @@ public class CountFunctionResponse {
         this.functionList = functionList;
     }
 
-    public String getResultType() {
-        return resultType;
+    public String getType() {
+        return type;
     }
 
-    public void setResultType(String resultType) {
-        this.resultType = resultType;
+    public void setType(String type) {
+        this.type = type;
     }
 }

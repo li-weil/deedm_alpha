@@ -120,7 +120,7 @@
       <el-row :gutter="20">
         <el-col :span="8">
           <div class="input-group">
-            <label>定义域(A)：</label>
+            <label>源集合(A)：</label>
             <el-input
               v-model="setAInput"
               placeholder="例如：{1, 2, 3, 4, 5}"
@@ -130,17 +130,12 @@
         </el-col>
         <el-col :span="8">
           <div class="input-group">
-            <label>值域(B)：</label>
+            <label>目标集合(B)：</label>
             <el-input
               v-model="setBInput"
               placeholder="例如：{a, b, c, d}"
               class="set-input"
             />
-          </div>
-        </el-col>
-        <el-col :span="8">
-          <div class="input-group">
-            <label>提示：集合A是函数的源集合，集合B是函数的目标集合</label>
           </div>
         </el-col>
       </el-row>

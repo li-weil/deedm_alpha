@@ -2734,74 +2734,50 @@
             </div>
           </div>
 
+  
           <!-- 显示不同性质的函数计数结果 -->
           <div v-else-if="result.type === 'countFunction'" class="count-function-result">
             <h5 class="result-title">不同性质的函数计数结果：</h5>
 
-            <!-- 集合信息 -->
+            <!-- 集合基本信息 -->
             <div class="result-basic">
               <h6>输入集合：</h6>
-              <div class="set-info">
-                <math-renderer
-                  :formula="'A = ' + result.setALaTeX"
-                  :type="'mathjax'"
-                  :display-mode="true"
-                  class="result-formula"
-                />
-                <math-renderer
-                  :formula="'B = ' + result.setBLaTeX"
-                  :type="'mathjax'"
-                  :display-mode="true"
-                  class="result-formula"
-                />
-              </div>
+              <math-renderer
+                :formula="'A = ' + result.setALaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <math-renderer
+                :formula="'B = ' + result.setBLaTeX"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
             </div>
 
-            <!-- 统计信息 -->
-            <div class="result-statistics">
+            <!-- 统计结果 -->
+            <div class="statistics-result">
               <h6>函数统计：</h6>
-              <div class="statistics-grid">
-                <div class="stat-item">
-                  <span class="stat-label">总数：</span>
-                  <span class="stat-value">{{ result.totalCount }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">双射：</span>
-                  <span class="stat-value bijection">{{ result.bijectionCount }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">满射：</span>
-                  <span class="stat-value surjection">{{ result.surjectionCount }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">单射：</span>
-                  <span class="stat-value injection">{{ result.injectionCount }}</span>
-                </div>
-              </div>
-
-              <!-- 统计公式 -->
-              <div class="count-formula">
-                <math-renderer
-                  :formula="'|B|^{|A|} = ' + result.bSize + '^{' + result.aSize + '} = ' + result.totalCount"
-                  :type="'mathjax'"
-                  :display-mode="true"
-                  class="result-formula"
-                />
+              <math-renderer
+                :formula="'|B|^{|A|} = ' + result.bSize + '^{' + result.aSize + '} = ' + result.totalCount"
+                :type="'mathjax'"
+                :display-mode="true"
+                class="result-formula"
+              />
+              <div class="summary-text">
+                总共有 {{ result.totalCount }} 个函数，其中双射 {{ result.bijectionCount }} 个，
+                满射 {{ result.surjectionCount }} 个，而单射 {{ result.injectionCount }} 个
               </div>
             </div>
 
-            <!-- 函数列表 -->
-            <div v-if="result.functionList && result.functionList.length > 0" class="functions-display">
+            <!-- 具体函数列表 -->
+            <div v-if="result.functionList && result.functionList.length > 0" class="function-list">
               <h6>具体函数列表：</h6>
-              <div class="functions-list">
-                <div
-                  v-for="func in result.functionList"
-                  :key="'func-' + func.totalNumber"
-                  class="function-item"
-                >
-                  <span class="function-label">
-                    {{ getFunctionLabel(func) }}
-                  </span>
+              <div class="function-scroll-container">
+                <div v-for="(func, funcIndex) in result.functionList" :key="funcIndex" class="function-item">
+                  <p>{{ getFunctionLabel(func) }}</p>
+
                   <math-renderer
                     :formula="func.laTeX"
                     :type="'mathjax'"
@@ -2810,7 +2786,7 @@
                   />
                 </div>
                 <div v-if="result.hasMoreFunctions" class="more-functions">
-                  <span class="ellipsis-text">... 还有更多函数未显示 ...</span>
+                  ... 还有更多函数未显示 ...
                 </div>
               </div>
             </div>
@@ -3368,6 +3344,7 @@ const getFunctionLabel = (func) => {
   }
 }
 
+
 // AST图片加载成功处理
 const handleASTImageLoad = (event) => {
   console.log('LeftPanel: AST图片加载成功:', event.target.src)
@@ -3811,7 +3788,6 @@ const getMoreIndicatorText = (result) => {
   padding: 0.75rem;
   background: #f8f9fa;
   border-radius: 4px;
-  border-left: 3px solid #6c757d;
   transition: all 0.2s ease;
   overflow-x: auto;
   overflow-y: hidden;
@@ -3838,7 +3814,6 @@ const getMoreIndicatorText = (result) => {
 
 .calculation-step:hover {
   background: #f1f3f4;
-  border-left-color: #495057;
 }
 
 .step-formula {
@@ -4167,7 +4142,6 @@ const getMoreIndicatorText = (result) => {
   padding: 0.25rem 0.5rem;
   background: #f8f9fa;
   border-radius: 4px;
-  border-left: 3px solid #409eff;
   font-size: 0.9em;
   overflow-x: auto;
   white-space: nowrap;
@@ -4223,7 +4197,6 @@ const getMoreIndicatorText = (result) => {
   padding: 0.75rem;
   background: #ffffff;
   border-radius: 4px;
-  border-left: 3px solid #dddada;
   transition: all 0.2s ease;
   overflow-x: auto;
   overflow-y: hidden;
@@ -4250,7 +4223,6 @@ const getMoreIndicatorText = (result) => {
 
 .reasoning-step:hover {
   background: #f1f3f4;
-  border-left-color: #495057;
 }
 
 .step-number {
@@ -4286,7 +4258,6 @@ const getMoreIndicatorText = (result) => {
   padding: 0.75rem;
   background: #f8f9fa;
   border-radius: 4px;
-  border-left: 3px solid #6c757d;
   transition: all 0.2s ease;
   overflow-x: auto;
   overflow-y: hidden;
@@ -4313,7 +4284,6 @@ const getMoreIndicatorText = (result) => {
 
 .check-step:hover {
   background: #f1f3f4;
-  border-left-color: #495057;
 }
 
 .check-text {
@@ -4490,7 +4460,6 @@ const getMoreIndicatorText = (result) => {
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 6px;
-  border-left: 4px solid #28a745;
   overflow-x: auto;
 }
 
@@ -4690,7 +4659,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 4px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #17a2b8;
 }
 
 /* 最短路径图可视化结果样式 */
@@ -4700,7 +4668,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 4px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #6f42c1;
 }
 
 /* 集合运算结果样式 */
@@ -4710,7 +4677,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #28a745;
 }
 
 .set-operation-result .result-basic {
@@ -4771,7 +4737,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #fd7e14;
   overflow-x: auto;
 }
 
@@ -4876,7 +4841,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #17a2b8;
 }
 
 .equivalence-relation-result .result-basic {
@@ -5101,7 +5065,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #6610f2;
 }
 
 .function-property-result .result-basic {
@@ -5181,7 +5144,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #17a2b8;
 }
 
 .set-expr-operation-result .result-basic {
@@ -5219,7 +5181,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #6f42c1;
 }
 
 .relation-operation-result .result-basic {
@@ -5238,7 +5199,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #fd7e14;
 }
 
 .partial-order-result .result-basic {
@@ -5420,7 +5380,6 @@ const getMoreIndicatorText = (result) => {
   border-radius: 6px;
   border: 1px solid #e9ecef;
   margin-top: 1rem;
-  border-left: 4px solid #e83e8c;
 }
 
 .relation-closure-result .result-basic {
@@ -5679,7 +5638,6 @@ h6 {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
-  border-left: 4px solid #ff6b6b;
 }
 
 .recursion-params,
@@ -6238,149 +6196,128 @@ h6 {
   font-weight: 600;
 }
 
+
 /* 不同性质的函数计数结果样式 */
 .count-function-result {
   margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
   border: 1px solid #e9ecef;
 }
 
 .count-function-result .result-basic {
+  margin-bottom: 1.5rem;
+}
+
+.count-function-result .statistics-result {
+  margin-bottom: 1.5rem;
+}
+
+.count-function-result .result-formula {
   margin-bottom: 1rem;
-}
-
-.count-function-result .set-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.count-function-result .result-statistics {
-  margin-bottom: 1rem;
-}
-
-.count-function-result .statistics-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.count-function-result .stat-item {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.count-function-result .stat-label {
-  font-weight: 600;
-  color: #6b7280;
-  margin-right: 0.5rem;
-}
-
-.count-function-result .stat-value {
-  font-weight: bold;
-  color: #1f2937;
-  font-size: 1.1rem;
-}
-
-.count-function-result .stat-value.bijection {
-  color: #8b5cf6; /* 紫色 */
-}
-
-.count-function-result .stat-value.surjection {
-  color: #10b981; /* 绿色 */
-}
-
-.count-function-result .stat-value.injection {
-  color: #f59e0b; /* 橙色 */
-}
-
-.count-function-result .count-formula {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 6px;
-}
-
-.count-function-result .functions-display {
-  margin-top: 1rem;
-}
-
-.count-function-result .functions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #dee2e6;
-}
-
-.count-function-result .functions-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.count-function-result .functions-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.count-function-result .functions-list::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.count-function-result .functions-list::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-.count-function-result .function-item {
-  padding: 0.75rem;
-  background: #f8f9fa;
+  padding: 1rem;
+  background-color: white;
   border-radius: 4px;
   border: 1px solid #e9ecef;
 }
 
-.count-function-result .function-item:hover {
-  background: #e3f2fd;
-  border-color: #2196f3;
+.count-function-result .summary-text {
+  font-size: 15px;
+  color: #212529;
+  margin: 1rem 0;
+  line-height: 1.6;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
 }
 
-.count-function-result .function-label {
-  font-weight: bold;
-  color: #2196f3;
-  margin-bottom: 0.5rem;
+/* 函数列表样式优化 */
+.count-function-result .function-list {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.count-function-result .function-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  background-color: white;
+  padding: 1rem;
+}
+
+.count-function-result .function-item {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.count-function-result .function-item:last-child {
+  margin-bottom: 0;
+}
+
+.count-function-result .function-item p {
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.8rem;
   display: block;
+  font-size: 14px;
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: 4px;
 }
 
 .count-function-result .function-formula {
-  padding: 0.5rem;
-  background: white;
+  padding: 1rem;
+  background-color: white;
   border-radius: 4px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #e9ecef;
+  font-family: 'Courier New', monospace;
+  line-height: 1.5;
+  color: #495057;
 }
 
 .count-function-result .more-functions {
+  display: block;
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   padding: 1rem;
-  background: #f8f9fa;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px dashed #ced4da;
+}
+
+/* 滚动条样式美化 */
+.count-function-result .function-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.count-function-result .function-scroll-container::-webkit-scrollbar-track {
+  background: #f1f3f4;
   border-radius: 4px;
 }
 
-.count-function-result .ellipsis-text {
-  color: #6b7280;
-  font-style: italic;
-  font-size: 0.9rem;
+.count-function-result .function-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  border: 2px solid #f1f3f4;
+}
+
+.count-function-result .function-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.count-function-result .function-scroll-container::-webkit-scrollbar-thumb:active {
+  background: #959595;
 }
 
 .count-function-result h5 {
