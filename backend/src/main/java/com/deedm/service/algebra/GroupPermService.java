@@ -71,11 +71,6 @@ public class GroupPermService {
             response.setErrorMessage("分析置换群时发生错误: " + e.getMessage());
         }
 
-        // 最终调试输出
-        System.out.println("=== 最终响应调试 ===");
-        System.out.println("子群数据数量: " + (response.getSubgroups() != null ? response.getSubgroups().size() : 0));
-        System.out.println("正规子群数据数量: " + (response.getNormalSubgroups() != null ? response.getNormalSubgroups().size() : 0));
-
         return response;
     }
 
@@ -179,14 +174,9 @@ public class GroupPermService {
         List<GroupPermResponse.SubgroupResult> subgroupResults = new ArrayList<>();
         List<List<GroupPermutation.Bijection>> allSubgroups = SGroup.getAllGeneratedSubgroup();
 
-        System.out.println("=== 调试：analyzeSubgroups 开始 ===");
-        System.out.println("所有元素: " + GroupPermutation.FunctionArrayToString(elements));
-        System.out.println("找到的生成子群数量: " + allSubgroups.size());
-
         for (List<GroupPermutation.Bijection> subgroup : allSubgroups) {
             // 跳过平凡子群
             if (subgroup.size() == 1 || subgroup.size() == elements.length) {
-                System.out.println("跳过平凡子群，大小: " + subgroup.size());
                 continue;
             }
 
@@ -196,8 +186,6 @@ public class GroupPermService {
             String subgroupString = GroupPermutation.FunctionListToString(subgroup);
             subgroupResult.setSubgroupElements(subgroupString);
 
-            System.out.println("处理子群: {" + subgroupString + "}, 大小: " + subgroup.size());
-
             // 检查是否为循环子群
             GroupPermutation.Bijection[] array = new GroupPermutation.Bijection[subgroup.size()];
             for (int i = 0; i < subgroup.size(); i++) {
@@ -205,14 +193,11 @@ public class GroupPermService {
             }
 
             List<GroupPermutation.Bijection> generatorList = SGroup.getGenerator(array);
-            System.out.println("生成元数量: " + generatorList.size());
             if (generatorList.size() > 0) {
                 String generators = GroupPermutation.FunctionListToString(generatorList);
-                System.out.println("是循环子群，生成元: " + generators);
                 subgroupResult.setCycleSubgroup(true);
                 subgroupResult.setGenerators(generators);
             } else {
-                System.out.println("不是循环子群");
                 subgroupResult.setCycleSubgroup(false);
             }
 
@@ -223,9 +208,6 @@ public class GroupPermService {
 
             subgroupResults.add(subgroupResult);
         }
-
-        System.out.println("最终子群结果数量: " + subgroupResults.size());
-        System.out.println("=== 调试：analyzeSubgroups 结束 ===");
         response.setSubgroups(subgroupResults);
     }
 
@@ -241,19 +223,13 @@ public class GroupPermService {
 
         List<List<GroupPermutation.Bijection>> allSubgroups = SGroup.getAllSubgroup();
 
-        System.out.println("=== 调试：analyzeCosetsAndNormalSubgroups 开始 ===");
-        System.out.println("所有子群数量: " + allSubgroups.size());
-        System.out.println("显示陪集: " + request.isShowCosets() + ", 显示正规子群: " + request.isShowNormalSubgroups());
-
         for (List<GroupPermutation.Bijection> subgroup : allSubgroups) {
             // 跳过平凡子群
             if (subgroup.size() == 1 || subgroup.size() == elements.length) {
-                System.out.println("跳过平凡子群，大小: " + subgroup.size());
                 continue;
             }
 
             String subgroupString = GroupPermutation.FunctionListToString(subgroup);
-            System.out.println("处理陪集和正规性分析子群: {" + subgroupString + "}, 大小: " + subgroup.size());
 
             // 陪集分析：按照原Java应用逻辑，只要选择了陪集或正规子群就要显示所有子群的陪集
             if (request.isShowCosets() || request.isShowNormalSubgroups()) {
@@ -296,13 +272,10 @@ public class GroupPermService {
 
                 boolean isNormal = SGroup.isNormalSubgroup(subgroup);
                 normalResult.setNormal(isNormal);
-
-                System.out.println("检查子群 {" + subgroupString + "} 是否为正规子群: " + isNormal);
                 if (isNormal) {
                     GroupPermutation.QuotientGroup quotient = SGroup.getQuotientGroup(subgroup);
                     String quotientTable = quotient.getLaTeXStringOfOperatorTable();
                     normalResult.setQuotientGroupTable(quotientTable);
-                    System.out.println("是正规子群，商群表已生成");
                 }
 
                 normalSubgroupResults.add(normalResult);
@@ -312,13 +285,10 @@ public class GroupPermService {
         // 只有当选择了陪集或正规子群时才设置陪集数据
         if (request.isShowCosets() || request.isShowNormalSubgroups()) {
             response.setCosets(cosetResults);
-            System.out.println("设置陪集结果，数量: " + cosetResults.size());
         }
         // 只有当选择了正规子群时才设置正规子群数据
         if (request.isShowNormalSubgroups()) {
             response.setNormalSubgroups(normalSubgroupResults);
-            System.out.println("设置正规子群结果，数量: " + normalSubgroupResults.size());
         }
-        System.out.println("=== 调试：analyzeCosetsAndNormalSubgroups 结束 ===");
     }
 }

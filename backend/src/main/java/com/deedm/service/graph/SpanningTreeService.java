@@ -4,6 +4,8 @@ import com.deedm.model.graph.SpanningTreeRequest;
 import com.deedm.model.graph.SpanningTreeResponse;
 import com.deedm.legacy.graph.*;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -11,6 +13,8 @@ import java.util.*;
 
 @Service
 public class SpanningTreeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SpanningTreeService.class);
 
     public SpanningTreeResponse calculateMinimalSpanningTree(SpanningTreeRequest request) {
         SpanningTreeResponse response = new SpanningTreeResponse();
@@ -52,7 +56,7 @@ public class SpanningTreeService {
                     String graphImageUrl = generateGraphImage(graph, "WeightedGraph");
                     response.setGraphImageUrl(graphImageUrl);
                 } catch (Exception e) {
-                    System.err.println("原图生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate spanning tree source graph", e);
                 }
             }
 
@@ -62,7 +66,7 @@ public class SpanningTreeService {
                     String weightMatrix = graph.getWeightAdjacencyMatrix().toLaTeXString();
                     response.setWeightMatrix(weightMatrix);
                 } catch (Exception e) {
-                    System.err.println("距离矩阵生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate spanning tree weight matrix", e);
                 }
             }
 
@@ -93,12 +97,12 @@ public class SpanningTreeService {
                             String treeImageUrl = generateGraphImage(kruskalTree, "KruskalTree");
                             response.setKruskalTreeImageUrl(treeImageUrl);
                         } catch (Exception e) {
-                            System.err.println("Kruskal生成树图片生成失败: " + e.getMessage());
+                            logger.warn("Failed to generate Kruskal spanning tree image", e);
                         }
                     }
 
                 } catch (Exception e) {
-                    System.err.println("Kruskal算法执行失败: " + e.getMessage());
+                    logger.warn("Kruskal execution failed", e);
                 }
             }
 
@@ -129,12 +133,12 @@ public class SpanningTreeService {
                             String treeImageUrl = generateGraphImage(primTree, "PrimTree");
                             response.setPrimTreeImageUrl(treeImageUrl);
                         } catch (Exception e) {
-                            System.err.println("Prim生成树图片生成失败: " + e.getMessage());
+                            logger.warn("Failed to generate Prim spanning tree image", e);
                         }
                     }
 
                 } catch (Exception e) {
-                    System.err.println("Prim算法执行失败: " + e.getMessage());
+                    logger.warn("Prim execution failed", e);
                 }
             }
 

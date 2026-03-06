@@ -4,6 +4,8 @@ import com.deedm.model.setrelfun.EquivalenceRequest;
 import com.deedm.model.setrelfun.EquivalenceResponse;
 import com.deedm.legacy.setrelfun.*;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -11,6 +13,8 @@ import java.util.*;
 
 @Service
 public class EquivalenceService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EquivalenceService.class);
 
     public EquivalenceResponse analyzeEquivalenceRelation(EquivalenceRequest request) {
         EquivalenceResponse response = new EquivalenceResponse();
@@ -50,7 +54,7 @@ public class EquivalenceService {
                     response.setRelationGraphUrl(graphImageUrl);
                 } catch (Exception e) {
                     // 图形生成失败不影响其他功能
-                    System.err.println("关系图生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate equivalence relation graph", e);
                 }
             }
 
@@ -236,7 +240,7 @@ public class EquivalenceService {
             String graphImageUrl = generateRelationGraph(result, intTypeElement, "RelationRequivclo");
             response.setEquivalenceClosureGraphUrl(graphImageUrl);
         } catch (Exception e) {
-            System.err.println("等价闭包关系图生成失败: " + e.getMessage());
+            logger.warn("Failed to generate equivalence closure graph", e);
         }
     }
 
@@ -298,7 +302,7 @@ public class EquivalenceService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成关系图");
+                logger.warn("Graphviz unavailable for equivalence relation graph");
                 return null;
             }
 
@@ -324,12 +328,12 @@ public class EquivalenceService {
                 // 清理失败的文件
                 new java.io.File(dotFileName).delete();
                 new java.io.File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate equivalence relation graph: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成关系图失败: " + e.getMessage());
+            logger.warn("Failed to generate equivalence relation graph", e);
             return null;
         }
     }

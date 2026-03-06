@@ -284,19 +284,11 @@ public class CountStringService {
     }
 
     private void generateAndCountStrings(CountStringResponse response, char[] elements, int length, boolean allowRepetition, StringFilter filter, CountStringRequest.OutputOption outputOption) {
-        System.out.println("=== 字符串计数调试信息 ===");
-        System.out.println("基集元素: " + new String(elements) + " (长度: " + elements.length + ")");
-        System.out.println("字符串长度: " + length);
-        System.out.println("是否允许重复: " + allowRepetition);
-        System.out.println("过滤器: " + (filter == null ? "无" : filter.toString()));
-
         StringGenerator generator;
         if (allowRepetition) {
             generator = new StringGenerator(elements, length);
-            System.out.println("使用StringGenerator，预期总数: " + Math.pow(elements.length, length));
         } else {
             generator = new PermutationGenerator(elements, length);
-            System.out.println("使用PermutationGenerator，预期总数: P(" + elements.length + ", " + length + ")");
         }
 
         generator.first();
@@ -333,27 +325,15 @@ public class CountStringService {
             }
         }
 
-        System.out.println("输出选项: " + (outputOption != null ? outputOption.toString() : "null"));
-        System.out.println("detailed=" + detailed + ", onlyAccept=" + onlyAccept + ", accept50=" + accept50 + ", part100=" + part100);
-        System.out.println("开始生成字符串...");
-
-        int debugCounter = 0;
         while (true) {
             char[] string = generator.current();
             totalCount++;
-            debugCounter++;
 
             String currentStr = StringGenerator.convertToString(string);
             boolean accepted = (filter == null) || filter.accept(string);
 
             if (accepted) {
                 acceptedCount++;
-            }
-
-            // 调试输出前20个字符串
-            if (debugCounter <= 20) {
-                System.out.println(String.format("第%3d个字符串: %s, 接受: %s, 累计接受: %d",
-                    totalCount, currentStr, accepted ? "是" : "否", acceptedCount));
             }
 
             // 根据输出选项决定是否记录详情
@@ -386,12 +366,6 @@ public class CountStringService {
             }
             generator.next();
         }
-
-        System.out.println("字符串生成完成:");
-        System.out.println("实际生成总数: " + totalCount);
-        System.out.println("接受总数: " + acceptedCount);
-        System.out.println("详情记录数: " + details.size());
-        System.out.println("=== 调试信息结束 ===");
 
         // 设置结果
         response.setTotalCount(totalCount);

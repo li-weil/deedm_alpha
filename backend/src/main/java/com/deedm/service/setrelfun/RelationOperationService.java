@@ -8,6 +8,8 @@ import com.deedm.legacy.setrelfun.Matrix;
 import com.deedm.legacy.setrelfun.SetrelfunUtil;
 import com.deedm.legacy.util.GraphvizUtil;
 import com.deedm.legacy.graph.AbstractGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -18,6 +20,8 @@ import java.io.File;
 
 @Service
 public class RelationOperationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(RelationOperationService.class);
 
     private int counter = 0;
 
@@ -108,7 +112,7 @@ public class RelationOperationService {
                     response.setRelationRGraphImageUrl(relationRGraphUrl);
                     response.setRelationSGraphImageUrl(relationSGraphUrl);
                 } catch (Exception e) {
-                    System.err.println("关系图生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate relation operation graph", e);
                     // 图形生成失败不影响其他功能
                 }
             }
@@ -341,7 +345,7 @@ public class RelationOperationService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成关系图");
+                logger.warn("Graphviz unavailable for relation operation graph");
                 return null;
             }
 
@@ -366,12 +370,12 @@ public class RelationOperationService {
                 // 清理失败的文件
                 new File(dotFileName).delete();
                 new File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate relation operation graph: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成关系图失败: " + e.getMessage());
+            logger.warn("Failed to generate relation operation graph", e);
             return null;
         }
     }

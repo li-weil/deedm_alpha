@@ -4,7 +4,8 @@ import com.deedm.model.setrelfun.RelationClosureRequest;
 import com.deedm.model.setrelfun.RelationClosureResponse;
 import com.deedm.legacy.setrelfun.*;
 import com.deedm.legacy.util.GraphvizUtil;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -12,6 +13,8 @@ import java.util.*;
 
 @Service
 public class RelationClosureService {
+
+    private static final Logger logger = LoggerFactory.getLogger(RelationClosureService.class);
 
     public RelationClosureResponse calculateRelationClosures(RelationClosureRequest request) {
         RelationClosureResponse response = new RelationClosureResponse();
@@ -50,7 +53,7 @@ public class RelationClosureService {
                     String graphUrl = generateRelationGraph(relationR, "R", request.isIntTypeElement());
                     response.setRelationGraphUrl(graphUrl);
                 } catch (Exception e) {
-                    System.err.println("生成关系图失败: " + e.getMessage());
+                    logger.warn("Failed to generate relation closure graph", e);
                 }
             }
 
@@ -177,11 +180,11 @@ public class RelationClosureService {
                     String graphUrl = generateRelationGraph(reflexiveRelation, "r(R)", intTypeElement);
                     result.setClosureGraphUrl(graphUrl);
                 } catch (Exception e) {
-                    System.err.println("生成自反闭包关系图失败: " + e.getMessage());
+                    logger.warn("Failed to generate reflexive closure graph", e);
                 }
             }
         } catch (Exception e) {
-            System.err.println("计算自反闭包失败: " + e.getMessage());
+            logger.warn("Reflexive closure calculation failed", e);
         }
 
         return result;
@@ -205,11 +208,11 @@ public class RelationClosureService {
                     String graphUrl = generateRelationGraph(symmetricRelation, "s(R)", intTypeElement);
                     result.setClosureGraphUrl(graphUrl);
                 } catch (Exception e) {
-                    System.err.println("生成对称闭包关系图失败: " + e.getMessage());
+                    logger.warn("Failed to generate symmetric closure graph", e);
                 }
             }
         } catch (Exception e) {
-            System.err.println("计算对称闭包失败: " + e.getMessage());
+            logger.warn("Symmetric closure calculation failed", e);
         }
 
         return result;
@@ -263,11 +266,11 @@ public class RelationClosureService {
                     String graphUrl = generateRelationGraph(transitiveRelation, "t(R)", intTypeElement);
                     result.setClosureGraphUrl(graphUrl);
                 } catch (Exception e) {
-                    System.err.println("生成传递闭包关系图失败: " + e.getMessage());
+                    logger.warn("Failed to generate transitive closure graph", e);
                 }
             }
         } catch (Exception e) {
-            System.err.println("计算传递闭包失败: " + e.getMessage());
+            logger.warn("Transitive closure calculation failed", e);
         }
 
         return result;
@@ -295,11 +298,11 @@ public class RelationClosureService {
                     String graphUrl = generateRelationGraph(equivalenceRelation, "tsr(R)", intTypeElement);
                     result.setClosureGraphUrl(graphUrl);
                 } catch (Exception e) {
-                    System.err.println("生成等价闭包关系图失败: " + e.getMessage());
+                    logger.warn("Failed to generate equivalence closure graph", e);
                 }
             }
         } catch (Exception e) {
-            System.err.println("计算等价闭包失败: " + e.getMessage());
+            logger.warn("Equivalence closure calculation failed", e);
         }
 
         return result;
@@ -309,7 +312,7 @@ public class RelationClosureService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成关系图");
+                logger.warn("Graphviz unavailable for relation closure graph");
                 return null;
             }
 
@@ -334,12 +337,12 @@ public class RelationClosureService {
                 // 清理失败的文件
                 new java.io.File(dotFileName).delete();
                 new java.io.File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate relation closure graph: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成关系图失败: " + e.getMessage());
+            logger.warn("Failed to generate relation closure graph", e);
             return null;
         }
     }

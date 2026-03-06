@@ -5,6 +5,8 @@ import com.deedm.model.setrelfun.FunctionPropertyResponse;
 import com.deedm.legacy.setrelfun.*;
 import com.deedm.legacy.graph.*;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -13,6 +15,8 @@ import java.util.UUID;
 
 @Service
 public class FunctionPropertyService {
+
+    private static final Logger logger = LoggerFactory.getLogger(FunctionPropertyService.class);
 
     public FunctionPropertyResponse analyzeFunction(FunctionPropertyRequest request) {
         FunctionPropertyResponse response = new FunctionPropertyResponse();
@@ -143,7 +147,7 @@ public class FunctionPropertyService {
                     response.setRelationGraphUrl(graphUrl);
                 } catch (Exception e) {
                     // 图形生成失败不影响其他功能
-                    System.err.println("关系图生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate function relation graph", e);
                 }
             }
 
@@ -196,7 +200,7 @@ public class FunctionPropertyService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成关系图");
+                logger.warn("Graphviz unavailable for function relation graph");
                 return null;
             }
 
@@ -222,12 +226,12 @@ public class FunctionPropertyService {
                 // 清理失败的文件
                 new File(dotFileName).delete();
                 new File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate function relation graph: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成关系图失败: " + e.getMessage());
+            logger.warn("Failed to generate function relation graph", e);
             return null;
         }
     }

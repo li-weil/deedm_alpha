@@ -3,6 +3,8 @@ package com.deedm.service.graph;
 import com.deedm.model.graph.ShortestPathRequest;
 import com.deedm.model.graph.ShortestPathResponse;
 import com.deedm.legacy.graph.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -13,6 +15,8 @@ import java.util.*;
 
 @Service
 public class ShortestPathService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ShortestPathService.class);
 
     public ShortestPathResponse calculateShortestPath(ShortestPathRequest request) {
         ShortestPathResponse response = new ShortestPathResponse();
@@ -220,7 +224,7 @@ public class ShortestPathService {
 
             // 检查Graphviz可用性
             if (!com.deedm.legacy.util.GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成最短路径图片");
+                logger.warn("Graphviz unavailable for shortest path image generation");
                 return null;
             }
 
@@ -232,7 +236,7 @@ public class ShortestPathService {
             // 调用Graphviz生成PNG
             boolean success = com.deedm.legacy.util.GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
             if (!success) {
-                System.err.println("Graphviz生成失败: " + com.deedm.legacy.util.GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate shortest path image: {}", com.deedm.legacy.util.GraphvizUtil.errorMessage);
                 return null;
             }
 
@@ -241,12 +245,12 @@ public class ShortestPathService {
             if (imageFile.exists() && imageFile.length() > 0) {
                 return fileName;
             } else {
-                System.err.println("PNG文件生成失败或文件为空");
+                logger.warn("Shortest path image file missing or empty: {}", pngFileName);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成最短路径图片失败: " + e.getMessage());
+            logger.warn("Failed to generate shortest path image", e);
             return null;
         }
     }

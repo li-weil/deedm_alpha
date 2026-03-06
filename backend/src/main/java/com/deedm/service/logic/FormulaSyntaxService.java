@@ -4,6 +4,8 @@ import com.deedm.legacy.proplogic.FormulaBuilder;
 import com.deedm.legacy.proplogic.formula.Formula;
 import com.deedm.legacy.proplogic.formula.ASTGraph.FormulaASTGraph;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -17,18 +19,16 @@ import java.util.UUID;
 @Service
 public class FormulaSyntaxService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FormulaSyntaxService.class);
+
     public Map<String, Object> analyzeFormula(String latexFormula) {
-        System.out.println("FormulaSyntaxService: 开始分析公式: " + latexFormula);
         Map<String, Object> result = new HashMap<>();
 
         try {
-            System.out.println("FormulaSyntaxService: 调用FormulaBuilder.buildFromLaTexFormulaString");
             Formula formula = FormulaBuilder.buildFromLaTexFormulaString(latexFormula);
-            System.out.println("FormulaSyntaxService: 构建的公式对象: " + (formula != null ? formula.getClass().getSimpleName() : "null"));
 
             if (formula == null) {
                 String errorMsg = FormulaBuilder.getErrorMessage();
-                System.out.println("FormulaSyntaxService: 公式构建失败，错误信息: " + errorMsg);
                 result.put("success", false);
                 result.put("error", errorMsg);
                 return result;
@@ -39,11 +39,6 @@ public class FormulaSyntaxService {
             String formulaType = getFormulaTypeChineseName(formula);
             List<String> subformulas = getSubformulasList(formula);
 
-            System.out.println("FormulaSyntaxService: 严格形式: " + strictForm);
-            System.out.println("FormulaSyntaxService: 简化形式: " + simpleForm);
-            System.out.println("FormulaSyntaxService: 公式类型: " + formulaType);
-            System.out.println("FormulaSyntaxService: 子公式数量: " + subformulas.size());
-
             result.put("success", true);
             result.put("originalFormula", latexFormula);
             result.put("strictForm", strictForm);
@@ -52,13 +47,11 @@ public class FormulaSyntaxService {
             result.put("subformulas", subformulas);
 
         } catch (Exception e) {
-            System.out.println("FormulaSyntaxService: 分析公式时发生异常: " + e.getClass().getSimpleName() + ": " + e.getMessage());
-            e.printStackTrace();
+            logger.warn("Formula analysis failed: {}", e.getMessage(), e);
             result.put("success", false);
             result.put("error", e.getMessage());
         }
 
-        System.out.println("FormulaSyntaxService: 分析完成，返回结果: " + result);
         return result;
     }
 

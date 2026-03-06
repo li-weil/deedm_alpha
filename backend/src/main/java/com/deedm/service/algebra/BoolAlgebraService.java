@@ -8,7 +8,8 @@ import com.deedm.legacy.graph.AbstractGraph;
 import com.deedm.legacy.setrelfun.PartialOrder;
 import com.deedm.legacy.setrelfun.Set;
 import com.deedm.legacy.util.GraphvizUtil;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -20,6 +21,8 @@ import java.util.Random;
 
 @Service
 public class BoolAlgebraService {
+
+    private static final Logger logger = LoggerFactory.getLogger(BoolAlgebraService.class);
 
     public BoolAlgebraResponse analyzeBooleanAlgebra(BoolAlgebraRequest request) {
         BoolAlgebraResponse response = new BoolAlgebraResponse();
@@ -53,7 +56,7 @@ public class BoolAlgebraService {
                         response.setHasseDiagramUrl(hasseDiagramUrl);
                     }
                 } catch (Exception e) {
-                    System.err.println("哈斯图生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate boolean algebra hasse diagram", e);
                     // 哈斯图生成失败不影响其他功能
                 }
             }
@@ -167,7 +170,7 @@ public class BoolAlgebraService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成哈斯图");
+                logger.warn("Graphviz unavailable for boolean algebra hasse diagram");
                 return null;
             }
 
@@ -193,12 +196,12 @@ public class BoolAlgebraService {
                 // 清理失败的文件
                 new java.io.File(dotFileName).delete();
                 new java.io.File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate boolean algebra hasse diagram: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成哈斯图失败: " + e.getMessage());
+            logger.warn("Failed to generate boolean algebra hasse diagram", e);
             return null;
         }
     }

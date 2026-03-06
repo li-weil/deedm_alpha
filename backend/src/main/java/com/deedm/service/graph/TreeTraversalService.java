@@ -5,12 +5,16 @@ import com.deedm.model.graph.TreeTraversalResponse;
 import com.deedm.legacy.graph.*;
 import com.deedm.legacy.setrelfun.Matrix;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
 public class TreeTraversalService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TreeTraversalService.class);
 
     public TreeTraversalResponse analyzeTree(TreeTraversalRequest request) {
         TreeTraversalResponse response = new TreeTraversalResponse();
@@ -71,7 +75,7 @@ public class TreeTraversalService {
                     response.setGraphImageUrl(treeImageUrl);
                 } catch (Exception e) {
                     // 图形生成失败不影响其他功能
-                    System.err.println("树形图生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate tree traversal image", e);
                 }
             }
 
@@ -205,7 +209,7 @@ public class TreeTraversalService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成树形可视化");
+                logger.warn("Graphviz unavailable for tree traversal visualization");
                 return null;
             }
 
@@ -236,12 +240,12 @@ public class TreeTraversalService {
                 // 清理失败的文件
                 new java.io.File(dotFileName).delete();
                 new java.io.File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate tree traversal visualization: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成树形可视化失败: " + e.getMessage());
+            logger.warn("Failed to generate tree traversal visualization", e);
             return null;
         }
     }

@@ -16,12 +16,16 @@ import com.deedm.legacy.proplogic.equiv.EquivCalculusStep;
 import com.deedm.legacy.proplogic.normalFormula.ExpandNFRecorder;
 import com.deedm.legacy.proplogic.normalFormula.ExpandNFStep;
 import com.deedm.legacy.setrelfun.SetrelfunUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
 public class PrincipalNormalFormService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PrincipalNormalFormService.class);
 
     /**
      * Calculate principal normal forms based on the request
@@ -265,7 +269,7 @@ public class PrincipalNormalFormService {
             return new PrincipalNormalFormResponse.CNFResult(finalCNF, pcnf, pdnf);
 
         } catch (Exception e) {
-            System.err.println("Error calculating CNF: " + e.getMessage());
+            logger.warn("Error calculating CNF", e);
             return new PrincipalNormalFormResponse.CNFResult(null, null, null);
         }
     }
@@ -299,7 +303,7 @@ public class PrincipalNormalFormService {
             return new PrincipalNormalFormResponse.DNFResult(finalDNF, pdnf, pcnf);
 
         } catch (Exception e) {
-            System.err.println("Error calculating DNF: " + e.getMessage());
+            logger.warn("Error calculating DNF", e);
             return new PrincipalNormalFormResponse.DNFResult(null, null, null);
         }
     }
@@ -323,7 +327,7 @@ public class PrincipalNormalFormService {
             return steps;
 
         } catch (Exception e) {
-            System.err.println("Error getting CNF calculation steps: " + e.getMessage());
+            logger.warn("Error getting CNF calculation steps", e);
             // Return basic steps if error occurs
             List<PrincipalNormalFormResponse.CalculationStep> steps = new ArrayList<>();
             steps.add(new PrincipalNormalFormResponse.CalculationStep(formula, "原始公式"));
@@ -376,7 +380,7 @@ public class PrincipalNormalFormService {
             return steps;
 
         } catch (Exception e) {
-            System.err.println("Error getting CNF expansion steps: " + e.getMessage());
+            logger.warn("Error getting CNF expansion steps", e);
             return new ArrayList<>();
         }
     }
@@ -424,7 +428,7 @@ public class PrincipalNormalFormService {
             return steps;
 
         } catch (Exception e) {
-            System.err.println("Error getting DNF expansion steps: " + e.getMessage());
+            logger.warn("Error getting DNF expansion steps", e);
             return new ArrayList<>();
         }
     }
@@ -448,7 +452,7 @@ public class PrincipalNormalFormService {
             return steps;
 
         } catch (Exception e) {
-            System.err.println("Error getting DNF calculation steps: " + e.getMessage());
+            logger.warn("Error getting DNF calculation steps", e);
             // Return basic steps if error occurs
             List<PrincipalNormalFormResponse.CalculationStep> steps = new ArrayList<>();
             steps.add(new PrincipalNormalFormResponse.CalculationStep(formula, "原始公式"));
@@ -470,7 +474,7 @@ public class PrincipalNormalFormService {
             return truthTable.createDetailedTruthTable();
 
         } catch (Exception e) {
-            System.err.println("Error generating truth table: " + e.getMessage());
+            logger.warn("Error generating truth table", e);
             return "Error: Unable to generate truth table - " + e.getMessage();
         }
     }

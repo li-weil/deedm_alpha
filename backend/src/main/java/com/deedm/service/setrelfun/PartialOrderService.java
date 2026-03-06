@@ -5,6 +5,8 @@ import com.deedm.model.setrelfun.PartialOrderResponse;
 import com.deedm.legacy.setrelfun.*;
 import com.deedm.legacy.graph.*;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -12,6 +14,8 @@ import java.util.*;
 
 @Service
 public class PartialOrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PartialOrderService.class);
 
     public PartialOrderResponse analyzePartialOrder(PartialOrderRequest request) {
         PartialOrderResponse response = new PartialOrderResponse();
@@ -77,7 +81,7 @@ public class PartialOrderService {
                     String graphImageUrl = generateRelationGraph(relationR, request.isIntTypeElement(), "RelationR");
                     response.setRelationGraphUrl(graphImageUrl);
                 } catch (Exception e) {
-                    System.err.println("生成关系图失败: " + e.getMessage());
+                    logger.warn("Failed to generate partial order relation graph", e);
                 }
             }
 
@@ -87,7 +91,7 @@ public class PartialOrderService {
                     String hasseImageUrl = generateHasseDiagram(partialOrder, request.isIntTypeElement(), "PartialOrder");
                     response.setHasseDiagramUrl(hasseImageUrl);
                 } catch (Exception e) {
-                    System.err.println("生成哈斯图失败: " + e.getMessage());
+                    logger.warn("Failed to generate partial order hasse diagram", e);
                 }
             }
 
@@ -375,7 +379,7 @@ public class PartialOrderService {
             }
 
         } catch (Exception e) {
-            System.err.println("生成关系图失败: " + e.getMessage());
+            logger.warn("Failed to generate partial order relation graph", e);
             return null;
         }
     }
@@ -407,7 +411,7 @@ public class PartialOrderService {
             }
 
         } catch (Exception e) {
-            System.err.println("生成哈斯图失败: " + e.getMessage());
+            logger.warn("Failed to generate partial order hasse diagram", e);
             return null;
         }
     }

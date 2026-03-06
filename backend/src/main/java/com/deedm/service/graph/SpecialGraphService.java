@@ -4,6 +4,8 @@ import com.deedm.model.graph.SpecialGraphRequest;
 import com.deedm.model.graph.SpecialGraphResponse;
 import com.deedm.legacy.graph.*;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -12,6 +14,8 @@ import java.util.List;
 
 @Service
 public class SpecialGraphService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SpecialGraphService.class);
 
     public SpecialGraphResponse generateSpecialGraphs(SpecialGraphRequest request) {
         SpecialGraphResponse response = new SpecialGraphResponse();
@@ -79,7 +83,7 @@ public class SpecialGraphService {
             result.setImageUrl(imageUrl);
 
         } catch (Exception e) {
-            System.err.println("生成完全图失败: " + e.getMessage());
+            logger.warn("Failed to generate complete graph", e);
             result.setGenerated(false);
         }
 
@@ -102,7 +106,7 @@ public class SpecialGraphService {
             result.setImageUrl(imageUrl);
 
         } catch (Exception e) {
-            System.err.println("生成圈图失败: " + e.getMessage());
+            logger.warn("Failed to generate cycle graph", e);
             result.setGenerated(false);
         }
 
@@ -125,7 +129,7 @@ public class SpecialGraphService {
             result.setImageUrl(imageUrl);
 
         } catch (Exception e) {
-            System.err.println("生成轮图失败: " + e.getMessage());
+            logger.warn("Failed to generate wheel graph", e);
             result.setGenerated(false);
         }
 
@@ -148,7 +152,7 @@ public class SpecialGraphService {
             result.setImageUrl(imageUrl);
 
         } catch (Exception e) {
-            System.err.println("生成超立方体图失败: " + e.getMessage());
+            logger.warn("Failed to generate hypercube graph", e);
             result.setGenerated(false);
         }
 
@@ -171,7 +175,7 @@ public class SpecialGraphService {
             result.setImageUrl(imageUrl);
 
         } catch (Exception e) {
-            System.err.println("生成完全二分图失败: " + e.getMessage());
+            logger.warn("Failed to generate complete bipartite graph", e);
             result.setGenerated(false);
         }
 
@@ -182,7 +186,7 @@ public class SpecialGraphService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成图形可视化");
+                logger.warn("Graphviz unavailable for special graph visualization");
                 return null;
             }
 
@@ -207,12 +211,12 @@ public class SpecialGraphService {
                 // 清理失败的文件
                 new java.io.File(dotFileName).delete();
                 new java.io.File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate special graph visualization: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成特殊图图形可视化失败: " + e.getMessage());
+            logger.warn("Failed to generate special graph visualization", e);
             return null;
         }
     }

@@ -10,7 +10,8 @@ import com.deedm.legacy.setrelfun.OrderedPair;
 import com.deedm.legacy.algebra.Lattice;
 import com.deedm.legacy.graph.AbstractGraph;
 import com.deedm.legacy.util.GraphvizUtil;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -20,6 +21,8 @@ import java.util.List;
 
 @Service
 public class LatticeJudgeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(LatticeJudgeService.class);
 
     public LatticeJudgeResponse judgeLattice(LatticeJudgeRequest request) {
         LatticeJudgeResponse response = new LatticeJudgeResponse();
@@ -55,24 +58,13 @@ public class LatticeJudgeService {
 
             // 如果使用哈斯图输入，计算传递和自反闭包
             if (request.isUseHasseDiagram()) {
-                System.out.println("=== 哈斯图处理前 ===");
-                System.out.println("原始关系: " + relationR.toString());
                 relationR = relationR.transitiveClosureByWarshallAlgorithm();
-                System.out.println("传递闭包后: " + relationR.toString());
                 relationR = relationR.reflexiveClosure();
-                System.out.println("自反闭包后: " + relationR.toString());
-                System.out.println("=== 哈斯图处理完成 ===");
             }
 
             // 判断是否为偏序关系
             boolean isPartialOrder = checkPartialOrder(relationR, request.isUseHasseDiagram(), request.isIntTypeElement(), response);
             response.setPartialOrder(isPartialOrder);
-
-            // 添加调试信息 - 检查响应设置
-            System.out.println("=== 响应设置调试信息 ===");
-            System.out.println("isPartialOrder设置值: " + isPartialOrder);
-            System.out.println("response.isPartialOrder()返回值: " + response.isPartialOrder());
-            System.out.println("=== 响应设置调试信息结束 ===");
 
             if (!isPartialOrder) {
                 response.setLattice(false);
@@ -208,16 +200,9 @@ public class LatticeJudgeService {
     }
 
     private boolean checkPartialOrder(Relation relation, boolean useHasse, boolean isIntElement, LatticeJudgeResponse response) {
-        // 添加调试信息
-        System.out.println("=== 偏序关系检查调试信息 ===");
-        System.out.println("使用哈斯图: " + useHasse);
-        System.out.println("关系内容: " + relation.toString());
-        System.out.println("关系元素数量: " + (relation.getPairs() != null ? relation.getPairs().length : 0));
-
         // 检查自反性（如果不是哈斯图输入）
         if (!useHasse) {
             boolean isReflexive = relation.isReflexive();
-            System.out.println("自反性检查结果: " + isReflexive);
             if (!isReflexive) {
                 OrderedPair exampleOne = Relation.getExampleOne();
                 response.setPartialOrderReason("关系不是自反的");
@@ -228,7 +213,6 @@ public class LatticeJudgeService {
 
         // 检查反对称性
         boolean isAntisymmetric = relation.isAntisymmetric();
-        System.out.println("反对称性检查结果: " + isAntisymmetric);
         if (!isAntisymmetric) {
             OrderedPair exampleOne = Relation.getExampleOne();
             OrderedPair exampleTwo = Relation.getExampleTwo();
@@ -242,7 +226,6 @@ public class LatticeJudgeService {
         // 检查传递性（如果不是哈斯图输入）
         if (!useHasse) {
             boolean isTransitive = relation.isTransitive();
-            System.out.println("传递性检查结果: " + isTransitive);
             if (!isTransitive) {
                 OrderedPair exampleOne = Relation.getExampleOne();
                 OrderedPair exampleTwo = Relation.getExampleTwo();
@@ -254,18 +237,15 @@ public class LatticeJudgeService {
             }
         }
 
-        System.out.println("偏序关系检查通过: 是偏序关系");
         response.setPartialOrderReason("满足自反性、反对称性和传递性");
         return true;
     }
 
     private String generateHasseDiagram(Set setA, Relation relation, boolean isIntElement) {
         try {
-            System.out.println("=== 哈斯图生成调试信息 ===");
-
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.out.println("Graphviz不可用，无法生成哈斯图");
+                logger.warn("Graphviz unavailable for lattice judge hasse diagram");
                 return null;
             }
 
@@ -281,14 +261,8 @@ public class LatticeJudgeService {
             // 确保目录存在
             File dataDir = new File(dataPath);
             if (!dataDir.exists()) {
-                boolean created = dataDir.mkdirs();
-                System.out.println("创建数据目录: " + dataPath + ", 结果: " + created);
+                dataDir.mkdirs();
             }
-
-            System.out.println("数据路径: " + dataPath);
-            System.out.println("DOT文件名: " + dotFileName);
-            System.out.println("PNG文件名: " + pngFileName);
-            System.out.println("图片URL: " + imageUrl);
 
             // 写入DOT文件
             try (PrintWriter writer = new PrintWriter(dotFileName, "UTF-8")) {
@@ -296,36 +270,24 @@ public class LatticeJudgeService {
                 graph.simplyWriteToDotFile(writer);
             }
 
-            System.out.println("DOT文件写入完成");
-
             // 使用GraphvizUtil生成PNG文件
             boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, false);
-            System.out.println("PNG生成结果: " + success);
-            System.out.println("错误信息: " + GraphvizUtil.errorMessage);
-
             File pngFile = new File(pngFileName);
-            System.out.println("PNG文件是否存在: " + pngFile.exists());
-            System.out.println("PNG文件绝对路径: " + pngFile.getAbsolutePath());
 
             if (success && pngFile.exists()) {
                 // 删除DOT文件，保留PNG文件
                 new File(dotFileName).delete();
-                System.out.println("返回图片URL: " + imageUrl);
-                System.out.println("=== 哈斯图生成调试信息结束 ===");
                 return imageUrl;
             } else {
                 // 清理失败的文件
                 new File(dotFileName).delete();
                 new File(pngFileName).delete();
-                System.out.println("哈斯图生成失败，已清理临时文件");
+                logger.warn("Failed to generate lattice judge hasse diagram: {}", GraphvizUtil.errorMessage);
                 return null;
             }
         } catch (Exception e) {
-            // 记录错误但不影响主要功能
-            System.err.println("生成哈斯图失败: " + e.getMessage());
-            e.printStackTrace();
+            logger.warn("Failed to generate lattice judge hasse diagram", e);
         }
-        System.out.println("=== 哈斯图生成调试信息结束 ===");
         return null;
     }
 }

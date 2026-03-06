@@ -5,6 +5,8 @@ import com.deedm.model.graph.GraphTravelResponse;
 import com.deedm.legacy.graph.*;
 import com.deedm.legacy.setrelfun.Matrix;
 import com.deedm.legacy.util.GraphvizUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.PrintWriter;
@@ -12,6 +14,8 @@ import java.util.*;
 
 @Service
 public class GraphTravelService {
+
+    private static final Logger logger = LoggerFactory.getLogger(GraphTravelService.class);
 
     public GraphTravelResponse analyzeGraph(GraphTravelRequest request) {
         GraphTravelResponse response = new GraphTravelResponse();
@@ -45,7 +49,7 @@ public class GraphTravelService {
                     response.setGraphImageUrl(graphImageUrl);
                 } catch (Exception e) {
                     // 图形生成失败不影响其他功能
-                    System.err.println("图形生成失败: " + e.getMessage());
+                    logger.warn("Failed to generate graph travel image", e);
                 }
             }
 
@@ -232,7 +236,7 @@ public class GraphTravelService {
         try {
             // 检查Graphviz是否可用
             if (!GraphvizUtil.isGraphvizAvailable()) {
-                System.err.println("Graphviz不可用，无法生成图形可视化");
+                logger.warn("Graphviz unavailable for graph travel visualization");
                 return null;
             }
 
@@ -257,12 +261,12 @@ public class GraphTravelService {
                 // 清理失败的文件
                 new java.io.File(dotFileName).delete();
                 new java.io.File(pngFileName).delete();
-                System.err.println("Graphviz生成失败: " + GraphvizUtil.errorMessage);
+                logger.warn("Graphviz failed to generate graph travel visualization: {}", GraphvizUtil.errorMessage);
                 return null;
             }
 
         } catch (Exception e) {
-            System.err.println("生成图形可视化失败: " + e.getMessage());
+            logger.warn("Failed to generate graph travel visualization", e);
             return null;
         }
     }
