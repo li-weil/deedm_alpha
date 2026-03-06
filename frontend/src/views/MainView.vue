@@ -715,21 +715,72 @@ const clearLatexCode = () => {
   ElMessage.success('LaTeX代码已清空')
 }
 
+const SAFE_IMAGE_FILENAME_REGEX = /^[A-Za-z0-9._-]+\.(png|dot)$/i
+
+const tryCollectFilenameFromString = (value, fileSet) => {
+  if (typeof value !== 'string' || !value.includes('/')) {
+    return
+  }
+
+  const withoutQuery = value.split('?')[0].split('#')[0]
+  const segments = withoutQuery.split('/')
+  const lastSegment = segments[segments.length - 1]
+
+  if (SAFE_IMAGE_FILENAME_REGEX.test(lastSegment)) {
+    fileSet.add(lastSegment)
+  }
+}
+
+const collectImageFilenames = (value, fileSet, visited) => {
+  if (value == null) return
+
+  if (typeof value === 'string') {
+    tryCollectFilenameFromString(value, fileSet)
+    return
+  }
+
+  if (typeof value !== 'object') {
+    return
+  }
+
+  if (visited.has(value)) {
+    return
+  }
+  visited.add(value)
+
+  if (Array.isArray(value)) {
+    value.forEach(item => collectImageFilenames(item, fileSet, visited))
+    return
+  }
+
+  Object.values(value).forEach(item => collectImageFilenames(item, fileSet, visited))
+}
+
 // 清理后端data目录
 const cleanupBackendData = async () => {
   try {
+    const fileSet = new Set()
+    collectImageFilenames(formulaResults.value, fileSet, new WeakSet())
+    const filenames = Array.from(fileSet)
+
+    if (filenames.length === 0) {
+      console.log('未检测到需要清理的后端图片文件')
+      return
+    }
+
     const baseUrl = window.location.origin
     const response = await fetch(`${baseUrl}/api/cleanup/data`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ filenames }),
     })
 
     const result = await response.json()
 
     if (result.success) {
-      console.log(`清理了 ${result.deletedCount} 个数据文件`)
+      console.log(`清理了 ${result.deletedCount} 个数据文件，请求 ${result.requestedCount} 个`)
     } else {
       console.warn('后端数据清理失败:', result.message)
     }

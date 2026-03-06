@@ -1,6 +1,7 @@
 server:
   address: 0.0.0.0
   port: 8080
+  forward-headers-strategy: framework
   servlet:
     context-path: /api
 
@@ -33,11 +34,16 @@ spring:
 
 # Logging configuration
 logging:
+  file:
+    name: ./logs/deedm-backend.log
   level:
     com.deedm: INFO
     org.springframework.web: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+audit:
+  enabled: true
 
 # Application configuration
 deedm:
