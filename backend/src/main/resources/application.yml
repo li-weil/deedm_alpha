@@ -1,5 +1,5 @@
 server:
-  address: 0.0.0.0
+  address: 127.0.0.1
   port: 8080
   forward-headers-strategy: framework
   servlet:
@@ -11,14 +11,18 @@ spring:
 
   # Database configuration
   datasource:
-    url: jdbc:h2:file:/opt/deedm/db/deedm_db;DB_CLOSE_DELAY=-1 # 数据持久化到磁盘
+  # 单机部署使用 H2 文件模式，数据库文件位于 /opt/deedm/data/deedm.mv.db
+  # 当前架构是“多个客户端 -> 一个 Spring Boot 进程 -> 一个 H2 文件库”
+  # 因此不需要 AUTO_SERVER=TRUE；它主要用于多个独立进程同时打开同一个 H2 文件
+    url: jdbc:h2:file:/opt/deedm/data/deedm
     driver-class-name: org.h2.Driver
     username: sa
-    password:
+    password: "ENC(GC1RBSC9zFRC5Opq4bXAVRRN5P821xdzFpUcQEHFlhk=)"
 
   # JPA configuration
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
     hibernate:
       ddl-auto: update
     show-sql: false
@@ -26,13 +30,22 @@ spring:
       hibernate:
         format_sql: true
 
-  # H2 Console configuration
+  # H2 Console configuration,close console
   h2:
     console:
       enabled: false
       path: /h2-console
 
-# Logging configuration
+jasypt:
+  encryptor:
+    # Align with ~/encrypt/src/main/java/com/example/CipherGeneratorApp.java.
+    # The current datasource password ciphertext uses the legacy
+    # PBEWithMD5AndDES format with base64 output and no IV.
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+    string-output-type: base64
+
+# Logging configuration,DEBUG->INFO
 logging:
   file:
     name: ./logs/deedm-backend.log
