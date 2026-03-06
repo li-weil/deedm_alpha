@@ -84,7 +84,6 @@ public class EquivalenceController {
         try {
             // 安全检查：允许RelationR_和RelationRequivclo_开头的文件
             if (!filename.matches("(RelationR|RelationRequivclo)_[a-f0-9]+\\.png")) {
-                System.out.println("EquivalenceController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

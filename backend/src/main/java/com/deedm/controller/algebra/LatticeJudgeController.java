@@ -28,13 +28,6 @@ public class LatticeJudgeController {
         try {
             LatticeJudgeResponse response = latticeJudgeService.judgeLattice(request);
 
-            // 添加调试信息 - 检查最终响应
-            System.out.println("=== Controller最终响应调试信息 ===");
-            System.out.println("response.success: " + response.isSuccess());
-            System.out.println("response.isPartialOrder: " + response.isPartialOrder());
-            System.out.println("response.partialOrderReason: " + response.getPartialOrderReason());
-            System.out.println("=== Controller最终响应调试信息结束 ===");
-
             if (response.isSuccess()) {
                 return ResponseEntity.ok(response);
             } else {
@@ -111,13 +104,11 @@ public class LatticeJudgeController {
         try {
             // 安全检查：只允许HASSE_开头的哈斯图文件
             if (!filename.matches("HASSE_[a-f0-9]+\\.png")) {
-                System.out.println("LatticeJudgeController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 
             File imageFile = new File("./data/" + filename);
             if (!imageFile.exists() || !imageFile.isFile()) {
-                System.out.println("LatticeJudgeController: 文件不存在: " + imageFile.getAbsolutePath());
                 return ResponseEntity.notFound().build();
             }
 
@@ -129,7 +120,6 @@ public class LatticeJudgeController {
                     .body(resource);
 
         } catch (Exception e) {
-            System.err.println("LatticeJudgeController: 获取哈斯图图片失败: " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }

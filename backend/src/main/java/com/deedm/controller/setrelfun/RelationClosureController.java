@@ -84,7 +84,6 @@ public class RelationClosureController {
         try {
             // 安全检查：允许Relation_开头的关系图文件
             if (!filename.matches("Relation_[a-f0-9]+\\.png")) {
-                System.out.println("RelationClosureController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

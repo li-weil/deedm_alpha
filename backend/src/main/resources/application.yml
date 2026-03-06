@@ -44,6 +44,12 @@ logging:
 
 audit:
   enabled: true
+  abuse:
+    enabled: true
+    threshold-per-minute: 120
+  retention:
+    days: 180
+    cron: "0 30 2 * * *"
 
 # Application configuration
 deedm:

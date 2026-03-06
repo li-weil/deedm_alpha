@@ -45,7 +45,6 @@ public class SpecialGraphController {
         try {
             // 安全检查：只允许Special_开头的特殊图文件
             if (!filename.matches("Special_[a-zA-Z]+_[a-f0-9]+\\.png")) {
-                System.out.println("SpecialGraphController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

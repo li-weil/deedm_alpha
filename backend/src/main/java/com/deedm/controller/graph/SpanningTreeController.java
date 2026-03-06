@@ -84,7 +84,6 @@ public class SpanningTreeController {
         try {
             // 安全检查：允许WeightedGraph_、KruskalTree_、PrimTree_开头的文件
             if (!filename.matches("(WeightedGraph|KruskalTree|PrimTree)_[0-9]+\\.png")) {
-                System.out.println("SpanningTreeController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

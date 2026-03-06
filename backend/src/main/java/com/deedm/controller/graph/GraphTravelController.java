@@ -85,7 +85,6 @@ public class GraphTravelController {
             // 安全检查：允许GRAPH_开头的图遍历文件和ShortestPath_、GraphVisualization_开头的最短路径文件
             if (!filename.matches("GRAPH_[a-f0-9]+\\.png") &&
                 !filename.matches("(ShortestPath|GraphVisualization)_[0-9]+\\.png")) {
-                System.out.println("GraphTravelController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

@@ -45,7 +45,6 @@ public class RelationOperationController {
         try {
             // 安全检查：允许RelationR_或RelationS_开头的文件
             if (!filename.matches("(RelationR_|RelationS_)[a-zA-Z0-9]+\\.png")) {
-                System.out.println("RelationOperationController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

@@ -88,7 +88,6 @@ public class PartialOrderController {
         try {
             // 安全检查：允许PartialOrder_和RelationR_开头的文件
             if (!filename.matches("(PartialOrder|RelationR)_[a-f0-9]+\\.png")) {
-                System.out.println("PartialOrderController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

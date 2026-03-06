@@ -3,7 +3,10 @@ package com.deedm.service.graph;
 import com.deedm.model.graph.HuffmanTreeRequest;
 import com.deedm.model.graph.HuffmanTreeResponse;
 import com.deedm.legacy.graph.*;
+import com.deedm.legacy.util.GraphvizUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -12,6 +15,7 @@ import java.util.*;
 
 @Service
 public class HuffmanTreeService {
+    private static final Logger logger = LoggerFactory.getLogger(HuffmanTreeService.class);
 
     public HuffmanTreeResponse constructHuffmanTree(HuffmanTreeRequest request) {
         HuffmanTreeResponse response = new HuffmanTreeResponse();
@@ -158,12 +162,12 @@ public class HuffmanTreeService {
 
                     steps.add(new HuffmanTreeResponse.HuffmanStep(step, nodeString, forestImageUrl, prompt));
                 } catch (Exception e) {
-                    System.err.println("生成步骤图片失败: " + e.getMessage());
+                    logger.warn("生成步骤图片失败: {}", e.getMessage());
                     steps.add(new HuffmanTreeResponse.HuffmanStep(step, nodeString, null, prompt));
                 }
             }
         } catch (Exception e) {
-            System.err.println("处理算法步骤时发生错误: " + e.getMessage());
+            logger.warn("处理算法步骤时发生错误: {}", e.getMessage());
         }
 
         return steps;
@@ -183,7 +187,7 @@ public class HuffmanTreeService {
                 }
             }
         } catch (Exception e) {
-            System.err.println("生成Huffman树图片失败: " + e.getMessage());
+            logger.warn("生成Huffman树图片失败: {}", e.getMessage());
         }
         return null;
     }
@@ -196,25 +200,22 @@ public class HuffmanTreeService {
                 leafCodes.put(leafs[i].getLabel(), codes[i]);
             }
         } catch (Exception e) {
-            System.err.println("处理叶节点编码时发生错误: " + e.getMessage());
+            logger.warn("处理叶节点编码时发生错误: {}", e.getMessage());
         }
         return leafCodes;
     }
 
     private boolean generatePNGFile(String dotFileName, String pngFileName, boolean removeDotFile) {
         try {
-            // 这里需要调用GraphViz的dot命令来生成图片
-            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", dotFileName, "-o", pngFileName);
-            Process process = pb.start();
-            int exitCode = process.waitFor();
+            boolean success = GraphvizUtil.generatePNGFile(dotFileName, pngFileName, true);
 
             if (removeDotFile) {
                 new File(dotFileName).delete();
             }
 
-            return exitCode == 0;
+            return success;
         } catch (Exception e) {
-            System.err.println("生成PNG文件失败: " + e.getMessage());
+            logger.warn("生成PNG文件失败: {}", e.getMessage());
             return false;
         }
     }

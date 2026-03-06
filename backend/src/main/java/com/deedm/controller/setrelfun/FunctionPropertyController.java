@@ -100,7 +100,6 @@ public class FunctionPropertyController {
         try {
             // 安全检查：只允许FunctionF_开头的文件
             if (!filename.matches("FunctionF_[a-f0-9]+\\.png")) {
-                System.out.println("FunctionPropertyController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

@@ -86,7 +86,6 @@ public class ShortestPathController {
         try {
             // 安全检查：允许GraphVisualization_和ShortestPath_开头的文件
             if (!filename.matches("(GraphVisualization|ShortestPath)_[0-9]+\\.png")) {
-                System.out.println("ShortestPathController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

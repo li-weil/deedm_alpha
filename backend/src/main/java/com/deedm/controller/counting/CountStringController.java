@@ -4,6 +4,8 @@ import com.deedm.model.counting.CountStringRequest;
 import com.deedm.model.counting.CountStringResponse;
 import com.deedm.service.counting.CountStringService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 @RequestMapping("/count-string")
 @CrossOrigin(origins = "*")
 public class CountStringController {
+    private static final Logger logger = LoggerFactory.getLogger(CountStringController.class);
 
     @Autowired
     private CountStringService countStringService;
@@ -35,7 +38,7 @@ public class CountStringController {
                 try {
                     outputOption = CountStringRequest.OutputOption.valueOf(outputOptionStr);
                 } catch (IllegalArgumentException e) {
-                    System.out.println("无效的输出选项: " + outputOptionStr + ", 使用默认值");
+                    logger.debug("Unsupported outputOption '{}', fallback to ONLY_RESULT", outputOptionStr);
                     outputOption = CountStringRequest.OutputOption.ONLY_RESULT;
                 }
             }
@@ -75,7 +78,7 @@ public class CountStringController {
                                     CountStringRequest.SubstringFilter.SubstringType.valueOf(typeStr);
                                 substringFilter.setType(type);
                             } catch (IllegalArgumentException e) {
-                                System.out.println("无效的子串类型: " + typeStr);
+                                logger.debug("Unsupported substring type '{}', ignore this field", typeStr);
                             }
                         }
 
@@ -92,39 +95,6 @@ public class CountStringController {
             @SuppressWarnings("unchecked")
             List<String> logicOperators = (List<String>) requestMap.get("logicOperators");
             request.setLogicOperators(logicOperators);
-
-            // 添加调试信息
-            System.out.println("=== 接收到的请求数据 ===");
-            System.out.println("基集: " + request.getBaseSet());
-            System.out.println("长度: " + request.getLength());
-            System.out.println("允许重复: " + request.isAllowRepetition());
-            System.out.println("输出选项字符串: " + outputOptionStr);
-            System.out.println("输出选项枚举: " + request.getOutputOption());
-            System.out.println("过滤条件数量: " + (filterConditions != null ? filterConditions.size() : 0));
-
-            if (filterConditions != null && !filterConditions.isEmpty()) {
-                for (int i = 0; i < filterConditions.size(); i++) {
-                    CountStringRequest.StringFilterCondition condition = filterConditions.get(i);
-                    System.out.println("  条件" + (i+1) + ":");
-
-                    if (condition.getLocationFilter() != null) {
-                        CountStringRequest.LocationFilter loc = condition.getLocationFilter();
-                        System.out.println("    位置过滤器: 位置" + loc.getPosition() +
-                                         ", " + (loc.isAppear() ? "必须" : "不能") +
-                                         " 包含字符: " + loc.getChars());
-                    }
-
-                    if (condition.getSubstringFilter() != null) {
-                        CountStringRequest.SubstringFilter sub = condition.getSubstringFilter();
-                        System.out.println("    子串过滤器: 类型" + sub.getType() +
-                                         ", 数量" + sub.getNumber() +
-                                         ", 子串: " + sub.getSubstrings());
-                    }
-                }
-            }
-
-            System.out.println("逻辑操作符: " + request.getLogicOperators());
-            System.out.println("========================");
 
             CountStringResponse response = countStringService.countStrings(request);
             return response;

@@ -81,7 +81,6 @@ public class BoolAlgebraController {
         try {
             // 安全检查：只允许HASSE_开头的哈斯图文件
             if (!filename.matches("HASSE_[a-f0-9]+\\.png")) {
-                System.out.println("BoolAlgebraController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

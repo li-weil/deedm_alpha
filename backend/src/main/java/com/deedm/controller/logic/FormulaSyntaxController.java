@@ -22,23 +22,16 @@ public class FormulaSyntaxController {
 
     @PostMapping("/analyze")
     public ResponseEntity<Map<String, Object>> analyzeFormula(@RequestBody Map<String, String> request) {
-        System.out.println("FormulaSyntaxController: 收到分析请求");
-        System.out.println("FormulaSyntaxController: 请求参数: " + request);
 
         String latexFormula = request.get("formula");
-        System.out.println("FormulaSyntaxController: 提取的公式: " + latexFormula);
 
         if (latexFormula == null || latexFormula.trim().isEmpty()) {
-            System.out.println("FormulaSyntaxController: 公式为空，返回错误");
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Formula cannot be empty"));
         }
 
-        System.out.println("FormulaSyntaxController: 调用服务分析公式");
         Map<String, Object> result = formulaSyntaxService.analyzeFormula(latexFormula);
-        System.out.println("FormulaSyntaxController: 服务返回结果: " + result);
 
         ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(result);
-        System.out.println("FormulaSyntaxController: 返回响应");
         return response;
     }
 
@@ -89,7 +82,6 @@ public class FormulaSyntaxController {
         try {
             // 安全检查：只允许特定的文件名格式
             if (!filename.matches("AST_[a-f0-9-]+\\.png")) {
-                System.out.println("FormulaSyntaxController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 

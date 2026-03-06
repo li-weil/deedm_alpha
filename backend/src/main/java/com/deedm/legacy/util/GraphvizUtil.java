@@ -3,7 +3,6 @@ package com.deedm.legacy.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -14,6 +13,15 @@ import java.nio.file.Paths;
 public class GraphvizUtil {
 
     public static String errorMessage = null;
+    private static volatile CommandAuditHook commandAuditHook;
+
+    public interface CommandAuditHook {
+        void onCommandExecuted(String command, String args, int exitCode, long durationMs, String error);
+    }
+
+    public static void setCommandAuditHook(CommandAuditHook hook) {
+        commandAuditHook = hook;
+    }
 
     /**
      * 调用dot命令生成PNG文件
@@ -28,6 +36,7 @@ public class GraphvizUtil {
         final String layout = isTree ? "dot" : "dot"; // 对于AST都使用dot布局
 
         String[] args = { dotProgram, "-K" + layout, "-T" + graphFileFormat, dotFileName, "-o", pngFileName };
+        long start = System.currentTimeMillis();
 
         try {
             ProcessBuilder pb = new ProcessBuilder(args);
@@ -44,25 +53,31 @@ public class GraphvizUtil {
             }
 
             int exitCode = process.waitFor();
+            long durationMs = System.currentTimeMillis() - start;
             if (exitCode != 0) {
                 errorMessage = "Graphviz execution failed with exit code " + exitCode + "\nOutput: " + output.toString();
+                notifyCommandAudit(dotProgram, String.join(" ", args), exitCode, durationMs, errorMessage);
                 return false;
             }
 
             // 检查输出文件是否存在
             if (!Files.exists(Paths.get(pngFileName))) {
                 errorMessage = "Output file was not created: " + pngFileName;
+                notifyCommandAudit(dotProgram, String.join(" ", args), exitCode, durationMs, errorMessage);
                 return false;
             }
 
+            notifyCommandAudit(dotProgram, String.join(" ", args), exitCode, durationMs, null);
             return true;
 
         } catch (InterruptedException exc) {
             Thread.currentThread().interrupt();
             errorMessage = "Graphviz execution was interrupted: " + exc.getMessage();
+            notifyCommandAudit(dotProgram, String.join(" ", args), -1, System.currentTimeMillis() - start, errorMessage);
             return false;
         } catch (IOException exc) {
             errorMessage = "IO error during Graphviz execution: " + exc.getMessage();
+            notifyCommandAudit(dotProgram, String.join(" ", args), -1, System.currentTimeMillis() - start, errorMessage);
             return false;
         }
     }
@@ -72,13 +87,29 @@ public class GraphvizUtil {
      * @return Graphviz是否可用
      */
     public static boolean isGraphvizAvailable() {
+        long start = System.currentTimeMillis();
         try {
             ProcessBuilder pb = new ProcessBuilder("dot", "-V");
             pb.redirectErrorStream(true);
             Process process = pb.start();
-            return process.waitFor() == 0;
+            int exitCode = process.waitFor();
+            notifyCommandAudit("dot", "dot -V", exitCode, System.currentTimeMillis() - start, exitCode == 0 ? null : "dot -V failed");
+            return exitCode == 0;
         } catch (Exception e) {
+            notifyCommandAudit("dot", "dot -V", -1, System.currentTimeMillis() - start, e.getMessage());
             return false;
+        }
+    }
+
+    private static void notifyCommandAudit(String command, String args, int exitCode, long durationMs, String error) {
+        CommandAuditHook hook = commandAuditHook;
+        if (hook == null) {
+            return;
+        }
+        try {
+            hook.onCommandExecuted(command, args, exitCode, durationMs, error);
+        } catch (Exception ignored) {
+            // 审计失败不影响主流程
         }
     }
 }

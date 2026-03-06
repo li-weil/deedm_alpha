@@ -84,7 +84,6 @@ public class TreeTraversalController {
         try {
             // 安全检查：只允许特定的文件名格式
             if (!filename.matches("TREE_[a-f0-9]+\\.png")) {
-                System.out.println("TreeTraversalController: 文件名格式不匹配: " + filename);
                 return ResponseEntity.badRequest().build();
             }
 
