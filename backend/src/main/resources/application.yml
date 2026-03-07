@@ -74,6 +74,16 @@ file:
 
 # Application configuration
 deedm:
+  validation:
+    enabled: true
+    max-request-bytes: 65536
+    default-max-string-length: 1024
+    extended-max-string-length: 4096
+    filename-max-length: 128
+    max-collection-size: 200
+    max-map-entries: 200
+    max-object-depth: 8
+
   # CORS configuration
   cors:
     allowed-origins: "127.0.0.1"
