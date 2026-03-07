@@ -120,6 +120,7 @@ public class ApiAuditAspect {
                 payloadSummary.size(),
                 resourceKey,
                 null,
+                null,
                 success,
                 errorMessage
             );
@@ -156,6 +157,7 @@ public class ApiAuditAspect {
             sourceRecord.getPayloadSize(),
             sourceRecord.getResourceKey(),
             abuseResult.threshold(),
+            null,
             false,
             "request-count=" + abuseResult.count()
         );

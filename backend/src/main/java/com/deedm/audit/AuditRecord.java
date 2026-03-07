@@ -19,6 +19,7 @@ public class AuditRecord {
     private final Integer payloadSize;
     private final String resourceKey;
     private final Integer threshold;
+    private final String recordHash;
     private final boolean success;
     private final String errorMessage;
 
@@ -38,6 +39,7 @@ public class AuditRecord {
                        Integer payloadSize,
                        String resourceKey,
                        Integer threshold,
+                       String recordHash,
                        boolean success,
                        String errorMessage) {
         this.createdAt = createdAt;
@@ -56,6 +58,7 @@ public class AuditRecord {
         this.payloadSize = payloadSize;
         this.resourceKey = resourceKey;
         this.threshold = threshold;
+        this.recordHash = recordHash;
         this.success = success;
         this.errorMessage = errorMessage;
     }
@@ -122,6 +125,10 @@ public class AuditRecord {
 
     public Integer getThreshold() {
         return threshold;
+    }
+
+    public String getRecordHash() {
+        return recordHash;
     }
 
     public boolean isSuccess() {

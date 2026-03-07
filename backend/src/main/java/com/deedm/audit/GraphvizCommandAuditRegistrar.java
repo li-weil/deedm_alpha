@@ -73,6 +73,7 @@ public class GraphvizCommandAuditRegistrar {
             payloadSize,
             command,
             null,
+            null,
             success,
             truncateError(error == null ? null : "exitCode=" + exitCode + "; " + error)
         );

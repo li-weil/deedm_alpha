@@ -60,6 +60,7 @@ public class AuditRetentionCleanupTask {
             0,
             "audit_log_retention",
             retentionDays,
+            null,
             true,
             "deleted=" + deletedCount
         );

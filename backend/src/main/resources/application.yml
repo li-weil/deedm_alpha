@@ -57,6 +57,8 @@ logging:
 
 audit:
   enabled: true
+  integrity:
+    secret: "${AUDIT_INTEGRITY_SECRET:}"
   abuse:
     enabled: true
     threshold-per-minute: 120
