@@ -64,6 +64,12 @@ audit:
     days: 180
     cron: "0 30 2 * * *"
 
+file:
+  cleanup:
+    enabled: true
+    max-age-hours: 24
+    cron: "0 0 * * * *"
+
 # Application configuration
 deedm:
   # CORS configuration
